@@ -1,148 +1,120 @@
-# Islo Go Library
+# Islo Go SDK
 
 [![fern shield](https://img.shields.io/badge/%F0%9F%8C%BF-Built%20with%20Fern-brightgreen)](https://buildwithfern.com?utm_source=github&utm_medium=github&utm_campaign=readme&utm_source=https%3A%2F%2Fgithub.com%2Fislo-labs%2Fgo-sdk)
 
-The Islo Go library provides convenient access to the Islo APIs from Go.
+Official Go SDK for the [Islo](https://islo.dev) sandbox platform.
 
-## Table of Contents
+## Install
 
-- [Usage](#usage)
-- [Environments](#environments)
-- [Errors](#errors)
-- [Request Options](#request-options)
-- [Advanced](#advanced)
-  - [Retries](#retries)
-  - [Timeouts](#timeouts)
-- [Contributing](#contributing)
+```bash
+go get github.com/islo-labs/go-sdk
+```
 
 ## Usage
 
-Instantiate and use the client with the following:
+Pass an Islo API key (or set `ISLO_API_KEY`) and `client.NewIslo` returns a client that automatically exchanges the key for a session JWT and refreshes it before expiry.
 
 ```go
-package example
+package main
 
 import (
-    client "github.com/islo-labs/go-sdk/client"
-    option "github.com/islo-labs/go-sdk/option"
-    context "context"
-    go "github.com/islo-labs/go-sdk"
+    "context"
+    "fmt"
+
+    api "github.com/islo-labs/go-sdk"
+    "github.com/islo-labs/go-sdk/client"
+    "github.com/islo-labs/go-sdk/option"
 )
 
-func do() () {
-    client := client.NewClient(
-        option.WithAPIKey(
-            "<token>",
-        ),
-    )
-    client.Sandboxes.CreateSandbox(
-        context.TODO(),
-        &go.SandboxCreate{},
-    )
+func main() {
+    c := client.NewIslo(option.WithAPIKey("ak_..."))
+    ctx := context.Background()
+
+    sb, err := c.Sandboxes.CreateSandbox(ctx, &api.SandboxCreate{
+        Name:  api.String("my-sandbox"),
+        Image: api.String("python:3.12-slim"),
+    })
+    if err != nil {
+        panic(err)
+    }
+
+    res, err := c.Sandboxes.ExecInSandbox(ctx, &api.ExecInSandboxRequest{
+        SandboxName: sb.Name,
+        Body: &api.ExecRequest{
+            Command: []string{"echo", "Hello from sandbox"},
+        },
+    })
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println("exec:", res.ExecID, "status:", res.Status)
+
+    _, _ = c.Sandboxes.DeleteSandbox(ctx, &api.DeleteSandboxRequest{
+        SandboxName: sb.Name,
+    })
 }
 ```
 
-## Environments
+`client.NewIslo` is the recommended entry point. The plain generated `client.NewClient` is also available, but it expects a session JWT — use `NewIslo` if all you have is an API key.
 
-You can choose between different environments by using the `option.WithBaseURL` option. You can configure any arbitrary base
-URL, which is particularly useful in test environments.
+### Configuration
 
-```go
-client := client.NewClient(
-    option.WithBaseURL("https://example.com"),
-)
-```
+| Option | Description | Default |
+|---|---|---|
+| `option.WithAPIKey(key)` | Islo API key (`ak_...`). | `$ISLO_API_KEY` |
+| `option.WithBaseURL(url)` | API base URL. | `$ISLO_BASE_URL` or `https://api.islo.dev` |
+| `option.WithHTTPClient(c)` | Bring your own `*http.Client`. Its `Transport` is wrapped for auth; `Timeout` is preserved. | `&http.Client{}` |
+
+The token cache is keyed on `(baseURL, apiKey)`, so multiple `NewIslo` calls with the same key share one cached token.
 
 ## Errors
 
-Structured error types are returned from API calls that return non-success status codes. These errors are compatible
-with the `errors.Is` and `errors.As` APIs, so you can access the error like so:
+API errors implement the standard `errors.Is`/`errors.As` interfaces:
 
 ```go
-response, err := client.Sandboxes.CreateSandbox(...)
+import core "github.com/islo-labs/go-sdk/core"
+
+_, err := c.Sandboxes.CreateSandbox(ctx, ...)
 if err != nil {
     var apiError *core.APIError
-    if errors.As(err, apiError) {
-        // Do something with the API error ...
+    if errors.As(err, &apiError) {
+        // inspect apiError.StatusCode, apiError.Body, etc.
     }
     return err
 }
-```
-
-## Request Options
-
-A variety of request options are included to adapt the behavior of the library, which includes configuring
-authorization tokens, or providing your own instrumented `*http.Client`.
-
-These request options can either be
-specified on the client so that they're applied on every request, or for an individual request, like so:
-
-> Providing your own `*http.Client` is recommended. Otherwise, the `http.DefaultClient` will be used,
-> and your client will wait indefinitely for a response (unless the per-request, context-based timeout
-> is used).
-
-```go
-// Specify default options applied on every request.
-client := client.NewClient(
-    option.WithToken("<YOUR_API_KEY>"),
-    option.WithHTTPClient(
-        &http.Client{
-            Timeout: 5 * time.Second,
-        },
-    ),
-)
-
-// Specify options for an individual request.
-response, err := client.Sandboxes.CreateSandbox(
-    ...,
-    option.WithToken("<YOUR_API_KEY>"),
-)
 ```
 
 ## Advanced
 
 ### Retries
 
-The SDK is instrumented with automatic retries with exponential backoff. A request will be retried as long
-as the request is deemed retryable and the number of retry attempts has not grown larger than the configured
-retry limit (default: 2).
-
-A request is deemed retryable when any of the following HTTP status codes is returned:
-
-- [408](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/408) (Timeout)
-- [429](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429) (Too Many Requests)
-- [5XX](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500) (Internal Server Errors)
-
-Use the `option.WithMaxAttempts` option to configure this behavior for the entire client or an individual request:
+Requests retry with exponential backoff on `408`, `429`, and `5xx` (default: 2 attempts). Override per-client or per-call:
 
 ```go
-client := client.NewClient(
-    option.WithMaxAttempts(1),
-)
-
-response, err := client.Sandboxes.CreateSandbox(
-    ...,
-    option.WithMaxAttempts(1),
-)
+c := client.NewIslo(option.WithAPIKey("ak_..."))
+_, err := c.Sandboxes.CreateSandbox(ctx, req, option.WithMaxAttempts(1))
 ```
 
 ### Timeouts
 
-Setting a timeout for each individual request is as simple as using the standard context library. Setting a one second timeout for an individual API call looks like the following:
+Use a context-based timeout per request:
 
 ```go
-ctx, cancel := context.WithTimeout(ctx, time.Second)
+ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 defer cancel()
+_, err := c.Sandboxes.CreateSandbox(ctx, req)
+```
 
-response, err := client.Sandboxes.CreateSandbox(ctx, ...)
+### Bypassing the API-key exchange
+
+If you already hold a session JWT, skip `NewIslo` and use the raw generated client:
+
+```go
+c := client.NewClient(option.WithAPIKey("<session-jwt>"))
 ```
 
 ## Contributing
 
-While we value open-source contributions to this SDK, this library is generated programmatically.
-Additions made directly to this library would have to be moved over to our generation code,
-otherwise they would be overwritten upon the next generated release. Feel free to open a PR as
-a proof of concept, but know that we will not be able to merge it as-is. We suggest opening
-an issue first to discuss with us!
+This SDK is generated by [Fern](https://buildwithfern.com) from the OpenAPI spec in [islo-labs/islo-web-api](https://github.com/islo-labs/islo-web-api). Generated files carry a `// Code generated by Fern. DO NOT EDIT.` header and will be overwritten on the next regeneration; the hand-written wrapper (`client/wrapper.go`, `customauth/`) and this README are protected by `.fernignore`.
 
-On the other hand, contributions to the README are always very welcome!
+For API changes, edit the OpenAPI spec upstream. PRs to hand-written code here are welcome.

@@ -1,1 +1,5 @@
 # Specify files that shouldn't be modified by Fern
+client/wrapper.go
+client/wrapper_test.go
+customauth/
+README.md
