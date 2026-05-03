@@ -1,4 +1,5 @@
 # Specify files that shouldn't be modified by Fern
-islo/
+client/wrapper.go
+client/wrapper_test.go
 customauth/
 README.md
