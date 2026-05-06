@@ -32,6 +32,10 @@ type SandboxCreate struct {
 	GatewayProfile *string `json:"gateway_profile,omitempty" url:"-"`
 	// Name of a snapshot to restore from. When set, the VM is created from the snapshot's filesystem.
 	SnapshotName *string `json:"snapshot_name,omitempty" url:"-"`
+	// Repository sources to clone into /workspace after VM init.
+	Sources []*GitSource `json:"sources,omitempty" url:"-"`
+	// Named setup script steps to execute sequentially after git clones.
+	SetupScripts []*SetupScript `json:"setup_scripts,omitempty" url:"-"`
 }
 
 type CreateSessionRequest struct {
@@ -1178,6 +1182,101 @@ func (e *ExecSessionResponse) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+// A git repository to clone into the sandbox workspace.
+type GitSource struct {
+	// Source type discriminator.
+	Type *GitSourceType `json:"type,omitempty" url:"type,omitempty"`
+	// Git repository URL (HTTPS)
+	RepoURL string `json:"repo_url" url:"repo_url"`
+	// Branch/tag/ref to checkout. Defaults to the remote HEAD.
+	Branch *string `json:"branch,omitempty" url:"branch,omitempty"`
+	// Target directory name under /workspace. Defaults to repo name.
+	TargetPath *string `json:"target_path,omitempty" url:"target_path,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (g *GitSource) GetType() *GitSourceType {
+	if g == nil {
+		return nil
+	}
+	return g.Type
+}
+
+func (g *GitSource) GetRepoURL() string {
+	if g == nil {
+		return ""
+	}
+	return g.RepoURL
+}
+
+func (g *GitSource) GetBranch() *string {
+	if g == nil {
+		return nil
+	}
+	return g.Branch
+}
+
+func (g *GitSource) GetTargetPath() *string {
+	if g == nil {
+		return nil
+	}
+	return g.TargetPath
+}
+
+func (g *GitSource) GetExtraProperties() map[string]interface{} {
+	return g.extraProperties
+}
+
+func (g *GitSource) UnmarshalJSON(data []byte) error {
+	type unmarshaler GitSource
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*g = GitSource(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *g)
+	if err != nil {
+		return err
+	}
+	g.extraProperties = extraProperties
+	g.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (g *GitSource) String() string {
+	if len(g.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(g); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", g)
+}
+
+// Source type discriminator.
+type GitSourceType string
+
+const (
+	GitSourceTypeGit GitSourceType = "git"
+)
+
+func NewGitSourceTypeFromString(s string) (GitSourceType, error) {
+	switch s {
+	case "git":
+		return GitSourceTypeGit, nil
+	}
+	var t GitSourceType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GitSourceType) Ptr() *GitSourceType {
+	return &g
+}
+
 // Paginated list of sandboxes.
 type PaginatedSandboxResponse struct {
 	Items  []*SandboxResponse `json:"items" url:"items"`
@@ -1306,17 +1405,18 @@ func (s *SandboxNetwork) String() string {
 
 // Sandbox details response.
 type SandboxResponse struct {
-	ID              string          `json:"id" url:"id"`
-	Name            string          `json:"name" url:"name"`
-	Status          string          `json:"status" url:"status"`
-	Image           string          `json:"image" url:"image"`
-	Network         *SandboxNetwork `json:"network,omitempty" url:"network,omitempty"`
-	Spec            *SandboxSpec    `json:"spec" url:"spec"`
-	Workdir         *string         `json:"workdir,omitempty" url:"workdir,omitempty"`
-	CreatedAt       *time.Time      `json:"created_at,omitempty" url:"created_at,omitempty"`
-	CreatedBy       *string         `json:"created_by,omitempty" url:"created_by,omitempty"`
-	CreatedByEntity *string         `json:"created_by_entity,omitempty" url:"created_by_entity,omitempty"`
-	DeletedAt       *time.Time      `json:"deleted_at,omitempty" url:"deleted_at,omitempty"`
+	ID              string             `json:"id" url:"id"`
+	Name            string             `json:"name" url:"name"`
+	Status          string             `json:"status" url:"status"`
+	Image           string             `json:"image" url:"image"`
+	Network         *SandboxNetwork    `json:"network,omitempty" url:"network,omitempty"`
+	Spec            *SandboxSpec       `json:"spec" url:"spec"`
+	Workdir         *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
+	SetupSteps      []*SetupStepResult `json:"setup_steps,omitempty" url:"setup_steps,omitempty"`
+	CreatedAt       *time.Time         `json:"created_at,omitempty" url:"created_at,omitempty"`
+	CreatedBy       *string            `json:"created_by,omitempty" url:"created_by,omitempty"`
+	CreatedByEntity *string            `json:"created_by_entity,omitempty" url:"created_by_entity,omitempty"`
+	DeletedAt       *time.Time         `json:"deleted_at,omitempty" url:"deleted_at,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1369,6 +1469,13 @@ func (s *SandboxResponse) GetWorkdir() *string {
 		return nil
 	}
 	return s.Workdir
+}
+
+func (s *SandboxResponse) GetSetupSteps() []*SetupStepResult {
+	if s == nil {
+		return nil
+	}
+	return s.SetupSteps
 }
 
 func (s *SandboxResponse) GetCreatedAt() *time.Time {
@@ -1505,6 +1612,126 @@ func (s *SandboxSpec) UnmarshalJSON(data []byte) error {
 }
 
 func (s *SandboxSpec) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+// A named setup script step.
+type SetupScript struct {
+	// Step name for display (auto-assigned if empty).
+	Name *string `json:"name,omitempty" url:"name,omitempty"`
+	// Shell script body to execute.
+	Script string `json:"script" url:"script"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SetupScript) GetName() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Name
+}
+
+func (s *SetupScript) GetScript() string {
+	if s == nil {
+		return ""
+	}
+	return s.Script
+}
+
+func (s *SetupScript) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SetupScript) UnmarshalJSON(data []byte) error {
+	type unmarshaler SetupScript
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SetupScript(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SetupScript) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+// Result of a single setup step execution.
+type SetupStepResult struct {
+	Name   string  `json:"name" url:"name"`
+	Status string  `json:"status" url:"status"`
+	Error  *string `json:"error,omitempty" url:"error,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SetupStepResult) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SetupStepResult) GetStatus() string {
+	if s == nil {
+		return ""
+	}
+	return s.Status
+}
+
+func (s *SetupStepResult) GetError() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Error
+}
+
+func (s *SetupStepResult) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SetupStepResult) UnmarshalJSON(data []byte) error {
+	type unmarshaler SetupStepResult
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SetupStepResult(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SetupStepResult) String() string {
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value

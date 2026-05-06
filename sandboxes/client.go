@@ -480,6 +480,11 @@ func (c *Client) ResumeSandbox(
 				APIError: apiError,
 			}
 		},
+		402: func(apiError *core.APIError) error {
+			return &gosdk.PaymentRequiredError{
+				APIError: apiError,
+			}
+		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
 				APIError: apiError,
