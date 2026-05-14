@@ -15,6 +15,8 @@ type GatewayProfileCreate struct {
 	DefaultAction   *GatewayAction `json:"default_action,omitempty" url:"-"`
 	InternetEnabled *bool          `json:"internet_enabled,omitempty" url:"-"`
 	IsDefault       *bool          `json:"is_default,omitempty" url:"-"`
+	// Cloud role name or public_id
+	CloudRole *string `json:"cloud_role,omitempty" url:"-"`
 }
 
 type GatewayRuleCreate struct {
@@ -141,6 +143,68 @@ func NewAuthStrategySchemaModeFromString(s string) (AuthStrategySchemaMode, erro
 
 func (a AuthStrategySchemaMode) Ptr() *AuthStrategySchemaMode {
 	return &a
+}
+
+type CloudRoleRef struct {
+	ID       string `json:"id" url:"id"`
+	Provider string `json:"provider" url:"provider"`
+	RoleArn  string `json:"role_arn" url:"role_arn"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CloudRoleRef) GetID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ID
+}
+
+func (c *CloudRoleRef) GetProvider() string {
+	if c == nil {
+		return ""
+	}
+	return c.Provider
+}
+
+func (c *CloudRoleRef) GetRoleArn() string {
+	if c == nil {
+		return ""
+	}
+	return c.RoleArn
+}
+
+func (c *CloudRoleRef) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *CloudRoleRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler CloudRoleRef
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CloudRoleRef(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CloudRoleRef) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
 }
 
 type ContentFilterSchema struct {
@@ -284,6 +348,7 @@ type GatewayProfileDetailResponse struct {
 	DefaultAction   string                 `json:"default_action" url:"default_action"`
 	InternetEnabled bool                   `json:"internet_enabled" url:"internet_enabled"`
 	IsDefault       bool                   `json:"is_default" url:"is_default"`
+	CloudRole       *CloudRoleRef          `json:"cloud_role,omitempty" url:"cloud_role,omitempty"`
 	RuleCount       *int                   `json:"rule_count,omitempty" url:"rule_count,omitempty"`
 	CreatedAt       *time.Time             `json:"created_at,omitempty" url:"created_at,omitempty"`
 	UpdatedAt       *time.Time             `json:"updated_at,omitempty" url:"updated_at,omitempty"`
@@ -333,6 +398,13 @@ func (g *GatewayProfileDetailResponse) GetIsDefault() bool {
 		return false
 	}
 	return g.IsDefault
+}
+
+func (g *GatewayProfileDetailResponse) GetCloudRole() *CloudRoleRef {
+	if g == nil {
+		return nil
+	}
+	return g.CloudRole
 }
 
 func (g *GatewayProfileDetailResponse) GetRuleCount() *int {
@@ -418,15 +490,16 @@ func (g *GatewayProfileDetailResponse) String() string {
 }
 
 type GatewayProfileResponse struct {
-	ID              string     `json:"id" url:"id"`
-	Name            string     `json:"name" url:"name"`
-	Description     *string    `json:"description,omitempty" url:"description,omitempty"`
-	DefaultAction   string     `json:"default_action" url:"default_action"`
-	InternetEnabled bool       `json:"internet_enabled" url:"internet_enabled"`
-	IsDefault       bool       `json:"is_default" url:"is_default"`
-	RuleCount       *int       `json:"rule_count,omitempty" url:"rule_count,omitempty"`
-	CreatedAt       *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
-	UpdatedAt       *time.Time `json:"updated_at,omitempty" url:"updated_at,omitempty"`
+	ID              string        `json:"id" url:"id"`
+	Name            string        `json:"name" url:"name"`
+	Description     *string       `json:"description,omitempty" url:"description,omitempty"`
+	DefaultAction   string        `json:"default_action" url:"default_action"`
+	InternetEnabled bool          `json:"internet_enabled" url:"internet_enabled"`
+	IsDefault       bool          `json:"is_default" url:"is_default"`
+	CloudRole       *CloudRoleRef `json:"cloud_role,omitempty" url:"cloud_role,omitempty"`
+	RuleCount       *int          `json:"rule_count,omitempty" url:"rule_count,omitempty"`
+	CreatedAt       *time.Time    `json:"created_at,omitempty" url:"created_at,omitempty"`
+	UpdatedAt       *time.Time    `json:"updated_at,omitempty" url:"updated_at,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -472,6 +545,13 @@ func (g *GatewayProfileResponse) GetIsDefault() bool {
 		return false
 	}
 	return g.IsDefault
+}
+
+func (g *GatewayProfileResponse) GetCloudRole() *CloudRoleRef {
+	if g == nil {
+		return nil
+	}
+	return g.CloudRole
 }
 
 func (g *GatewayProfileResponse) GetRuleCount() *int {
@@ -766,6 +846,8 @@ type GatewayProfileUpdate struct {
 	DefaultAction   *GatewayAction `json:"default_action,omitempty" url:"-"`
 	InternetEnabled *bool          `json:"internet_enabled,omitempty" url:"-"`
 	IsDefault       *bool          `json:"is_default,omitempty" url:"-"`
+	// Cloud role name or public_id, empty string to unset
+	CloudRole *string `json:"cloud_role,omitempty" url:"-"`
 }
 
 type GatewayRuleUpdate struct {

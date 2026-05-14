@@ -3,8 +3,10 @@
 package client
 
 import (
+	cloudroles "github.com/islo-labs/go-sdk/cloudroles"
 	core "github.com/islo-labs/go-sdk/core"
 	credits "github.com/islo-labs/go-sdk/credits"
+	gatewayinternal "github.com/islo-labs/go-sdk/gatewayinternal"
 	gatewayprofiles "github.com/islo-labs/go-sdk/gatewayprofiles"
 	integrations "github.com/islo-labs/go-sdk/integrations"
 	internal "github.com/islo-labs/go-sdk/internal"
@@ -25,6 +27,8 @@ type Client struct {
 	Credits         *credits.Client
 	Integrations    *integrations.Client
 	GatewayProfiles *gatewayprofiles.Client
+	CloudRoles      *cloudroles.Client
+	GatewayInternal *gatewayinternal.Client
 }
 
 func NewClient(opts ...option.RequestOption) *Client {
@@ -46,5 +50,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 		Credits:         credits.NewClient(opts...),
 		Integrations:    integrations.NewClient(opts...),
 		GatewayProfiles: gatewayprofiles.NewClient(opts...),
+		CloudRoles:      cloudroles.NewClient(opts...),
+		GatewayInternal: gatewayinternal.NewClient(opts...),
 	}
 }
