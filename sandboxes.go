@@ -1684,7 +1684,9 @@ func (s *SetupScript) String() string {
 type SetupStepResult struct {
 	Name   string  `json:"name" url:"name"`
 	Status string  `json:"status" url:"status"`
-	Error  *string `json:"error,omitempty" url:"error,omitempty"`
+	Stderr *string `json:"stderr,omitempty" url:"stderr,omitempty"`
+	Stdout *string `json:"stdout,omitempty" url:"stdout,omitempty"`
+	Script *string `json:"script,omitempty" url:"script,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1704,11 +1706,25 @@ func (s *SetupStepResult) GetStatus() string {
 	return s.Status
 }
 
-func (s *SetupStepResult) GetError() *string {
+func (s *SetupStepResult) GetStderr() *string {
 	if s == nil {
 		return nil
 	}
-	return s.Error
+	return s.Stderr
+}
+
+func (s *SetupStepResult) GetStdout() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Stdout
+}
+
+func (s *SetupStepResult) GetScript() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Script
 }
 
 func (s *SetupStepResult) GetExtraProperties() map[string]interface{} {
