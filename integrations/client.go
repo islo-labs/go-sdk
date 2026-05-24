@@ -9,7 +9,6 @@ import (
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
 	http "net/http"
-	os "os"
 )
 
 type Client struct {
@@ -20,9 +19,6 @@ type Client struct {
 
 func NewClient(opts ...option.RequestOption) *Client {
 	options := core.NewRequestOptions(opts...)
-	if options.APIKey == "" {
-		options.APIKey = os.Getenv("ISLO_API_KEY")
-	}
 	return &Client{
 		baseURL: options.BaseURL,
 		caller: internal.NewCaller(
@@ -48,7 +44,7 @@ func (c *Client) ListIntegrationProviders(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/integrations/providers"
 	headers := internal.MergeHeaders(
@@ -92,7 +88,7 @@ func (c *Client) ListIntegrations(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/integrations"
 	headers := internal.MergeHeaders(
@@ -147,7 +143,7 @@ func (c *Client) ListCustomServices(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/integrations/custom-services"
 	headers := internal.MergeHeaders(
@@ -202,7 +198,7 @@ func (c *Client) CreateCustomService(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/integrations/custom-services"
 	headers := internal.MergeHeaders(
@@ -265,7 +261,7 @@ func (c *Client) DisconnectCustomIntegration(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/integrations/custom/%v",
@@ -337,7 +333,7 @@ func (c *Client) GetIntegrationStatus(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/integrations/%v",
@@ -401,7 +397,7 @@ func (c *Client) DisconnectIntegration(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/integrations/%v",

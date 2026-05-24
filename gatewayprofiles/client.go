@@ -9,7 +9,6 @@ import (
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
 	http "net/http"
-	os "os"
 )
 
 type Client struct {
@@ -20,9 +19,6 @@ type Client struct {
 
 func NewClient(opts ...option.RequestOption) *Client {
 	options := core.NewRequestOptions(opts...)
-	if options.APIKey == "" {
-		options.APIKey = os.Getenv("ISLO_API_KEY")
-	}
 	return &Client{
 		baseURL: options.BaseURL,
 		caller: internal.NewCaller(
@@ -43,7 +39,7 @@ func (c *Client) ListGatewayProfiles(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/gateway/profiles"
 	headers := internal.MergeHeaders(
@@ -92,7 +88,7 @@ func (c *Client) CreateGatewayProfile(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/gateway/profiles"
 	headers := internal.MergeHeaders(
@@ -148,7 +144,7 @@ func (c *Client) GetGatewayProfile(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v",
@@ -205,7 +201,7 @@ func (c *Client) DeleteGatewayProfile(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v",
@@ -265,7 +261,7 @@ func (c *Client) UpdateGatewayProfile(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v",
@@ -329,7 +325,7 @@ func (c *Client) CreateGatewayRule(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v/rules",
@@ -388,7 +384,7 @@ func (c *Client) DeleteGatewayRule(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v/rules/%v",
@@ -444,7 +440,7 @@ func (c *Client) UpdateGatewayRule(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v/rules/%v",
@@ -504,7 +500,7 @@ func (c *Client) ReorderGatewayRules(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v/rules/reorder",

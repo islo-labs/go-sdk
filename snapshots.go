@@ -10,15 +10,17 @@ import (
 )
 
 type SnapshotCreate struct {
-	SandboxID string  `json:"sandbox_id" url:"-"`
 	Name      *string `json:"name,omitempty" url:"-"`
+	SandboxID string  `json:"sandbox_id" url:"-"`
 }
 
 type DeleteSnapshotRequest struct {
+	// Name
 	Name string `json:"-" url:"-"`
 }
 
 type GetSnapshotRequest struct {
+	// Name
 	Name string `json:"-" url:"-"`
 }
 
@@ -29,9 +31,9 @@ type ListSnapshotsRequest struct {
 
 type PaginatedSnapshotResponse struct {
 	Items  []*SnapshotResponse `json:"items" url:"items"`
-	Total  int                 `json:"total" url:"total"`
 	Limit  int                 `json:"limit" url:"limit"`
 	Offset int                 `json:"offset" url:"offset"`
+	Total  int64               `json:"total" url:"total"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -42,13 +44,6 @@ func (p *PaginatedSnapshotResponse) GetItems() []*SnapshotResponse {
 		return nil
 	}
 	return p.Items
-}
-
-func (p *PaginatedSnapshotResponse) GetTotal() int {
-	if p == nil {
-		return 0
-	}
-	return p.Total
 }
 
 func (p *PaginatedSnapshotResponse) GetLimit() int {
@@ -63,6 +58,13 @@ func (p *PaginatedSnapshotResponse) GetOffset() int {
 		return 0
 	}
 	return p.Offset
+}
+
+func (p *PaginatedSnapshotResponse) GetTotal() int64 {
+	if p == nil {
+		return 0
+	}
+	return p.Total
 }
 
 func (p *PaginatedSnapshotResponse) GetExtraProperties() map[string]interface{} {
@@ -98,52 +100,17 @@ func (p *PaginatedSnapshotResponse) String() string {
 }
 
 type SnapshotResponse struct {
-	ID             string     `json:"id" url:"id"`
-	Name           string     `json:"name" url:"name"`
-	Status         string     `json:"status" url:"status"`
-	SandboxID      *string    `json:"sandbox_id,omitempty" url:"sandbox_id,omitempty"`
-	SizeBytes      *int       `json:"size_bytes,omitempty" url:"size_bytes,omitempty"`
 	ChecksumSha256 *string    `json:"checksum_sha256,omitempty" url:"checksum_sha256,omitempty"`
 	CreatedAt      *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
 	CreatedBy      *string    `json:"created_by,omitempty" url:"created_by,omitempty"`
+	ID             string     `json:"id" url:"id"`
+	Name           string     `json:"name" url:"name"`
+	SandboxID      *string    `json:"sandbox_id,omitempty" url:"sandbox_id,omitempty"`
+	SizeBytes      *int64     `json:"size_bytes,omitempty" url:"size_bytes,omitempty"`
+	Status         string     `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
-}
-
-func (s *SnapshotResponse) GetID() string {
-	if s == nil {
-		return ""
-	}
-	return s.ID
-}
-
-func (s *SnapshotResponse) GetName() string {
-	if s == nil {
-		return ""
-	}
-	return s.Name
-}
-
-func (s *SnapshotResponse) GetStatus() string {
-	if s == nil {
-		return ""
-	}
-	return s.Status
-}
-
-func (s *SnapshotResponse) GetSandboxID() *string {
-	if s == nil {
-		return nil
-	}
-	return s.SandboxID
-}
-
-func (s *SnapshotResponse) GetSizeBytes() *int {
-	if s == nil {
-		return nil
-	}
-	return s.SizeBytes
 }
 
 func (s *SnapshotResponse) GetChecksumSha256() *string {
@@ -165,6 +132,41 @@ func (s *SnapshotResponse) GetCreatedBy() *string {
 		return nil
 	}
 	return s.CreatedBy
+}
+
+func (s *SnapshotResponse) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SnapshotResponse) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SnapshotResponse) GetSandboxID() *string {
+	if s == nil {
+		return nil
+	}
+	return s.SandboxID
+}
+
+func (s *SnapshotResponse) GetSizeBytes() *int64 {
+	if s == nil {
+		return nil
+	}
+	return s.SizeBytes
+}
+
+func (s *SnapshotResponse) GetStatus() string {
+	if s == nil {
+		return ""
+	}
+	return s.Status
 }
 
 func (s *SnapshotResponse) GetExtraProperties() map[string]interface{} {

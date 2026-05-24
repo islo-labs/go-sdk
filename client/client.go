@@ -3,6 +3,7 @@
 package client
 
 import (
+	auth "github.com/islo-labs/go-sdk/auth"
 	cloudroles "github.com/islo-labs/go-sdk/cloudroles"
 	core "github.com/islo-labs/go-sdk/core"
 	credits "github.com/islo-labs/go-sdk/credits"
@@ -11,9 +12,10 @@ import (
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
 	sandboxes "github.com/islo-labs/go-sdk/sandboxes"
+	sessions "github.com/islo-labs/go-sdk/sessions"
+	shares "github.com/islo-labs/go-sdk/shares"
 	snapshots "github.com/islo-labs/go-sdk/snapshots"
 	http "net/http"
-	os "os"
 )
 
 type Client struct {
@@ -21,19 +23,19 @@ type Client struct {
 	caller  *internal.Caller
 	header  http.Header
 
+	Auth            *auth.Client
 	Sandboxes       *sandboxes.Client
-	Snapshots       *snapshots.Client
 	Credits         *credits.Client
 	Integrations    *integrations.Client
 	GatewayProfiles *gatewayprofiles.Client
 	CloudRoles      *cloudroles.Client
+	Sessions        *sessions.Client
+	Shares          *shares.Client
+	Snapshots       *snapshots.Client
 }
 
 func NewClient(opts ...option.RequestOption) *Client {
 	options := core.NewRequestOptions(opts...)
-	if options.APIKey == "" {
-		options.APIKey = os.Getenv("ISLO_API_KEY")
-	}
 	return &Client{
 		baseURL: options.BaseURL,
 		caller: internal.NewCaller(
@@ -43,11 +45,14 @@ func NewClient(opts ...option.RequestOption) *Client {
 			},
 		),
 		header:          options.ToHeader(),
+		Auth:            auth.NewClient(opts...),
 		Sandboxes:       sandboxes.NewClient(opts...),
-		Snapshots:       snapshots.NewClient(opts...),
 		Credits:         credits.NewClient(opts...),
 		Integrations:    integrations.NewClient(opts...),
 		GatewayProfiles: gatewayprofiles.NewClient(opts...),
 		CloudRoles:      cloudroles.NewClient(opts...),
+		Sessions:        sessions.NewClient(opts...),
+		Shares:          shares.NewClient(opts...),
+		Snapshots:       snapshots.NewClient(opts...),
 	}
 }

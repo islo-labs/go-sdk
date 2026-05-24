@@ -23,7 +23,6 @@ type RequestOptions struct {
 	BodyProperties  map[string]interface{}
 	QueryParameters url.Values
 	MaxAttempts     uint
-	APIKey          string
 }
 
 // NewRequestOptions returns a new *RequestOptions value.
@@ -46,9 +45,6 @@ func NewRequestOptions(opts ...RequestOption) *RequestOptions {
 // for the request(s).
 func (r *RequestOptions) ToHeader() http.Header {
 	header := r.cloneHeader()
-	if r.APIKey != "" {
-		header.Set("Authorization", "Bearer "+r.APIKey)
-	}
 	return header
 }
 
@@ -113,13 +109,4 @@ type MaxAttemptsOption struct {
 
 func (m *MaxAttemptsOption) applyRequestOptions(opts *RequestOptions) {
 	opts.MaxAttempts = m.MaxAttempts
-}
-
-// APIKeyOption implements the RequestOption interface.
-type APIKeyOption struct {
-	APIKey string
-}
-
-func (a *APIKeyOption) applyRequestOptions(opts *RequestOptions) {
-	opts.APIKey = a.APIKey
 }
