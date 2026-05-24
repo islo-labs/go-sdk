@@ -3,15 +3,24 @@
 package client
 
 import (
+	context "context"
+	apikeys "github.com/islo-labs/go-sdk/apikeys"
+	certificateauthority "github.com/islo-labs/go-sdk/certificateauthority"
 	cloudroles "github.com/islo-labs/go-sdk/cloudroles"
 	core "github.com/islo-labs/go-sdk/core"
 	credits "github.com/islo-labs/go-sdk/credits"
+	gatewayinternal "github.com/islo-labs/go-sdk/gatewayinternal"
 	gatewayprofiles "github.com/islo-labs/go-sdk/gatewayprofiles"
 	integrations "github.com/islo-labs/go-sdk/integrations"
 	internal "github.com/islo-labs/go-sdk/internal"
+	models "github.com/islo-labs/go-sdk/models"
 	option "github.com/islo-labs/go-sdk/option"
 	sandboxes "github.com/islo-labs/go-sdk/sandboxes"
+	shares "github.com/islo-labs/go-sdk/shares"
 	snapshots "github.com/islo-labs/go-sdk/snapshots"
+	tenants "github.com/islo-labs/go-sdk/tenants"
+	usage "github.com/islo-labs/go-sdk/usage"
+	users "github.com/islo-labs/go-sdk/users"
 	http "net/http"
 	os "os"
 )
@@ -21,12 +30,20 @@ type Client struct {
 	caller  *internal.Caller
 	header  http.Header
 
-	Sandboxes       *sandboxes.Client
-	Snapshots       *snapshots.Client
-	Credits         *credits.Client
-	Integrations    *integrations.Client
-	GatewayProfiles *gatewayprofiles.Client
-	CloudRoles      *cloudroles.Client
+	APIKeys              *apikeys.Client
+	Users                *users.Client
+	Tenants              *tenants.Client
+	Sandboxes            *sandboxes.Client
+	Snapshots            *snapshots.Client
+	CertificateAuthority *certificateauthority.Client
+	Shares               *shares.Client
+	Usage                *usage.Client
+	Credits              *credits.Client
+	Integrations         *integrations.Client
+	GatewayProfiles      *gatewayprofiles.Client
+	CloudRoles           *cloudroles.Client
+	Models               *models.Client
+	GatewayInternal      *gatewayinternal.Client
 }
 
 func NewClient(opts ...option.RequestOption) *Client {
@@ -42,12 +59,55 @@ func NewClient(opts ...option.RequestOption) *Client {
 				MaxAttempts: options.MaxAttempts,
 			},
 		),
-		header:          options.ToHeader(),
-		Sandboxes:       sandboxes.NewClient(opts...),
-		Snapshots:       snapshots.NewClient(opts...),
-		Credits:         credits.NewClient(opts...),
-		Integrations:    integrations.NewClient(opts...),
-		GatewayProfiles: gatewayprofiles.NewClient(opts...),
-		CloudRoles:      cloudroles.NewClient(opts...),
+		header:               options.ToHeader(),
+		APIKeys:              apikeys.NewClient(opts...),
+		Users:                users.NewClient(opts...),
+		Tenants:              tenants.NewClient(opts...),
+		Sandboxes:            sandboxes.NewClient(opts...),
+		Snapshots:            snapshots.NewClient(opts...),
+		CertificateAuthority: certificateauthority.NewClient(opts...),
+		Shares:               shares.NewClient(opts...),
+		Usage:                usage.NewClient(opts...),
+		Credits:              credits.NewClient(opts...),
+		Integrations:         integrations.NewClient(opts...),
+		GatewayProfiles:      gatewayprofiles.NewClient(opts...),
+		CloudRoles:           cloudroles.NewClient(opts...),
+		Models:               models.NewClient(opts...),
+		GatewayInternal:      gatewayinternal.NewClient(opts...),
 	}
+}
+
+func (c *Client) Healthcheck(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (interface{}, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := baseURL + "/healthcheck"
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response interface{}
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
 }

@@ -12,22 +12,12 @@ type CreateCheckoutRequest struct {
 	AmountCents int `json:"amount_cents" url:"-"`
 }
 
-type HandlePaddleWebhookRequest struct {
-	PaddleSignature string      `json:"-" url:"-"`
-	Body            interface{} `json:"-" url:"-"`
-}
-
-func (h *HandlePaddleWebhookRequest) UnmarshalJSON(data []byte) error {
-	var body interface{}
-	if err := json.Unmarshal(data, &body); err != nil {
-		return err
-	}
-	h.Body = body
-	return nil
-}
-
-func (h *HandlePaddleWebhookRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(h.Body)
+type PaddlePayload struct {
+	PaddleSignature string                 `json:"-" url:"-"`
+	EventID         string                 `json:"event_id" url:"-"`
+	EventType       string                 `json:"event_type" url:"-"`
+	Data            map[string]interface{} `json:"data,omitempty" url:"-"`
+	OccurredAt      string                 `json:"occurred_at" url:"-"`
 }
 
 type CreateCheckoutResponse struct {

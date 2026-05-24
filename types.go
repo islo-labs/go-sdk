@@ -210,6 +210,106 @@ func (i IsloErrorCode) Ptr() *IsloErrorCode {
 	return &i
 }
 
+type PartialUpdateUser struct {
+	IsOnboarded *bool   `json:"is_onboarded,omitempty" url:"is_onboarded,omitempty"`
+	Name        *string `json:"name,omitempty" url:"name,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PartialUpdateUser) GetIsOnboarded() *bool {
+	if p == nil {
+		return nil
+	}
+	return p.IsOnboarded
+}
+
+func (p *PartialUpdateUser) GetName() *string {
+	if p == nil {
+		return nil
+	}
+	return p.Name
+}
+
+func (p *PartialUpdateUser) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *PartialUpdateUser) UnmarshalJSON(data []byte) error {
+	type unmarshaler PartialUpdateUser
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PartialUpdateUser(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PartialUpdateUser) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type SetTierRequest struct {
+	Tier string `json:"tier" url:"tier"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SetTierRequest) GetTier() string {
+	if s == nil {
+		return ""
+	}
+	return s.Tier
+}
+
+func (s *SetTierRequest) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SetTierRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler SetTierRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SetTierRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SetTierRequest) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
 // Request to exchange a Descope access key for a session token.
 type TokenRequest struct {
 	// Descope access key to exchange for a session JWT

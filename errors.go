@@ -175,7 +175,7 @@ func (u *UnauthorizedError) Unwrap() error {
 	return u.APIError
 }
 
-// Unprocessable Content
+// Validation Error
 type UnprocessableEntityError struct {
 	*core.APIError
 	Body interface{}
