@@ -19,6 +19,21 @@ func WithBaseURL(baseURL string) *core.BaseURLOption {
 	}
 }
 
+// WithComputeURL sets the compute-plane base URL used by NewIslo.
+func WithComputeURL(computeURL string) *core.ComputeURLOption {
+	return &core.ComputeURLOption{
+		ComputeURL: computeURL,
+	}
+}
+
+// WithEnvironment sets both control-plane and compute-plane base URLs used by NewIslo.
+func WithEnvironment(baseURL string, computeURL string) *core.EnvironmentOption {
+	return &core.EnvironmentOption{
+		BaseURL:    baseURL,
+		ComputeURL: computeURL,
+	}
+}
+
 // WithHTTPClient uses the given HTTPClient to issue the request.
 func WithHTTPClient(httpClient core.HTTPClient) *core.HTTPClientOption {
 	return &core.HTTPClientOption{
