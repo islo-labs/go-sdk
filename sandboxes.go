@@ -9,103 +9,81 @@ import (
 	time "time"
 )
 
-type SandboxCreate struct {
-	// User-friendly sandbox name. If omitted, a random slug is generated.
-	Name *string `json:"name,omitempty" url:"-"`
-	// Container image to use
-	Image *string `json:"image,omitempty" url:"-"`
-	// Number of vCPUs
-	Vcpus *int `json:"vcpus,omitempty" url:"-"`
-	// Memory in MB
-	MemoryMb *int `json:"memory_mb,omitempty" url:"-"`
-	// Disk size in GB
-	DiskGb *int `json:"disk_gb,omitempty" url:"-"`
-	// Tool cache key for golden cache lookup (computed by CLI)
-	CacheKey *string `json:"cache_key,omitempty" url:"-"`
-	// Environment variables to inject into the sandbox
-	Env map[string]*string `json:"env,omitempty" url:"-"`
-	// Working directory relative to /workspace (e.g. 'my-project')
-	Workdir *string `json:"workdir,omitempty" url:"-"`
-	// Init capabilities to enable (in addition to Core which always runs). None = all capabilities (default, backward compatible), [] = Core only (minimal init), ['ssh', 'devtools'] = Core + specified capabilities. Valid values: ssh, terminal, devtools, docker.
-	InitCapabilities []string `json:"init_capabilities,omitempty" url:"-"`
-	// Gateway profile name or ID to apply. Uses tenant default if omitted.
-	GatewayProfile *string `json:"gateway_profile,omitempty" url:"-"`
-	// Name of a snapshot to restore from. When set, the VM is created from the snapshot's filesystem.
-	SnapshotName *string `json:"snapshot_name,omitempty" url:"-"`
-	// Repository sources to clone into /workspace after VM init.
-	Sources []*GitSource `json:"sources,omitempty" url:"-"`
-	// Named setup script steps to execute sequentially after git clones.
-	SetupScripts []*SetupScript `json:"setup_scripts,omitempty" url:"-"`
+type CreateSandboxRequest struct {
+	CacheKey         *string            `json:"cache_key,omitempty" url:"-"`
+	DiskGb           *int               `json:"disk_gb,omitempty" url:"-"`
+	Env              map[string]*string `json:"env,omitempty" url:"-"`
+	GatewayProfile   *string            `json:"gateway_profile,omitempty" url:"-"`
+	Image            *string            `json:"image,omitempty" url:"-"`
+	InitCapabilities []InitCapability   `json:"init_capabilities,omitempty" url:"-"`
+	MemoryMb         *int               `json:"memory_mb,omitempty" url:"-"`
+	Name             *string            `json:"name,omitempty" url:"-"`
+	SetupScripts     []*SetupScript     `json:"setup_scripts,omitempty" url:"-"`
+	SnapshotName     *string            `json:"snapshot_name,omitempty" url:"-"`
+	SnapshotURL      *string            `json:"snapshot_url,omitempty" url:"-"`
+	Sources          []*GitSource       `json:"sources,omitempty" url:"-"`
+	Vcpus            *int               `json:"vcpus,omitempty" url:"-"`
+	Workdir          *string            `json:"workdir,omitempty" url:"-"`
 }
 
 type CreateSessionRequest struct {
-	SandboxName string                 `json:"-" url:"-"`
-	Body        map[string]interface{} `json:"-" url:"-"`
-}
-
-func (c *CreateSessionRequest) UnmarshalJSON(data []byte) error {
-	var body map[string]interface{}
-	if err := json.Unmarshal(data, &body); err != nil {
-		return err
-	}
-	c.Body = body
-	return nil
-}
-
-func (c *CreateSessionRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Body)
+	// Sandbox name
+	SandboxName string             `json:"-" url:"-"`
+	Command     []string           `json:"command,omitempty" url:"-"`
+	Env         map[string]*string `json:"env,omitempty" url:"-"`
+	Name        string             `json:"name" url:"-"`
+	TTL         *string            `json:"ttl,omitempty" url:"-"`
+	User        *string            `json:"user,omitempty" url:"-"`
+	Workdir     *string            `json:"workdir,omitempty" url:"-"`
 }
 
 type DeleteSandboxRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 }
 
 type DownloadArchiveRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-	// Absolute source directory in the sandbox
+	// Directory path to archive inside the sandbox
 	Path string `json:"-" url:"path"`
 }
 
 type DownloadFileRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-	// Absolute source path in the sandbox
+	// File path inside the sandbox
 	Path string `json:"-" url:"path"`
 }
 
-type ExecInSandboxRequest struct {
-	SandboxName string       `json:"-" url:"-"`
-	Body        *ExecRequest `json:"-" url:"-"`
+type ExecRequest struct {
+	// Sandbox name
+	SandboxName string `json:"-" url:"-"`
+	// Command to execute.
+	Command []string `json:"command,omitempty" url:"-"`
+	// Environment variables to inject into this execution session.
+	Env map[string]*string `json:"env,omitempty" url:"-"`
+	// Optional client-side timeout hint. Currently accepted for API compatibility.
+	TimeoutSecs *int64 `json:"timeout_secs,omitempty" url:"-"`
+	// User to run the command as (e.g., "islo"). If not provided, uses image default.
+	User *string `json:"user,omitempty" url:"-"`
+	// Working directory for command execution inside the sandbox.
+	Workdir *string `json:"workdir,omitempty" url:"-"`
 }
 
-func (e *ExecInSandboxRequest) UnmarshalJSON(data []byte) error {
-	body := new(ExecRequest)
-	if err := json.Unmarshal(data, &body); err != nil {
-		return err
-	}
-	e.Body = body
-	return nil
-}
-
-func (e *ExecInSandboxRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(e.Body)
-}
-
-type ExecInSandboxStreamRequest struct {
-	SandboxName string       `json:"-" url:"-"`
-	Body        *ExecRequest `json:"-" url:"-"`
-}
-
-func (e *ExecInSandboxStreamRequest) UnmarshalJSON(data []byte) error {
-	body := new(ExecRequest)
-	if err := json.Unmarshal(data, &body); err != nil {
-		return err
-	}
-	e.Body = body
-	return nil
-}
-
-func (e *ExecInSandboxStreamRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(e.Body)
+type ExecVMRequest struct {
+	// Sandbox name
+	SandboxName string `json:"-" url:"-"`
+	// Command and arguments to execute (e.g., ["/entrypoint.sh"])
+	Args []string `json:"args,omitempty" url:"-"`
+	// Optional environment variables to pass to the command
+	EnvVars map[string]*string `json:"env_vars,omitempty" url:"-"`
+	// Accepted but ignored (CLI sends this field).
+	TimeoutSecs *int64 `json:"timeout_secs,omitempty" url:"-"`
+	// User to run the command as (e.g., "islo"). If not specified, uses image default.
+	User *string `json:"user,omitempty" url:"-"`
+	// Working directory for the command. If not specified, uses the image's WorkingDir (from Dockerfile).
+	Workdir *string `json:"workdir,omitempty" url:"-"`
 }
 
 type GetAgentSessionEventsRequest struct {
@@ -124,8 +102,10 @@ type GetAgentSessionEventsRequest struct {
 }
 
 type GetExecResultRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-	ExecID      string `json:"-" url:"-"`
+	// Exec ID
+	ExecID string `json:"-" url:"-"`
 }
 
 type GetExecSessionAsciinemaRequest struct {
@@ -145,16 +125,15 @@ type GetExecSessionLogsRequest struct {
 }
 
 type GetSandboxRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-}
-
-type GetSandboxByIDSandboxesByIDSandboxIDGetRequest struct {
-	SandboxID string `json:"-" url:"-"`
 }
 
 type KillSessionRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-	SessionName string `json:"-" url:"-"`
+	// Session name
+	Session string `json:"-" url:"-"`
 }
 
 type ListAgentSessionsRequest struct {
@@ -172,40 +151,74 @@ type ListExecSessionsRequest struct {
 }
 
 type ListSandboxesRequest struct {
-	// Search by sandbox name (case-insensitive)
-	Search *string `json:"-" url:"search,omitempty"`
-	// Filter by status (e.g., ?status=running&status=unknown&status=deleted)
-	Status []string `json:"-" url:"status,omitempty"`
-	// Filter sandboxes created on or after this date
-	DateFrom *time.Time `json:"-" url:"date_from,omitempty"`
-	// Filter sandboxes created on or before this date
-	DateTo *time.Time `json:"-" url:"date_to,omitempty"`
-	// Filter by creator. Use 'me' for your own sandboxes.
-	CreatedBy *string `json:"-" url:"created_by,omitempty"`
-	// Max items per page
-	Limit *int `json:"-" url:"limit,omitempty"`
-	// Number of items to skip
-	Offset *int `json:"-" url:"offset,omitempty"`
+	Status     *string `json:"-" url:"status,omitempty"`
+	NamePrefix *string `json:"-" url:"name_prefix,omitempty"`
+	CreatedBy  *string `json:"-" url:"created_by,omitempty"`
+	Limit      *int    `json:"-" url:"limit,omitempty"`
+	Offset     *int    `json:"-" url:"offset,omitempty"`
 }
 
 type ListSessionsRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 }
 
 type PauseSandboxRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 }
 
 type PromoteSandboxCacheRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 }
 
 type ResumeSandboxRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 }
 
-type StopSandboxRequest struct {
+type SandboxExecInteractiveRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
+}
+
+type SandboxPortForwardRequest struct {
+	// Sandbox name
+	SandboxName string `json:"-" url:"-"`
+	// Target port inside the sandbox VM
+	Port int `json:"-" url:"port"`
+}
+
+type SandboxProxyRequest struct {
+	// Sandbox name
+	SandboxName string `json:"-" url:"-"`
+	// Target port inside the sandbox VM
+	Port int `json:"-" url:"-"`
+	// Path suffix forwarded to the VM
+	Path string `json:"-" url:"-"`
+}
+
+type SandboxProxyRootRequest struct {
+	// Sandbox name
+	SandboxName string `json:"-" url:"-"`
+	// Target port inside the sandbox VM
+	Port int `json:"-" url:"-"`
+}
+
+type SaveSnapshotRequest struct {
+	// Sandbox name
+	SandboxName  string `json:"-" url:"-"`
+	PresignedURL string `json:"presigned_url" url:"-"`
+}
+
+type SandboxWsProxyRequest struct {
+	// Sandbox name
+	SandboxName string `json:"-" url:"-"`
+	// Target port inside the sandbox VM
+	Port int `json:"-" url:"-"`
+	// Optional path suffix forwarded to the VM
+	Path *string `json:"-" url:"-"`
 }
 
 // A single event from an agent session trace.
@@ -662,6 +675,60 @@ func (a *AgentSessionResponse) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+type CreateSessionResponse struct {
+	Name   string `json:"name" url:"name"`
+	Status string `json:"status" url:"status"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CreateSessionResponse) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *CreateSessionResponse) GetStatus() string {
+	if c == nil {
+		return ""
+	}
+	return c.Status
+}
+
+func (c *CreateSessionResponse) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *CreateSessionResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler CreateSessionResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CreateSessionResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CreateSessionResponse) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 // A single log line from an exec session.
 type ExecLogLineResponse struct {
 	Timestamp time.Time                 `json:"timestamp" url:"timestamp"`
@@ -831,101 +898,11 @@ func (e *ExecLogsResponse) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
-// Request to execute a command in a sandbox.
-//
-// Note: Execution is async - the command starts and returns immediately.
-// Bear-agent does not wait for the command to complete or capture output.
-type ExecRequest struct {
-	// Command to execute
-	Command []string `json:"command" url:"command"`
-	// Working directory for command execution inside the sandbox
-	Workdir *string `json:"workdir,omitempty" url:"workdir,omitempty"`
-	// Environment variables to inject into this execution session
-	Env map[string]*string `json:"env,omitempty" url:"env,omitempty"`
-	// Optional client-side timeout hint. Currently accepted for API compatibility.
-	TimeoutSecs *int `json:"timeout_secs,omitempty" url:"timeout_secs,omitempty"`
-	// User to run the command as (e.g., 'islo'). If not provided, uses image default.
-	User *string `json:"user,omitempty" url:"user,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (e *ExecRequest) GetCommand() []string {
-	if e == nil {
-		return nil
-	}
-	return e.Command
-}
-
-func (e *ExecRequest) GetWorkdir() *string {
-	if e == nil {
-		return nil
-	}
-	return e.Workdir
-}
-
-func (e *ExecRequest) GetEnv() map[string]*string {
-	if e == nil {
-		return nil
-	}
-	return e.Env
-}
-
-func (e *ExecRequest) GetTimeoutSecs() *int {
-	if e == nil {
-		return nil
-	}
-	return e.TimeoutSecs
-}
-
-func (e *ExecRequest) GetUser() *string {
-	if e == nil {
-		return nil
-	}
-	return e.User
-}
-
-func (e *ExecRequest) GetExtraProperties() map[string]interface{} {
-	return e.extraProperties
-}
-
-func (e *ExecRequest) UnmarshalJSON(data []byte) error {
-	type unmarshaler ExecRequest
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*e = ExecRequest(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *e)
-	if err != nil {
-		return err
-	}
-	e.extraProperties = extraProperties
-	e.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (e *ExecRequest) String() string {
-	if len(e.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(e); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", e)
-}
-
 // Command execution started response.
-//
-// The command runs asynchronously in the sandbox. Poll the result via
-// GET /sandboxes/{name}/exec/{exec_id}.
 type ExecResponse struct {
 	ExecID    string `json:"exec_id" url:"exec_id"`
-	Status    string `json:"status" url:"status"`
 	SandboxID string `json:"sandbox_id" url:"sandbox_id"`
+	Status    string `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -938,18 +915,18 @@ func (e *ExecResponse) GetExecID() string {
 	return e.ExecID
 }
 
-func (e *ExecResponse) GetStatus() string {
-	if e == nil {
-		return ""
-	}
-	return e.Status
-}
-
 func (e *ExecResponse) GetSandboxID() string {
 	if e == nil {
 		return ""
 	}
 	return e.SandboxID
+}
+
+func (e *ExecResponse) GetStatus() string {
+	if e == nil {
+		return ""
+	}
+	return e.Status
 }
 
 func (e *ExecResponse) GetExtraProperties() map[string]interface{} {
@@ -984,14 +961,14 @@ func (e *ExecResponse) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
-// Full result of an exec command, polled via GET /exec/{exec_id}.
+// Response from exec result query
 type ExecResultResponse struct {
-	ExecID    string  `json:"exec_id" url:"exec_id"`
-	Status    string  `json:"status" url:"status"`
-	ExitCode  *int    `json:"exit_code,omitempty" url:"exit_code,omitempty"`
-	Stdout    *string `json:"stdout,omitempty" url:"stdout,omitempty"`
-	Stderr    *string `json:"stderr,omitempty" url:"stderr,omitempty"`
-	Truncated *bool   `json:"truncated,omitempty" url:"truncated,omitempty"`
+	ExecID    string `json:"exec_id" url:"exec_id"`
+	ExitCode  *int   `json:"exit_code,omitempty" url:"exit_code,omitempty"`
+	Status    string `json:"status" url:"status"`
+	Stderr    string `json:"stderr" url:"stderr"`
+	Stdout    string `json:"stdout" url:"stdout"`
+	Truncated bool   `json:"truncated" url:"truncated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1004,13 +981,6 @@ func (e *ExecResultResponse) GetExecID() string {
 	return e.ExecID
 }
 
-func (e *ExecResultResponse) GetStatus() string {
-	if e == nil {
-		return ""
-	}
-	return e.Status
-}
-
 func (e *ExecResultResponse) GetExitCode() *int {
 	if e == nil {
 		return nil
@@ -1018,23 +988,30 @@ func (e *ExecResultResponse) GetExitCode() *int {
 	return e.ExitCode
 }
 
-func (e *ExecResultResponse) GetStdout() *string {
+func (e *ExecResultResponse) GetStatus() string {
 	if e == nil {
-		return nil
+		return ""
 	}
-	return e.Stdout
+	return e.Status
 }
 
-func (e *ExecResultResponse) GetStderr() *string {
+func (e *ExecResultResponse) GetStderr() string {
 	if e == nil {
-		return nil
+		return ""
 	}
 	return e.Stderr
 }
 
-func (e *ExecResultResponse) GetTruncated() *bool {
+func (e *ExecResultResponse) GetStdout() string {
 	if e == nil {
-		return nil
+		return ""
+	}
+	return e.Stdout
+}
+
+func (e *ExecResultResponse) GetTruncated() bool {
+	if e == nil {
+		return false
 	}
 	return e.Truncated
 }
@@ -1182,33 +1159,60 @@ func (e *ExecSessionResponse) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
-// A git repository to clone into the sandbox workspace.
-type GitSource struct {
-	// Source type discriminator.
-	Type *GitSourceType `json:"type,omitempty" url:"type,omitempty"`
-	// Git repository URL (HTTPS)
-	RepoURL string `json:"repo_url" url:"repo_url"`
-	// Branch/tag/ref to checkout. Defaults to the remote HEAD.
-	Branch *string `json:"branch,omitempty" url:"branch,omitempty"`
-	// Target directory name under /workspace. Defaults to repo name.
-	TargetPath *string `json:"target_path,omitempty" url:"target_path,omitempty"`
+type FileUploadStatusResponse struct {
+	Status string `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (g *GitSource) GetType() *GitSourceType {
-	if g == nil {
-		return nil
-	}
-	return g.Type
-}
-
-func (g *GitSource) GetRepoURL() string {
-	if g == nil {
+func (f *FileUploadStatusResponse) GetStatus() string {
+	if f == nil {
 		return ""
 	}
-	return g.RepoURL
+	return f.Status
+}
+
+func (f *FileUploadStatusResponse) GetExtraProperties() map[string]interface{} {
+	return f.extraProperties
+}
+
+func (f *FileUploadStatusResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler FileUploadStatusResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*f = FileUploadStatusResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *f)
+	if err != nil {
+		return err
+	}
+	f.extraProperties = extraProperties
+	f.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (f *FileUploadStatusResponse) String() string {
+	if len(f.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(f.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(f); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", f)
+}
+
+// A git source to clone into /workspace.
+type GitSource struct {
+	Branch     *string `json:"branch,omitempty" url:"branch,omitempty"`
+	RepoURL    string  `json:"repo_url" url:"repo_url"`
+	TargetPath *string `json:"target_path,omitempty" url:"target_path,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
 }
 
 func (g *GitSource) GetBranch() *string {
@@ -1216,6 +1220,13 @@ func (g *GitSource) GetBranch() *string {
 		return nil
 	}
 	return g.Branch
+}
+
+func (g *GitSource) GetRepoURL() string {
+	if g == nil {
+		return ""
+	}
+	return g.RepoURL
 }
 
 func (g *GitSource) GetTargetPath() *string {
@@ -1257,32 +1268,84 @@ func (g *GitSource) String() string {
 	return fmt.Sprintf("%#v", g)
 }
 
-// Source type discriminator.
-type GitSourceType string
+// Init capabilities that can be selectively enabled for VM initialization.
+// Core functionality always runs; these are the optional capabilities.
+type InitCapability string
 
 const (
-	GitSourceTypeGit GitSourceType = "git"
+	InitCapabilityCoreGatewayProxy InitCapability = "core-gateway-proxy"
+	InitCapabilitySSH              InitCapability = "ssh"
+	InitCapabilityDocker           InitCapability = "docker"
 )
 
-func NewGitSourceTypeFromString(s string) (GitSourceType, error) {
+func NewInitCapabilityFromString(s string) (InitCapability, error) {
 	switch s {
-	case "git":
-		return GitSourceTypeGit, nil
+	case "core-gateway-proxy":
+		return InitCapabilityCoreGatewayProxy, nil
+	case "ssh":
+		return InitCapabilitySSH, nil
+	case "docker":
+		return InitCapabilityDocker, nil
 	}
-	var t GitSourceType
+	var t InitCapability
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (g GitSourceType) Ptr() *GitSourceType {
-	return &g
+func (i InitCapability) Ptr() *InitCapability {
+	return &i
 }
 
-// Paginated list of sandboxes.
+type ListSessionsResponse struct {
+	Sessions []*SessionInfo `json:"sessions" url:"sessions"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *ListSessionsResponse) GetSessions() []*SessionInfo {
+	if l == nil {
+		return nil
+	}
+	return l.Sessions
+}
+
+func (l *ListSessionsResponse) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *ListSessionsResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ListSessionsResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = ListSessionsResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *ListSessionsResponse) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
 type PaginatedSandboxResponse struct {
 	Items  []*SandboxResponse `json:"items" url:"items"`
-	Total  int                `json:"total" url:"total"`
 	Limit  int                `json:"limit" url:"limit"`
 	Offset int                `json:"offset" url:"offset"`
+	Total  int                `json:"total" url:"total"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1293,13 +1356,6 @@ func (p *PaginatedSandboxResponse) GetItems() []*SandboxResponse {
 		return nil
 	}
 	return p.Items
-}
-
-func (p *PaginatedSandboxResponse) GetTotal() int {
-	if p == nil {
-		return 0
-	}
-	return p.Total
 }
 
 func (p *PaginatedSandboxResponse) GetLimit() int {
@@ -1314,6 +1370,13 @@ func (p *PaginatedSandboxResponse) GetOffset() int {
 		return 0
 	}
 	return p.Offset
+}
+
+func (p *PaginatedSandboxResponse) GetTotal() int {
+	if p == nil {
+		return 0
+	}
+	return p.Total
 }
 
 func (p *PaginatedSandboxResponse) GetExtraProperties() map[string]interface{} {
@@ -1348,139 +1411,90 @@ func (p *PaginatedSandboxResponse) String() string {
 	return fmt.Sprintf("%#v", p)
 }
 
-// Network configuration of a sandbox.
-type SandboxNetwork struct {
-	IP  *string `json:"ip,omitempty" url:"ip,omitempty"`
-	Mac *string `json:"mac,omitempty" url:"mac,omitempty"`
+type PromoteCacheResponse struct {
+	CacheKey string `json:"cache_key" url:"cache_key"`
+	Status   string `json:"status" url:"status"`
+	TenantID string `json:"tenant_id" url:"tenant_id"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (s *SandboxNetwork) GetIP() *string {
-	if s == nil {
-		return nil
+func (p *PromoteCacheResponse) GetCacheKey() string {
+	if p == nil {
+		return ""
 	}
-	return s.IP
+	return p.CacheKey
 }
 
-func (s *SandboxNetwork) GetMac() *string {
-	if s == nil {
-		return nil
+func (p *PromoteCacheResponse) GetStatus() string {
+	if p == nil {
+		return ""
 	}
-	return s.Mac
+	return p.Status
 }
 
-func (s *SandboxNetwork) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
+func (p *PromoteCacheResponse) GetTenantID() string {
+	if p == nil {
+		return ""
+	}
+	return p.TenantID
 }
 
-func (s *SandboxNetwork) UnmarshalJSON(data []byte) error {
-	type unmarshaler SandboxNetwork
+func (p *PromoteCacheResponse) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *PromoteCacheResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler PromoteCacheResponse
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*s = SandboxNetwork(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	*p = PromoteCacheResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
 	if err != nil {
 		return err
 	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
 	return nil
 }
 
-func (s *SandboxNetwork) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+func (p *PromoteCacheResponse) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
 			return value
 		}
 	}
-	if value, err := internal.StringifyJSON(s); err == nil {
+	if value, err := internal.StringifyJSON(p); err == nil {
 		return value
 	}
-	return fmt.Sprintf("%#v", s)
+	return fmt.Sprintf("%#v", p)
 }
 
-// Sandbox details response.
 type SandboxResponse struct {
-	ID              string             `json:"id" url:"id"`
-	Name            string             `json:"name" url:"name"`
-	Status          string             `json:"status" url:"status"`
-	Image           string             `json:"image" url:"image"`
-	Network         *SandboxNetwork    `json:"network,omitempty" url:"network,omitempty"`
-	Spec            *SandboxSpec       `json:"spec" url:"spec"`
-	Workdir         *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
-	SetupSteps      []*SetupStepResult `json:"setup_steps,omitempty" url:"setup_steps,omitempty"`
-	CreatedAt       *time.Time         `json:"created_at,omitempty" url:"created_at,omitempty"`
-	CreatedBy       *string            `json:"created_by,omitempty" url:"created_by,omitempty"`
-	CreatedByEntity *string            `json:"created_by_entity,omitempty" url:"created_by_entity,omitempty"`
-	DeletedAt       *time.Time         `json:"deleted_at,omitempty" url:"deleted_at,omitempty"`
+	CreatedAt       string        `json:"created_at" url:"created_at"`
+	CreatedBy       *string       `json:"created_by,omitempty" url:"created_by,omitempty"`
+	CreatedByEntity *string       `json:"created_by_entity,omitempty" url:"created_by_entity,omitempty"`
+	DeletedAt       *string       `json:"deleted_at,omitempty" url:"deleted_at,omitempty"`
+	ID              string        `json:"id" url:"id"`
+	Image           string        `json:"image" url:"image"`
+	Name            string        `json:"name" url:"name"`
+	OwnerNodeID     *string       `json:"owner_node_id,omitempty" url:"owner_node_id,omitempty"`
+	SetupSteps      []interface{} `json:"setup_steps,omitempty" url:"setup_steps,omitempty"`
+	Spec            *SandboxSpec  `json:"spec,omitempty" url:"spec,omitempty"`
+	Status          string        `json:"status" url:"status"`
+	VmId            *string       `json:"vm_id,omitempty" url:"vm_id,omitempty"`
+	Workdir         *string       `json:"workdir,omitempty" url:"workdir,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (s *SandboxResponse) GetID() string {
+func (s *SandboxResponse) GetCreatedAt() string {
 	if s == nil {
 		return ""
-	}
-	return s.ID
-}
-
-func (s *SandboxResponse) GetName() string {
-	if s == nil {
-		return ""
-	}
-	return s.Name
-}
-
-func (s *SandboxResponse) GetStatus() string {
-	if s == nil {
-		return ""
-	}
-	return s.Status
-}
-
-func (s *SandboxResponse) GetImage() string {
-	if s == nil {
-		return ""
-	}
-	return s.Image
-}
-
-func (s *SandboxResponse) GetNetwork() *SandboxNetwork {
-	if s == nil {
-		return nil
-	}
-	return s.Network
-}
-
-func (s *SandboxResponse) GetSpec() *SandboxSpec {
-	if s == nil {
-		return nil
-	}
-	return s.Spec
-}
-
-func (s *SandboxResponse) GetWorkdir() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Workdir
-}
-
-func (s *SandboxResponse) GetSetupSteps() []*SetupStepResult {
-	if s == nil {
-		return nil
-	}
-	return s.SetupSteps
-}
-
-func (s *SandboxResponse) GetCreatedAt() *time.Time {
-	if s == nil {
-		return nil
 	}
 	return s.CreatedAt
 }
@@ -1499,11 +1513,74 @@ func (s *SandboxResponse) GetCreatedByEntity() *string {
 	return s.CreatedByEntity
 }
 
-func (s *SandboxResponse) GetDeletedAt() *time.Time {
+func (s *SandboxResponse) GetDeletedAt() *string {
 	if s == nil {
 		return nil
 	}
 	return s.DeletedAt
+}
+
+func (s *SandboxResponse) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SandboxResponse) GetImage() string {
+	if s == nil {
+		return ""
+	}
+	return s.Image
+}
+
+func (s *SandboxResponse) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SandboxResponse) GetOwnerNodeID() *string {
+	if s == nil {
+		return nil
+	}
+	return s.OwnerNodeID
+}
+
+func (s *SandboxResponse) GetSetupSteps() []interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.SetupSteps
+}
+
+func (s *SandboxResponse) GetSpec() *SandboxSpec {
+	if s == nil {
+		return nil
+	}
+	return s.Spec
+}
+
+func (s *SandboxResponse) GetStatus() string {
+	if s == nil {
+		return ""
+	}
+	return s.Status
+}
+
+func (s *SandboxResponse) GetVmId() *string {
+	if s == nil {
+		return nil
+	}
+	return s.VmId
+}
+
+func (s *SandboxResponse) GetWorkdir() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Workdir
 }
 
 func (s *SandboxResponse) GetExtraProperties() map[string]interface{} {
@@ -1511,20 +1588,12 @@ func (s *SandboxResponse) GetExtraProperties() map[string]interface{} {
 }
 
 func (s *SandboxResponse) UnmarshalJSON(data []byte) error {
-	type embed SandboxResponse
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at,omitempty"`
-		DeletedAt *internal.DateTime `json:"deleted_at,omitempty"`
-	}{
-		embed: embed(*s),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+	type unmarshaler SandboxResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*s = SandboxResponse(unmarshaler.embed)
-	s.CreatedAt = unmarshaler.CreatedAt.TimePtr()
-	s.DeletedAt = unmarshaler.DeletedAt.TimePtr()
+	*s = SandboxResponse(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *s)
 	if err != nil {
 		return err
@@ -1532,20 +1601,6 @@ func (s *SandboxResponse) UnmarshalJSON(data []byte) error {
 	s.extraProperties = extraProperties
 	s.rawJSON = json.RawMessage(data)
 	return nil
-}
-
-func (s *SandboxResponse) MarshalJSON() ([]byte, error) {
-	type embed SandboxResponse
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at,omitempty"`
-		DeletedAt *internal.DateTime `json:"deleted_at,omitempty"`
-	}{
-		embed:     embed(*s),
-		CreatedAt: internal.NewOptionalDateTime(s.CreatedAt),
-		DeletedAt: internal.NewOptionalDateTime(s.DeletedAt),
-	}
-	return json.Marshal(marshaler)
 }
 
 func (s *SandboxResponse) String() string {
@@ -1560,21 +1615,20 @@ func (s *SandboxResponse) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
-// Hardware specification of a sandbox.
 type SandboxSpec struct {
-	Vcpus    int `json:"vcpus" url:"vcpus"`
-	MemoryMb int `json:"memory_mb" url:"memory_mb"`
 	DiskGb   int `json:"disk_gb" url:"disk_gb"`
+	MemoryMb int `json:"memory_mb" url:"memory_mb"`
+	Vcpus    int `json:"vcpus" url:"vcpus"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (s *SandboxSpec) GetVcpus() int {
+func (s *SandboxSpec) GetDiskGb() int {
 	if s == nil {
 		return 0
 	}
-	return s.Vcpus
+	return s.DiskGb
 }
 
 func (s *SandboxSpec) GetMemoryMb() int {
@@ -1584,11 +1638,11 @@ func (s *SandboxSpec) GetMemoryMb() int {
 	return s.MemoryMb
 }
 
-func (s *SandboxSpec) GetDiskGb() int {
+func (s *SandboxSpec) GetVcpus() int {
 	if s == nil {
 		return 0
 	}
-	return s.DiskGb
+	return s.Vcpus
 }
 
 func (s *SandboxSpec) GetExtraProperties() map[string]interface{} {
@@ -1623,12 +1677,151 @@ func (s *SandboxSpec) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
-// A named setup script step.
+type SaveSnapshotResponse struct {
+	ChecksumSha256 string `json:"checksum_sha256" url:"checksum_sha256"`
+	SizeBytes      int64  `json:"size_bytes" url:"size_bytes"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SaveSnapshotResponse) GetChecksumSha256() string {
+	if s == nil {
+		return ""
+	}
+	return s.ChecksumSha256
+}
+
+func (s *SaveSnapshotResponse) GetSizeBytes() int64 {
+	if s == nil {
+		return 0
+	}
+	return s.SizeBytes
+}
+
+func (s *SaveSnapshotResponse) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SaveSnapshotResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler SaveSnapshotResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SaveSnapshotResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SaveSnapshotResponse) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SessionInfo struct {
+	Name            string        `json:"name" url:"name"`
+	StartedAtUnixMs *int64        `json:"started_at_unix_ms,omitempty" url:"started_at_unix_ms,omitempty"`
+	Status          SessionStatus `json:"status" url:"status"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SessionInfo) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SessionInfo) GetStartedAtUnixMs() *int64 {
+	if s == nil {
+		return nil
+	}
+	return s.StartedAtUnixMs
+}
+
+func (s *SessionInfo) GetStatus() SessionStatus {
+	if s == nil {
+		return ""
+	}
+	return s.Status
+}
+
+func (s *SessionInfo) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SessionInfo) UnmarshalJSON(data []byte) error {
+	type unmarshaler SessionInfo
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SessionInfo(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SessionInfo) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SessionStatus string
+
+const (
+	SessionStatusConnected    SessionStatus = "connected"
+	SessionStatusDisconnected SessionStatus = "disconnected"
+	SessionStatusDead         SessionStatus = "dead"
+)
+
+func NewSessionStatusFromString(s string) (SessionStatus, error) {
+	switch s {
+	case "connected":
+		return SessionStatusConnected, nil
+	case "disconnected":
+		return SessionStatusDisconnected, nil
+	case "dead":
+		return SessionStatusDead, nil
+	}
+	var t SessionStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SessionStatus) Ptr() *SessionStatus {
+	return &s
+}
+
+// A named setup script to execute after git clones.
 type SetupScript struct {
-	// Step name for display (auto-assigned if empty).
-	Name *string `json:"name,omitempty" url:"name,omitempty"`
-	// Shell script body to execute.
-	Script string `json:"script" url:"script"`
+	Name   *string `json:"name,omitempty" url:"name,omitempty"`
+	Script string  `json:"script" url:"script"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1680,93 +1873,16 @@ func (s *SetupScript) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
-// Result of a single setup step execution.
-type SetupStepResult struct {
-	Name   string  `json:"name" url:"name"`
-	Status string  `json:"status" url:"status"`
-	Stderr *string `json:"stderr,omitempty" url:"stderr,omitempty"`
-	Stdout *string `json:"stdout,omitempty" url:"stdout,omitempty"`
-	Script *string `json:"script,omitempty" url:"script,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (s *SetupStepResult) GetName() string {
-	if s == nil {
-		return ""
-	}
-	return s.Name
-}
-
-func (s *SetupStepResult) GetStatus() string {
-	if s == nil {
-		return ""
-	}
-	return s.Status
-}
-
-func (s *SetupStepResult) GetStderr() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Stderr
-}
-
-func (s *SetupStepResult) GetStdout() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Stdout
-}
-
-func (s *SetupStepResult) GetScript() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Script
-}
-
-func (s *SetupStepResult) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *SetupStepResult) UnmarshalJSON(data []byte) error {
-	type unmarshaler SetupStepResult
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*s = SetupStepResult(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
-	if err != nil {
-		return err
-	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (s *SetupStepResult) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(s); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", s)
-}
-
 type UploadArchiveRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-	// Absolute target directory in the sandbox
+	// Destination directory inside the sandbox
 	Path string `json:"-" url:"path"`
 }
 
 type UploadFileRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-	// Absolute target path in the sandbox
+	// Destination path inside the sandbox
 	Path string `json:"-" url:"path"`
 }

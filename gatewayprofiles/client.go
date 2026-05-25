@@ -43,7 +43,7 @@ func (c *Client) ListGatewayProfiles(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/gateway/profiles"
 	headers := internal.MergeHeaders(
@@ -92,7 +92,7 @@ func (c *Client) CreateGatewayProfile(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/gateway/profiles"
 	headers := internal.MergeHeaders(
@@ -148,7 +148,7 @@ func (c *Client) GetGatewayProfile(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v",
@@ -205,7 +205,7 @@ func (c *Client) DeleteGatewayProfile(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v",
@@ -265,7 +265,7 @@ func (c *Client) UpdateGatewayProfile(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v",
@@ -329,7 +329,7 @@ func (c *Client) CreateGatewayRule(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v/rules",
@@ -388,7 +388,7 @@ func (c *Client) DeleteGatewayRule(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v/rules/%v",
@@ -444,7 +444,7 @@ func (c *Client) UpdateGatewayRule(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v/rules/%v",
@@ -504,7 +504,7 @@ func (c *Client) ReorderGatewayRules(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/gateway/profiles/%v/rules/reorder",
