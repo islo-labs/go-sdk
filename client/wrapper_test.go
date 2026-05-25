@@ -54,7 +54,7 @@ func TestNewIslo_ExchangesAPIKeyAndAttachesBearer(t *testing.T) {
 
 	// Trigger any request — we don't care about the response body, only
 	// that the auth flow ran. Use a method that sends an HTTP request.
-	_, _ = c.Sandboxes.ListSandboxes(context.Background(), nil)
+	_, _ = c.Credits.GetCreditBalance(context.Background())
 
 	if got := atomic.LoadInt32(&exchangeCalls); got != 1 {
 		t.Fatalf("expected 1 /auth/token call, got %d", got)
@@ -71,6 +71,7 @@ func TestNewIslo_ExchangesAPIKeyAndAttachesBearer(t *testing.T) {
 func TestNewIslo_BaseURLFallback(t *testing.T) {
 	t.Setenv("ISLO_API_KEY", "")
 	t.Setenv("ISLO_BASE_URL", "")
+	t.Setenv("ISLO_COMPUTE_URL", "")
 
 	c := NewIslo(option.WithAPIKey("ak_test"))
 	if c == nil {
@@ -80,6 +81,131 @@ func TestNewIslo_BaseURLFallback(t *testing.T) {
 	// assert non-nil so the call signature stays sane.
 	if c.Sandboxes == nil {
 		t.Fatal("c.Sandboxes is nil")
+	}
+}
+
+func TestNewIslo_RoutesControlAndComputeURLs(t *testing.T) {
+	var (
+		controlPath string
+		computePath string
+	)
+
+	control := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/auth/token" {
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"session_token":  "jwt-routing",
+				"cookie_max_age": 600,
+			})
+			return
+		}
+		controlPath = r.URL.Path
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer control.Close()
+
+	compute := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		computePath = r.URL.Path
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer compute.Close()
+
+	c := NewIslo(
+		option.WithAPIKey("ak_route"),
+		option.WithBaseURL(control.URL),
+		option.WithComputeURL(compute.URL),
+	)
+
+	_, _ = c.Credits.GetCreditBalance(context.Background())
+	_, _ = c.Sandboxes.ListSandboxes(context.Background(), nil)
+
+	if controlPath != "/credits/balance" {
+		t.Fatalf("control request path = %q, want /credits/balance", controlPath)
+	}
+	if computePath != "/sandboxes" {
+		t.Fatalf("compute request path = %q, want /sandboxes", computePath)
+	}
+}
+
+func TestNewIslo_UsesEnvironmentVariablesForURLs(t *testing.T) {
+	var (
+		controlPath string
+		computePath string
+	)
+
+	control := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/auth/token" {
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"session_token":  "jwt-env",
+				"cookie_max_age": 600,
+			})
+			return
+		}
+		controlPath = r.URL.Path
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer control.Close()
+
+	compute := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		computePath = r.URL.Path
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer compute.Close()
+
+	t.Setenv("ISLO_API_KEY", "ak_env")
+	t.Setenv("ISLO_BASE_URL", control.URL)
+	t.Setenv("ISLO_COMPUTE_URL", compute.URL)
+
+	c := NewIslo()
+
+	_, _ = c.Credits.GetCreditBalance(context.Background())
+	_, _ = c.Sandboxes.ListSandboxes(context.Background(), nil)
+
+	if controlPath != "/credits/balance" {
+		t.Fatalf("control request path = %q, want /credits/balance", controlPath)
+	}
+	if computePath != "/sandboxes" {
+		t.Fatalf("compute request path = %q, want /sandboxes", computePath)
+	}
+}
+
+func TestNewIslo_WithEnvironmentConfiguresBothURLs(t *testing.T) {
+	var (
+		controlPath string
+		computePath string
+	)
+
+	control := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/auth/token" {
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"session_token":  "jwt-environment",
+				"cookie_max_age": 600,
+			})
+			return
+		}
+		controlPath = r.URL.Path
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer control.Close()
+
+	compute := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		computePath = r.URL.Path
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer compute.Close()
+
+	c := NewIslo(
+		option.WithAPIKey("ak_environment"),
+		option.WithEnvironment(control.URL, compute.URL),
+	)
+
+	_, _ = c.Credits.GetCreditBalance(context.Background())
+	_, _ = c.Sandboxes.ListSandboxes(context.Background(), nil)
+
+	if controlPath != "/credits/balance" {
+		t.Fatalf("control request path = %q, want /credits/balance", controlPath)
+	}
+	if computePath != "/sandboxes" {
+		t.Fatalf("compute request path = %q, want /sandboxes", computePath)
 	}
 }
 
