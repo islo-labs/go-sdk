@@ -11,6 +11,8 @@ import (
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
 	sandboxes "github.com/islo-labs/go-sdk/sandboxes"
+	sessions "github.com/islo-labs/go-sdk/sessions"
+	shares "github.com/islo-labs/go-sdk/shares"
 	snapshots "github.com/islo-labs/go-sdk/snapshots"
 	http "net/http"
 	os "os"
@@ -22,11 +24,13 @@ type Client struct {
 	header  http.Header
 
 	Sandboxes       *sandboxes.Client
-	Snapshots       *snapshots.Client
 	Credits         *credits.Client
 	Integrations    *integrations.Client
 	GatewayProfiles *gatewayprofiles.Client
 	CloudRoles      *cloudroles.Client
+	Sessions        *sessions.Client
+	Shares          *shares.Client
+	Snapshots       *snapshots.Client
 }
 
 func NewClient(opts ...option.RequestOption) *Client {
@@ -44,10 +48,12 @@ func NewClient(opts ...option.RequestOption) *Client {
 		),
 		header:          options.ToHeader(),
 		Sandboxes:       sandboxes.NewClient(opts...),
-		Snapshots:       snapshots.NewClient(opts...),
 		Credits:         credits.NewClient(opts...),
 		Integrations:    integrations.NewClient(opts...),
 		GatewayProfiles: gatewayprofiles.NewClient(opts...),
 		CloudRoles:      cloudroles.NewClient(opts...),
+		Sessions:        sessions.NewClient(opts...),
+		Shares:          shares.NewClient(opts...),
+		Snapshots:       snapshots.NewClient(opts...),
 	}
 }
