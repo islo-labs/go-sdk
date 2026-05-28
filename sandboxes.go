@@ -26,8 +26,10 @@ type SandboxCreate struct {
 	Env map[string]*string `json:"env,omitempty" url:"-"`
 	// Working directory relative to /workspace (e.g. 'my-project')
 	Workdir *string `json:"workdir,omitempty" url:"-"`
-	// Init capabilities to enable (in addition to Core which always runs). None = all capabilities (default, backward compatible), [] = Core only (minimal init), ['ssh', 'devtools'] = Core + specified capabilities. Valid values: ssh, terminal, devtools, docker.
-	InitCapabilities []string `json:"init_capabilities,omitempty" url:"-"`
+	// Sandbox init intent. Omitted typed SDK values should send minimal. Raw requests that omit both init and init_capabilities use legacy full init during migration. Platform init always runs.
+	Init *SandboxCreateInit `json:"init,omitempty" url:"-"`
+	// Deprecated legacy init capabilities. Use init instead. None = full init, [] = platform init only, ['ssh'] = selected capabilities. Valid legacy values: core-gateway-proxy, ssh, docker.
+	InitCapabilities []SandboxCreateInitCapabilitiesItem `json:"init_capabilities,omitempty" url:"-"`
 	// Gateway profile name or ID to apply. Uses tenant default if omitted.
 	GatewayProfile *string `json:"gateway_profile,omitempty" url:"-"`
 	// Name of a snapshot to restore from. When set, the VM is created from the snapshot's filesystem.
@@ -1277,6 +1279,149 @@ func (g GitSourceType) Ptr() *GitSourceType {
 	return &g
 }
 
+type InitCustom struct {
+	// Optional init capabilities to run after platform init.
+	Capabilities []InitCustomCapabilitiesItem `json:"capabilities" url:"capabilities"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InitCustom) GetCapabilities() []InitCustomCapabilitiesItem {
+	if i == nil {
+		return nil
+	}
+	return i.Capabilities
+}
+
+func (i *InitCustom) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *InitCustom) UnmarshalJSON(data []byte) error {
+	type unmarshaler InitCustom
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = InitCustom(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InitCustom) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type InitCustomCapabilitiesItem string
+
+const (
+	InitCustomCapabilitiesItemSSH    InitCustomCapabilitiesItem = "ssh"
+	InitCustomCapabilitiesItemDocker InitCustomCapabilitiesItem = "docker"
+)
+
+func NewInitCustomCapabilitiesItemFromString(s string) (InitCustomCapabilitiesItem, error) {
+	switch s {
+	case "ssh":
+		return InitCustomCapabilitiesItemSSH, nil
+	case "docker":
+		return InitCustomCapabilitiesItemDocker, nil
+	}
+	var t InitCustomCapabilitiesItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InitCustomCapabilitiesItem) Ptr() *InitCustomCapabilitiesItem {
+	return &i
+}
+
+type InitFull struct {
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InitFull) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *InitFull) UnmarshalJSON(data []byte) error {
+	type unmarshaler InitFull
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = InitFull(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InitFull) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type InitMinimal struct {
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InitMinimal) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *InitMinimal) UnmarshalJSON(data []byte) error {
+	type unmarshaler InitMinimal
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = InitMinimal(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InitMinimal) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
 // Paginated list of sandboxes.
 type PaginatedSandboxResponse struct {
 	Items  []*SandboxResponse `json:"items" url:"items"`
@@ -1757,6 +1902,173 @@ func (s *SetupStepResult) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", s)
+}
+
+// Sandbox init intent. Omitted typed SDK values should send minimal. Raw requests that omit both init and init_capabilities use legacy full init during migration. Platform init always runs.
+type SandboxCreateInit struct {
+	Type    string
+	Custom  *InitCustom
+	Full    *InitFull
+	Minimal *InitMinimal
+}
+
+func (s *SandboxCreateInit) GetType() string {
+	if s == nil {
+		return ""
+	}
+	return s.Type
+}
+
+func (s *SandboxCreateInit) GetCustom() *InitCustom {
+	if s == nil {
+		return nil
+	}
+	return s.Custom
+}
+
+func (s *SandboxCreateInit) GetFull() *InitFull {
+	if s == nil {
+		return nil
+	}
+	return s.Full
+}
+
+func (s *SandboxCreateInit) GetMinimal() *InitMinimal {
+	if s == nil {
+		return nil
+	}
+	return s.Minimal
+}
+
+func (s *SandboxCreateInit) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	s.Type = unmarshaler.Type
+	if unmarshaler.Type == "" {
+		return fmt.Errorf("%T did not include discriminant type", s)
+	}
+	switch unmarshaler.Type {
+	case "custom":
+		value := new(InitCustom)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		s.Custom = value
+	case "full":
+		value := new(InitFull)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		s.Full = value
+	case "minimal":
+		value := new(InitMinimal)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		s.Minimal = value
+	}
+	return nil
+}
+
+func (s SandboxCreateInit) MarshalJSON() ([]byte, error) {
+	if err := s.validate(); err != nil {
+		return nil, err
+	}
+	if s.Custom != nil {
+		return internal.MarshalJSONWithExtraProperty(s.Custom, "type", "custom")
+	}
+	if s.Full != nil {
+		return internal.MarshalJSONWithExtraProperty(s.Full, "type", "full")
+	}
+	if s.Minimal != nil {
+		return internal.MarshalJSONWithExtraProperty(s.Minimal, "type", "minimal")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", s)
+}
+
+type SandboxCreateInitVisitor interface {
+	VisitCustom(*InitCustom) error
+	VisitFull(*InitFull) error
+	VisitMinimal(*InitMinimal) error
+}
+
+func (s *SandboxCreateInit) Accept(visitor SandboxCreateInitVisitor) error {
+	if s.Custom != nil {
+		return visitor.VisitCustom(s.Custom)
+	}
+	if s.Full != nil {
+		return visitor.VisitFull(s.Full)
+	}
+	if s.Minimal != nil {
+		return visitor.VisitMinimal(s.Minimal)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", s)
+}
+
+func (s *SandboxCreateInit) validate() error {
+	if s == nil {
+		return fmt.Errorf("type %T is nil", s)
+	}
+	var fields []string
+	if s.Custom != nil {
+		fields = append(fields, "custom")
+	}
+	if s.Full != nil {
+		fields = append(fields, "full")
+	}
+	if s.Minimal != nil {
+		fields = append(fields, "minimal")
+	}
+	if len(fields) == 0 {
+		if s.Type != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", s, s.Type)
+		}
+		return fmt.Errorf("type %T is empty", s)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", s, fields)
+	}
+	if s.Type != "" {
+		field := fields[0]
+		if s.Type != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				s,
+				s.Type,
+				s,
+			)
+		}
+	}
+	return nil
+}
+
+type SandboxCreateInitCapabilitiesItem string
+
+const (
+	SandboxCreateInitCapabilitiesItemCoreGatewayProxy SandboxCreateInitCapabilitiesItem = "core-gateway-proxy"
+	SandboxCreateInitCapabilitiesItemSSH              SandboxCreateInitCapabilitiesItem = "ssh"
+	SandboxCreateInitCapabilitiesItemDocker           SandboxCreateInitCapabilitiesItem = "docker"
+)
+
+func NewSandboxCreateInitCapabilitiesItemFromString(s string) (SandboxCreateInitCapabilitiesItem, error) {
+	switch s {
+	case "core-gateway-proxy":
+		return SandboxCreateInitCapabilitiesItemCoreGatewayProxy, nil
+	case "ssh":
+		return SandboxCreateInitCapabilitiesItemSSH, nil
+	case "docker":
+		return SandboxCreateInitCapabilitiesItemDocker, nil
+	}
+	var t SandboxCreateInitCapabilitiesItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SandboxCreateInitCapabilitiesItem) Ptr() *SandboxCreateInitCapabilitiesItem {
+	return &s
 }
 
 type UploadArchiveRequest struct {
