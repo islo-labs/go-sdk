@@ -140,6 +140,7 @@ const (
 	IsloErrorCodeAuthRequired         IsloErrorCode = "AUTH_REQUIRED"
 	IsloErrorCodeAuthTokenExpired     IsloErrorCode = "AUTH_TOKEN_EXPIRED"
 	IsloErrorCodeAuthTokenInvalid     IsloErrorCode = "AUTH_TOKEN_INVALID"
+	IsloErrorCodeAccessDenied         IsloErrorCode = "ACCESS_DENIED"
 	IsloErrorCodeSandboxNotFound      IsloErrorCode = "SANDBOX_NOT_FOUND"
 	IsloErrorCodeSandboxAlreadyExists IsloErrorCode = "SANDBOX_ALREADY_EXISTS"
 	IsloErrorCodeSandboxNotRunning    IsloErrorCode = "SANDBOX_NOT_RUNNING"
@@ -148,6 +149,7 @@ const (
 	IsloErrorCodeExecFailed           IsloErrorCode = "EXEC_FAILED"
 	IsloErrorCodeResourceUnavailable  IsloErrorCode = "RESOURCE_UNAVAILABLE"
 	IsloErrorCodeResourceNotFound     IsloErrorCode = "RESOURCE_NOT_FOUND"
+	IsloErrorCodeFileNotFound         IsloErrorCode = "FILE_NOT_FOUND"
 	IsloErrorCodeCacheConflict        IsloErrorCode = "CACHE_CONFLICT"
 	IsloErrorCodeRateLimited          IsloErrorCode = "RATE_LIMITED"
 	IsloErrorCodeInsufficientCredits  IsloErrorCode = "INSUFFICIENT_CREDITS"
@@ -156,6 +158,7 @@ const (
 	IsloErrorCodeUpstreamError        IsloErrorCode = "UPSTREAM_ERROR"
 	IsloErrorCodeUpstreamTimeout      IsloErrorCode = "UPSTREAM_TIMEOUT"
 	IsloErrorCodeUpstreamUnavailable  IsloErrorCode = "UPSTREAM_UNAVAILABLE"
+	IsloErrorCodeTimeout              IsloErrorCode = "TIMEOUT"
 	IsloErrorCodeInternalError        IsloErrorCode = "INTERNAL_ERROR"
 )
 
@@ -167,6 +170,8 @@ func NewIsloErrorCodeFromString(s string) (IsloErrorCode, error) {
 		return IsloErrorCodeAuthTokenExpired, nil
 	case "AUTH_TOKEN_INVALID":
 		return IsloErrorCodeAuthTokenInvalid, nil
+	case "ACCESS_DENIED":
+		return IsloErrorCodeAccessDenied, nil
 	case "SANDBOX_NOT_FOUND":
 		return IsloErrorCodeSandboxNotFound, nil
 	case "SANDBOX_ALREADY_EXISTS":
@@ -183,6 +188,8 @@ func NewIsloErrorCodeFromString(s string) (IsloErrorCode, error) {
 		return IsloErrorCodeResourceUnavailable, nil
 	case "RESOURCE_NOT_FOUND":
 		return IsloErrorCodeResourceNotFound, nil
+	case "FILE_NOT_FOUND":
+		return IsloErrorCodeFileNotFound, nil
 	case "CACHE_CONFLICT":
 		return IsloErrorCodeCacheConflict, nil
 	case "RATE_LIMITED":
@@ -199,6 +206,8 @@ func NewIsloErrorCodeFromString(s string) (IsloErrorCode, error) {
 		return IsloErrorCodeUpstreamTimeout, nil
 	case "UPSTREAM_UNAVAILABLE":
 		return IsloErrorCodeUpstreamUnavailable, nil
+	case "TIMEOUT":
+		return IsloErrorCodeTimeout, nil
 	case "INTERNAL_ERROR":
 		return IsloErrorCodeInternalError, nil
 	}
@@ -208,6 +217,85 @@ func NewIsloErrorCodeFromString(s string) (IsloErrorCode, error) {
 
 func (i IsloErrorCode) Ptr() *IsloErrorCode {
 	return &i
+}
+
+type TenantLimits struct {
+	MaxConcurrentSandboxes int `json:"max_concurrent_sandboxes" url:"max_concurrent_sandboxes"`
+	GlobalRpm              int `json:"global_rpm" url:"global_rpm"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TenantLimits) GetMaxConcurrentSandboxes() int {
+	if t == nil {
+		return 0
+	}
+	return t.MaxConcurrentSandboxes
+}
+
+func (t *TenantLimits) GetGlobalRpm() int {
+	if t == nil {
+		return 0
+	}
+	return t.GlobalRpm
+}
+
+func (t *TenantLimits) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TenantLimits) UnmarshalJSON(data []byte) error {
+	type unmarshaler TenantLimits
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TenantLimits(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TenantLimits) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+type TenantStatus string
+
+const (
+	TenantStatusActive           TenantStatus = "active"
+	TenantStatusSuspended        TenantStatus = "suspended"
+	TenantStatusCreditsExhausted TenantStatus = "credits_exhausted"
+)
+
+func NewTenantStatusFromString(s string) (TenantStatus, error) {
+	switch s {
+	case "active":
+		return TenantStatusActive, nil
+	case "suspended":
+		return TenantStatusSuspended, nil
+	case "credits_exhausted":
+		return TenantStatusCreditsExhausted, nil
+	}
+	var t TenantStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (t TenantStatus) Ptr() *TenantStatus {
+	return &t
 }
 
 // Request to exchange a Descope access key for a session token.
