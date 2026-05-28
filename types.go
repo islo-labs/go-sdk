@@ -140,6 +140,7 @@ const (
 	IsloErrorCodeAuthRequired         IsloErrorCode = "AUTH_REQUIRED"
 	IsloErrorCodeAuthTokenExpired     IsloErrorCode = "AUTH_TOKEN_EXPIRED"
 	IsloErrorCodeAuthTokenInvalid     IsloErrorCode = "AUTH_TOKEN_INVALID"
+	IsloErrorCodeAccessDenied         IsloErrorCode = "ACCESS_DENIED"
 	IsloErrorCodeSandboxNotFound      IsloErrorCode = "SANDBOX_NOT_FOUND"
 	IsloErrorCodeSandboxAlreadyExists IsloErrorCode = "SANDBOX_ALREADY_EXISTS"
 	IsloErrorCodeSandboxNotRunning    IsloErrorCode = "SANDBOX_NOT_RUNNING"
@@ -148,6 +149,7 @@ const (
 	IsloErrorCodeExecFailed           IsloErrorCode = "EXEC_FAILED"
 	IsloErrorCodeResourceUnavailable  IsloErrorCode = "RESOURCE_UNAVAILABLE"
 	IsloErrorCodeResourceNotFound     IsloErrorCode = "RESOURCE_NOT_FOUND"
+	IsloErrorCodeFileNotFound         IsloErrorCode = "FILE_NOT_FOUND"
 	IsloErrorCodeCacheConflict        IsloErrorCode = "CACHE_CONFLICT"
 	IsloErrorCodeRateLimited          IsloErrorCode = "RATE_LIMITED"
 	IsloErrorCodeInsufficientCredits  IsloErrorCode = "INSUFFICIENT_CREDITS"
@@ -156,6 +158,7 @@ const (
 	IsloErrorCodeUpstreamError        IsloErrorCode = "UPSTREAM_ERROR"
 	IsloErrorCodeUpstreamTimeout      IsloErrorCode = "UPSTREAM_TIMEOUT"
 	IsloErrorCodeUpstreamUnavailable  IsloErrorCode = "UPSTREAM_UNAVAILABLE"
+	IsloErrorCodeTimeout              IsloErrorCode = "TIMEOUT"
 	IsloErrorCodeInternalError        IsloErrorCode = "INTERNAL_ERROR"
 )
 
@@ -167,6 +170,8 @@ func NewIsloErrorCodeFromString(s string) (IsloErrorCode, error) {
 		return IsloErrorCodeAuthTokenExpired, nil
 	case "AUTH_TOKEN_INVALID":
 		return IsloErrorCodeAuthTokenInvalid, nil
+	case "ACCESS_DENIED":
+		return IsloErrorCodeAccessDenied, nil
 	case "SANDBOX_NOT_FOUND":
 		return IsloErrorCodeSandboxNotFound, nil
 	case "SANDBOX_ALREADY_EXISTS":
@@ -183,6 +188,8 @@ func NewIsloErrorCodeFromString(s string) (IsloErrorCode, error) {
 		return IsloErrorCodeResourceUnavailable, nil
 	case "RESOURCE_NOT_FOUND":
 		return IsloErrorCodeResourceNotFound, nil
+	case "FILE_NOT_FOUND":
+		return IsloErrorCodeFileNotFound, nil
 	case "CACHE_CONFLICT":
 		return IsloErrorCodeCacheConflict, nil
 	case "RATE_LIMITED":
@@ -199,6 +206,8 @@ func NewIsloErrorCodeFromString(s string) (IsloErrorCode, error) {
 		return IsloErrorCodeUpstreamTimeout, nil
 	case "UPSTREAM_UNAVAILABLE":
 		return IsloErrorCodeUpstreamUnavailable, nil
+	case "TIMEOUT":
+		return IsloErrorCodeTimeout, nil
 	case "INTERNAL_ERROR":
 		return IsloErrorCodeInternalError, nil
 	}

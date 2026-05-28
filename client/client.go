@@ -4,6 +4,7 @@ package client
 
 import (
 	cloudroles "github.com/islo-labs/go-sdk/cloudroles"
+	compute "github.com/islo-labs/go-sdk/compute"
 	core "github.com/islo-labs/go-sdk/core"
 	credits "github.com/islo-labs/go-sdk/credits"
 	gatewayprofiles "github.com/islo-labs/go-sdk/gatewayprofiles"
@@ -11,6 +12,7 @@ import (
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
 	sandboxes "github.com/islo-labs/go-sdk/sandboxes"
+	shares "github.com/islo-labs/go-sdk/shares"
 	snapshots "github.com/islo-labs/go-sdk/snapshots"
 	http "net/http"
 	os "os"
@@ -21,8 +23,10 @@ type Client struct {
 	caller  *internal.Caller
 	header  http.Header
 
+	Compute         *compute.Client
 	Sandboxes       *sandboxes.Client
 	Snapshots       *snapshots.Client
+	Shares          *shares.Client
 	Credits         *credits.Client
 	Integrations    *integrations.Client
 	GatewayProfiles *gatewayprofiles.Client
@@ -43,8 +47,10 @@ func NewClient(opts ...option.RequestOption) *Client {
 			},
 		),
 		header:          options.ToHeader(),
+		Compute:         compute.NewClient(opts...),
 		Sandboxes:       sandboxes.NewClient(opts...),
 		Snapshots:       snapshots.NewClient(opts...),
+		Shares:          shares.NewClient(opts...),
 		Credits:         credits.NewClient(opts...),
 		Integrations:    integrations.NewClient(opts...),
 		GatewayProfiles: gatewayprofiles.NewClient(opts...),

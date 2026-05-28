@@ -15,21 +15,21 @@ type GatewayProfileCreate struct {
 	DefaultAction   *GatewayAction `json:"default_action,omitempty" url:"-"`
 	InternetEnabled *bool          `json:"internet_enabled,omitempty" url:"-"`
 	IsDefault       *bool          `json:"is_default,omitempty" url:"-"`
-	// Cloud role name or public_id
+	// Cloud role public ID (UUID)
 	CloudRole *string `json:"cloud_role,omitempty" url:"-"`
 }
 
 type GatewayRuleCreate struct {
-	ProfileID     string               `json:"-" url:"-"`
-	Priority      *int                 `json:"priority,omitempty" url:"-"`
-	HostPattern   string               `json:"host_pattern" url:"-"`
-	PathPattern   *string              `json:"path_pattern,omitempty" url:"-"`
-	Methods       []string             `json:"methods,omitempty" url:"-"`
-	Action        *GatewayAction       `json:"action,omitempty" url:"-"`
-	RateLimitRpm  *int                 `json:"rate_limit_rpm,omitempty" url:"-"`
-	ProviderKey   *string              `json:"provider_key,omitempty" url:"-"`
-	AuthStrategy  *AuthStrategySchema  `json:"auth_strategy,omitempty" url:"-"`
-	ContentFilter *ContentFilterSchema `json:"content_filter,omitempty" url:"-"`
+	ProfileID     string                          `json:"-" url:"-"`
+	Priority      *int                            `json:"priority,omitempty" url:"-"`
+	HostPattern   string                          `json:"host_pattern" url:"-"`
+	PathPattern   *string                         `json:"path_pattern,omitempty" url:"-"`
+	Methods       []string                        `json:"methods,omitempty" url:"-"`
+	Action        *GatewayAction                  `json:"action,omitempty" url:"-"`
+	RateLimitRpm  *int                            `json:"rate_limit_rpm,omitempty" url:"-"`
+	ProviderKey   *string                         `json:"provider_key,omitempty" url:"-"`
+	AuthStrategy  *AuthStrategySchema             `json:"auth_strategy,omitempty" url:"-"`
+	ContentFilter *GatewayRuleCreateContentFilter `json:"content_filter,omitempty" url:"-"`
 }
 
 type DeleteGatewayProfileRequest struct {
@@ -207,47 +207,39 @@ func (c *CloudRoleRef) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
-type ContentFilterSchema struct {
-	Direction  ContentFilterSchemaDirection  `json:"direction" url:"direction"`
-	FilterType ContentFilterSchemaFilterType `json:"filter_type" url:"filter_type"`
-	Pattern    string                        `json:"pattern" url:"pattern"`
+type ContentTypeContentFilter struct {
+	Direction ContentTypeContentFilterDirection `json:"direction" url:"direction"`
+	Pattern   string                            `json:"pattern" url:"pattern"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (c *ContentFilterSchema) GetDirection() ContentFilterSchemaDirection {
+func (c *ContentTypeContentFilter) GetDirection() ContentTypeContentFilterDirection {
 	if c == nil {
 		return ""
 	}
 	return c.Direction
 }
 
-func (c *ContentFilterSchema) GetFilterType() ContentFilterSchemaFilterType {
-	if c == nil {
-		return ""
-	}
-	return c.FilterType
-}
-
-func (c *ContentFilterSchema) GetPattern() string {
+func (c *ContentTypeContentFilter) GetPattern() string {
 	if c == nil {
 		return ""
 	}
 	return c.Pattern
 }
 
-func (c *ContentFilterSchema) GetExtraProperties() map[string]interface{} {
+func (c *ContentTypeContentFilter) GetExtraProperties() map[string]interface{} {
 	return c.extraProperties
 }
 
-func (c *ContentFilterSchema) UnmarshalJSON(data []byte) error {
-	type unmarshaler ContentFilterSchema
+func (c *ContentTypeContentFilter) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContentTypeContentFilter
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*c = ContentFilterSchema(value)
+	*c = ContentTypeContentFilter(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *c)
 	if err != nil {
 		return err
@@ -257,7 +249,7 @@ func (c *ContentFilterSchema) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (c *ContentFilterSchema) String() string {
+func (c *ContentTypeContentFilter) String() string {
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -269,53 +261,28 @@ func (c *ContentFilterSchema) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
-type ContentFilterSchemaDirection string
+type ContentTypeContentFilterDirection string
 
 const (
-	ContentFilterSchemaDirectionRequest  ContentFilterSchemaDirection = "request"
-	ContentFilterSchemaDirectionResponse ContentFilterSchemaDirection = "response"
-	ContentFilterSchemaDirectionBoth     ContentFilterSchemaDirection = "both"
+	ContentTypeContentFilterDirectionRequest  ContentTypeContentFilterDirection = "request"
+	ContentTypeContentFilterDirectionResponse ContentTypeContentFilterDirection = "response"
+	ContentTypeContentFilterDirectionBoth     ContentTypeContentFilterDirection = "both"
 )
 
-func NewContentFilterSchemaDirectionFromString(s string) (ContentFilterSchemaDirection, error) {
+func NewContentTypeContentFilterDirectionFromString(s string) (ContentTypeContentFilterDirection, error) {
 	switch s {
 	case "request":
-		return ContentFilterSchemaDirectionRequest, nil
+		return ContentTypeContentFilterDirectionRequest, nil
 	case "response":
-		return ContentFilterSchemaDirectionResponse, nil
+		return ContentTypeContentFilterDirectionResponse, nil
 	case "both":
-		return ContentFilterSchemaDirectionBoth, nil
+		return ContentTypeContentFilterDirectionBoth, nil
 	}
-	var t ContentFilterSchemaDirection
+	var t ContentTypeContentFilterDirection
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (c ContentFilterSchemaDirection) Ptr() *ContentFilterSchemaDirection {
-	return &c
-}
-
-type ContentFilterSchemaFilterType string
-
-const (
-	ContentFilterSchemaFilterTypeRegex       ContentFilterSchemaFilterType = "regex"
-	ContentFilterSchemaFilterTypeContentType ContentFilterSchemaFilterType = "content_type"
-	ContentFilterSchemaFilterTypeSizeLimit   ContentFilterSchemaFilterType = "size_limit"
-)
-
-func NewContentFilterSchemaFilterTypeFromString(s string) (ContentFilterSchemaFilterType, error) {
-	switch s {
-	case "regex":
-		return ContentFilterSchemaFilterTypeRegex, nil
-	case "content_type":
-		return ContentFilterSchemaFilterTypeContentType, nil
-	case "size_limit":
-		return ContentFilterSchemaFilterTypeSizeLimit, nil
-	}
-	var t ContentFilterSchemaFilterType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (c ContentFilterSchemaFilterType) Ptr() *ContentFilterSchemaFilterType {
+func (c ContentTypeContentFilterDirection) Ptr() *ContentTypeContentFilterDirection {
 	return &c
 }
 
@@ -785,6 +752,256 @@ func (g *GatewayRuleResponse) String() string {
 	return fmt.Sprintf("%#v", g)
 }
 
+type JudgeContentFilter struct {
+	Direction      JudgeContentFilterDirection   `json:"direction" url:"direction"`
+	Name           string                        `json:"name" url:"name"`
+	ProviderKey    JudgeContentFilterProviderKey `json:"provider_key" url:"provider_key"`
+	Model          string                        `json:"model" url:"model"`
+	Prompt         string                        `json:"prompt" url:"prompt"`
+	Fallback       *JudgeContentFilterFallback   `json:"fallback,omitempty" url:"fallback,omitempty"`
+	TimeoutSeconds *int                          `json:"timeout_seconds,omitempty" url:"timeout_seconds,omitempty"`
+	MaxTokens      *int                          `json:"max_tokens,omitempty" url:"max_tokens,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JudgeContentFilter) GetDirection() JudgeContentFilterDirection {
+	if j == nil {
+		return ""
+	}
+	return j.Direction
+}
+
+func (j *JudgeContentFilter) GetName() string {
+	if j == nil {
+		return ""
+	}
+	return j.Name
+}
+
+func (j *JudgeContentFilter) GetProviderKey() JudgeContentFilterProviderKey {
+	if j == nil {
+		return ""
+	}
+	return j.ProviderKey
+}
+
+func (j *JudgeContentFilter) GetModel() string {
+	if j == nil {
+		return ""
+	}
+	return j.Model
+}
+
+func (j *JudgeContentFilter) GetPrompt() string {
+	if j == nil {
+		return ""
+	}
+	return j.Prompt
+}
+
+func (j *JudgeContentFilter) GetFallback() *JudgeContentFilterFallback {
+	if j == nil {
+		return nil
+	}
+	return j.Fallback
+}
+
+func (j *JudgeContentFilter) GetTimeoutSeconds() *int {
+	if j == nil {
+		return nil
+	}
+	return j.TimeoutSeconds
+}
+
+func (j *JudgeContentFilter) GetMaxTokens() *int {
+	if j == nil {
+		return nil
+	}
+	return j.MaxTokens
+}
+
+func (j *JudgeContentFilter) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JudgeContentFilter) UnmarshalJSON(data []byte) error {
+	type unmarshaler JudgeContentFilter
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JudgeContentFilter(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JudgeContentFilter) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JudgeContentFilterDirection string
+
+const (
+	JudgeContentFilterDirectionRequest  JudgeContentFilterDirection = "request"
+	JudgeContentFilterDirectionResponse JudgeContentFilterDirection = "response"
+	JudgeContentFilterDirectionBoth     JudgeContentFilterDirection = "both"
+)
+
+func NewJudgeContentFilterDirectionFromString(s string) (JudgeContentFilterDirection, error) {
+	switch s {
+	case "request":
+		return JudgeContentFilterDirectionRequest, nil
+	case "response":
+		return JudgeContentFilterDirectionResponse, nil
+	case "both":
+		return JudgeContentFilterDirectionBoth, nil
+	}
+	var t JudgeContentFilterDirection
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JudgeContentFilterDirection) Ptr() *JudgeContentFilterDirection {
+	return &j
+}
+
+type JudgeContentFilterFallback string
+
+const (
+	JudgeContentFilterFallbackDeny JudgeContentFilterFallback = "deny"
+	JudgeContentFilterFallbackSkip JudgeContentFilterFallback = "skip"
+)
+
+func NewJudgeContentFilterFallbackFromString(s string) (JudgeContentFilterFallback, error) {
+	switch s {
+	case "deny":
+		return JudgeContentFilterFallbackDeny, nil
+	case "skip":
+		return JudgeContentFilterFallbackSkip, nil
+	}
+	var t JudgeContentFilterFallback
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JudgeContentFilterFallback) Ptr() *JudgeContentFilterFallback {
+	return &j
+}
+
+type JudgeContentFilterProviderKey string
+
+const (
+	JudgeContentFilterProviderKeyAnthropic JudgeContentFilterProviderKey = "anthropic"
+	JudgeContentFilterProviderKeyOpenai    JudgeContentFilterProviderKey = "openai"
+)
+
+func NewJudgeContentFilterProviderKeyFromString(s string) (JudgeContentFilterProviderKey, error) {
+	switch s {
+	case "anthropic":
+		return JudgeContentFilterProviderKeyAnthropic, nil
+	case "openai":
+		return JudgeContentFilterProviderKeyOpenai, nil
+	}
+	var t JudgeContentFilterProviderKey
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JudgeContentFilterProviderKey) Ptr() *JudgeContentFilterProviderKey {
+	return &j
+}
+
+type RegexContentFilter struct {
+	Direction RegexContentFilterDirection `json:"direction" url:"direction"`
+	Pattern   string                      `json:"pattern" url:"pattern"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RegexContentFilter) GetDirection() RegexContentFilterDirection {
+	if r == nil {
+		return ""
+	}
+	return r.Direction
+}
+
+func (r *RegexContentFilter) GetPattern() string {
+	if r == nil {
+		return ""
+	}
+	return r.Pattern
+}
+
+func (r *RegexContentFilter) GetExtraProperties() map[string]interface{} {
+	return r.extraProperties
+}
+
+func (r *RegexContentFilter) UnmarshalJSON(data []byte) error {
+	type unmarshaler RegexContentFilter
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RegexContentFilter(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RegexContentFilter) String() string {
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+type RegexContentFilterDirection string
+
+const (
+	RegexContentFilterDirectionRequest  RegexContentFilterDirection = "request"
+	RegexContentFilterDirectionResponse RegexContentFilterDirection = "response"
+	RegexContentFilterDirectionBoth     RegexContentFilterDirection = "both"
+)
+
+func NewRegexContentFilterDirectionFromString(s string) (RegexContentFilterDirection, error) {
+	switch s {
+	case "request":
+		return RegexContentFilterDirectionRequest, nil
+	case "response":
+		return RegexContentFilterDirectionResponse, nil
+	case "both":
+		return RegexContentFilterDirectionBoth, nil
+	}
+	var t RegexContentFilterDirection
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r RegexContentFilterDirection) Ptr() *RegexContentFilterDirection {
+	return &r
+}
+
 type RuleReorderItem struct {
 	RuleID   string `json:"rule_id" url:"rule_id"`
 	Priority int    `json:"priority" url:"priority"`
@@ -839,6 +1056,415 @@ func (r *RuleReorderItem) String() string {
 	return fmt.Sprintf("%#v", r)
 }
 
+type SizeLimitContentFilter struct {
+	Direction SizeLimitContentFilterDirection `json:"direction" url:"direction"`
+	Pattern   string                          `json:"pattern" url:"pattern"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SizeLimitContentFilter) GetDirection() SizeLimitContentFilterDirection {
+	if s == nil {
+		return ""
+	}
+	return s.Direction
+}
+
+func (s *SizeLimitContentFilter) GetPattern() string {
+	if s == nil {
+		return ""
+	}
+	return s.Pattern
+}
+
+func (s *SizeLimitContentFilter) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SizeLimitContentFilter) UnmarshalJSON(data []byte) error {
+	type unmarshaler SizeLimitContentFilter
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SizeLimitContentFilter(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SizeLimitContentFilter) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SizeLimitContentFilterDirection string
+
+const (
+	SizeLimitContentFilterDirectionRequest  SizeLimitContentFilterDirection = "request"
+	SizeLimitContentFilterDirectionResponse SizeLimitContentFilterDirection = "response"
+	SizeLimitContentFilterDirectionBoth     SizeLimitContentFilterDirection = "both"
+)
+
+func NewSizeLimitContentFilterDirectionFromString(s string) (SizeLimitContentFilterDirection, error) {
+	switch s {
+	case "request":
+		return SizeLimitContentFilterDirectionRequest, nil
+	case "response":
+		return SizeLimitContentFilterDirectionResponse, nil
+	case "both":
+		return SizeLimitContentFilterDirectionBoth, nil
+	}
+	var t SizeLimitContentFilterDirection
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SizeLimitContentFilterDirection) Ptr() *SizeLimitContentFilterDirection {
+	return &s
+}
+
+type GatewayRuleCreateContentFilter struct {
+	FilterType  string
+	ContentType *ContentTypeContentFilter
+	Judge       *JudgeContentFilter
+	Regex       *RegexContentFilter
+	SizeLimit   *SizeLimitContentFilter
+}
+
+func (g *GatewayRuleCreateContentFilter) GetFilterType() string {
+	if g == nil {
+		return ""
+	}
+	return g.FilterType
+}
+
+func (g *GatewayRuleCreateContentFilter) GetContentType() *ContentTypeContentFilter {
+	if g == nil {
+		return nil
+	}
+	return g.ContentType
+}
+
+func (g *GatewayRuleCreateContentFilter) GetJudge() *JudgeContentFilter {
+	if g == nil {
+		return nil
+	}
+	return g.Judge
+}
+
+func (g *GatewayRuleCreateContentFilter) GetRegex() *RegexContentFilter {
+	if g == nil {
+		return nil
+	}
+	return g.Regex
+}
+
+func (g *GatewayRuleCreateContentFilter) GetSizeLimit() *SizeLimitContentFilter {
+	if g == nil {
+		return nil
+	}
+	return g.SizeLimit
+}
+
+func (g *GatewayRuleCreateContentFilter) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		FilterType string `json:"filter_type"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	g.FilterType = unmarshaler.FilterType
+	if unmarshaler.FilterType == "" {
+		return fmt.Errorf("%T did not include discriminant filter_type", g)
+	}
+	switch unmarshaler.FilterType {
+	case "content_type":
+		value := new(ContentTypeContentFilter)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.ContentType = value
+	case "judge":
+		value := new(JudgeContentFilter)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.Judge = value
+	case "regex":
+		value := new(RegexContentFilter)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.Regex = value
+	case "size_limit":
+		value := new(SizeLimitContentFilter)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.SizeLimit = value
+	}
+	return nil
+}
+
+func (g GatewayRuleCreateContentFilter) MarshalJSON() ([]byte, error) {
+	if err := g.validate(); err != nil {
+		return nil, err
+	}
+	if g.ContentType != nil {
+		return internal.MarshalJSONWithExtraProperty(g.ContentType, "filter_type", "content_type")
+	}
+	if g.Judge != nil {
+		return internal.MarshalJSONWithExtraProperty(g.Judge, "filter_type", "judge")
+	}
+	if g.Regex != nil {
+		return internal.MarshalJSONWithExtraProperty(g.Regex, "filter_type", "regex")
+	}
+	if g.SizeLimit != nil {
+		return internal.MarshalJSONWithExtraProperty(g.SizeLimit, "filter_type", "size_limit")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+type GatewayRuleCreateContentFilterVisitor interface {
+	VisitContentType(*ContentTypeContentFilter) error
+	VisitJudge(*JudgeContentFilter) error
+	VisitRegex(*RegexContentFilter) error
+	VisitSizeLimit(*SizeLimitContentFilter) error
+}
+
+func (g *GatewayRuleCreateContentFilter) Accept(visitor GatewayRuleCreateContentFilterVisitor) error {
+	if g.ContentType != nil {
+		return visitor.VisitContentType(g.ContentType)
+	}
+	if g.Judge != nil {
+		return visitor.VisitJudge(g.Judge)
+	}
+	if g.Regex != nil {
+		return visitor.VisitRegex(g.Regex)
+	}
+	if g.SizeLimit != nil {
+		return visitor.VisitSizeLimit(g.SizeLimit)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+func (g *GatewayRuleCreateContentFilter) validate() error {
+	if g == nil {
+		return fmt.Errorf("type %T is nil", g)
+	}
+	var fields []string
+	if g.ContentType != nil {
+		fields = append(fields, "content_type")
+	}
+	if g.Judge != nil {
+		fields = append(fields, "judge")
+	}
+	if g.Regex != nil {
+		fields = append(fields, "regex")
+	}
+	if g.SizeLimit != nil {
+		fields = append(fields, "size_limit")
+	}
+	if len(fields) == 0 {
+		if g.FilterType != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.FilterType)
+		}
+		return fmt.Errorf("type %T is empty", g)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", g, fields)
+	}
+	if g.FilterType != "" {
+		field := fields[0]
+		if g.FilterType != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				g,
+				g.FilterType,
+				g,
+			)
+		}
+	}
+	return nil
+}
+
+type GatewayRuleUpdateContentFilter struct {
+	FilterType  string
+	ContentType *ContentTypeContentFilter
+	Judge       *JudgeContentFilter
+	Regex       *RegexContentFilter
+	SizeLimit   *SizeLimitContentFilter
+}
+
+func (g *GatewayRuleUpdateContentFilter) GetFilterType() string {
+	if g == nil {
+		return ""
+	}
+	return g.FilterType
+}
+
+func (g *GatewayRuleUpdateContentFilter) GetContentType() *ContentTypeContentFilter {
+	if g == nil {
+		return nil
+	}
+	return g.ContentType
+}
+
+func (g *GatewayRuleUpdateContentFilter) GetJudge() *JudgeContentFilter {
+	if g == nil {
+		return nil
+	}
+	return g.Judge
+}
+
+func (g *GatewayRuleUpdateContentFilter) GetRegex() *RegexContentFilter {
+	if g == nil {
+		return nil
+	}
+	return g.Regex
+}
+
+func (g *GatewayRuleUpdateContentFilter) GetSizeLimit() *SizeLimitContentFilter {
+	if g == nil {
+		return nil
+	}
+	return g.SizeLimit
+}
+
+func (g *GatewayRuleUpdateContentFilter) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		FilterType string `json:"filter_type"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	g.FilterType = unmarshaler.FilterType
+	if unmarshaler.FilterType == "" {
+		return fmt.Errorf("%T did not include discriminant filter_type", g)
+	}
+	switch unmarshaler.FilterType {
+	case "content_type":
+		value := new(ContentTypeContentFilter)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.ContentType = value
+	case "judge":
+		value := new(JudgeContentFilter)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.Judge = value
+	case "regex":
+		value := new(RegexContentFilter)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.Regex = value
+	case "size_limit":
+		value := new(SizeLimitContentFilter)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.SizeLimit = value
+	}
+	return nil
+}
+
+func (g GatewayRuleUpdateContentFilter) MarshalJSON() ([]byte, error) {
+	if err := g.validate(); err != nil {
+		return nil, err
+	}
+	if g.ContentType != nil {
+		return internal.MarshalJSONWithExtraProperty(g.ContentType, "filter_type", "content_type")
+	}
+	if g.Judge != nil {
+		return internal.MarshalJSONWithExtraProperty(g.Judge, "filter_type", "judge")
+	}
+	if g.Regex != nil {
+		return internal.MarshalJSONWithExtraProperty(g.Regex, "filter_type", "regex")
+	}
+	if g.SizeLimit != nil {
+		return internal.MarshalJSONWithExtraProperty(g.SizeLimit, "filter_type", "size_limit")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+type GatewayRuleUpdateContentFilterVisitor interface {
+	VisitContentType(*ContentTypeContentFilter) error
+	VisitJudge(*JudgeContentFilter) error
+	VisitRegex(*RegexContentFilter) error
+	VisitSizeLimit(*SizeLimitContentFilter) error
+}
+
+func (g *GatewayRuleUpdateContentFilter) Accept(visitor GatewayRuleUpdateContentFilterVisitor) error {
+	if g.ContentType != nil {
+		return visitor.VisitContentType(g.ContentType)
+	}
+	if g.Judge != nil {
+		return visitor.VisitJudge(g.Judge)
+	}
+	if g.Regex != nil {
+		return visitor.VisitRegex(g.Regex)
+	}
+	if g.SizeLimit != nil {
+		return visitor.VisitSizeLimit(g.SizeLimit)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+func (g *GatewayRuleUpdateContentFilter) validate() error {
+	if g == nil {
+		return fmt.Errorf("type %T is nil", g)
+	}
+	var fields []string
+	if g.ContentType != nil {
+		fields = append(fields, "content_type")
+	}
+	if g.Judge != nil {
+		fields = append(fields, "judge")
+	}
+	if g.Regex != nil {
+		fields = append(fields, "regex")
+	}
+	if g.SizeLimit != nil {
+		fields = append(fields, "size_limit")
+	}
+	if len(fields) == 0 {
+		if g.FilterType != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.FilterType)
+		}
+		return fmt.Errorf("type %T is empty", g)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", g, fields)
+	}
+	if g.FilterType != "" {
+		field := fields[0]
+		if g.FilterType != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				g,
+				g.FilterType,
+				g,
+			)
+		}
+	}
+	return nil
+}
+
 type GatewayProfileUpdate struct {
 	ProfileID       string         `json:"-" url:"-"`
 	Name            *string        `json:"name,omitempty" url:"-"`
@@ -846,20 +1472,20 @@ type GatewayProfileUpdate struct {
 	DefaultAction   *GatewayAction `json:"default_action,omitempty" url:"-"`
 	InternetEnabled *bool          `json:"internet_enabled,omitempty" url:"-"`
 	IsDefault       *bool          `json:"is_default,omitempty" url:"-"`
-	// Cloud role name or public_id, empty string to unset
+	// Cloud role public ID (UUID), empty string to unset
 	CloudRole *string `json:"cloud_role,omitempty" url:"-"`
 }
 
 type GatewayRuleUpdate struct {
-	ProfileID     string               `json:"-" url:"-"`
-	RuleID        string               `json:"-" url:"-"`
-	Priority      *int                 `json:"priority,omitempty" url:"-"`
-	HostPattern   *string              `json:"host_pattern,omitempty" url:"-"`
-	PathPattern   *string              `json:"path_pattern,omitempty" url:"-"`
-	Methods       []string             `json:"methods,omitempty" url:"-"`
-	Action        *GatewayAction       `json:"action,omitempty" url:"-"`
-	RateLimitRpm  *int                 `json:"rate_limit_rpm,omitempty" url:"-"`
-	ProviderKey   *string              `json:"provider_key,omitempty" url:"-"`
-	AuthStrategy  *AuthStrategySchema  `json:"auth_strategy,omitempty" url:"-"`
-	ContentFilter *ContentFilterSchema `json:"content_filter,omitempty" url:"-"`
+	ProfileID     string                          `json:"-" url:"-"`
+	RuleID        string                          `json:"-" url:"-"`
+	Priority      *int                            `json:"priority,omitempty" url:"-"`
+	HostPattern   *string                         `json:"host_pattern,omitempty" url:"-"`
+	PathPattern   *string                         `json:"path_pattern,omitempty" url:"-"`
+	Methods       []string                        `json:"methods,omitempty" url:"-"`
+	Action        *GatewayAction                  `json:"action,omitempty" url:"-"`
+	RateLimitRpm  *int                            `json:"rate_limit_rpm,omitempty" url:"-"`
+	ProviderKey   *string                         `json:"provider_key,omitempty" url:"-"`
+	AuthStrategy  *AuthStrategySchema             `json:"auth_strategy,omitempty" url:"-"`
+	ContentFilter *GatewayRuleUpdateContentFilter `json:"content_filter,omitempty" url:"-"`
 }
