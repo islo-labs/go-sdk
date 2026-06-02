@@ -43,7 +43,7 @@ func (c *Client) ListCloudRoles(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/cloud-roles"
 	headers := internal.MergeHeaders(
@@ -92,7 +92,7 @@ func (c *Client) CreateCloudRole(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/cloud-roles"
 	headers := internal.MergeHeaders(
@@ -143,7 +143,7 @@ func (c *Client) GetCloudRole(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/cloud-roles/%v",
@@ -200,7 +200,7 @@ func (c *Client) DeleteCloudRole(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/cloud-roles/%v",
@@ -255,7 +255,7 @@ func (c *Client) UpdateCloudRole(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/cloud-roles/%v",

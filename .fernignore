@@ -3,3 +3,6 @@ client/wrapper.go
 client/wrapper_test.go
 customauth/
 README.md
+.fern/replay.lock
+.fern/replay.yml
+.gitattributes

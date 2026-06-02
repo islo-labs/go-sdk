@@ -8,23 +8,150 @@ import (
 	internal "github.com/islo-labs/go-sdk/internal"
 )
 
-// Structured error response for API clients.
+type ErrorCode string
+
+const (
+	ErrorCodeUnauthorized          ErrorCode = "UNAUTHORIZED"
+	ErrorCodeBadRequest            ErrorCode = "BAD_REQUEST"
+	ErrorCodeNotFound              ErrorCode = "NOT_FOUND"
+	ErrorCodeInvalidJSON           ErrorCode = "INVALID_JSON"
+	ErrorCodeVMNotFound            ErrorCode = "VM_NOT_FOUND"
+	ErrorCodeVMAlreadyExists       ErrorCode = "VM_ALREADY_EXISTS"
+	ErrorCodeVMInvalidState        ErrorCode = "VM_INVALID_STATE"
+	ErrorCodeImageNotFound         ErrorCode = "IMAGE_NOT_FOUND"
+	ErrorCodeFileNotFound          ErrorCode = "FILE_NOT_FOUND"
+	ErrorCodeCommandNotFound       ErrorCode = "COMMAND_NOT_FOUND"
+	ErrorCodeExecFailed            ErrorCode = "EXEC_FAILED"
+	ErrorCodeFileOperationError    ErrorCode = "FILE_OPERATION_ERROR"
+	ErrorCodeInsufficientResources ErrorCode = "INSUFFICIENT_RESOURCES"
+	ErrorCodeCacheConflict         ErrorCode = "CACHE_CONFLICT"
+	ErrorCodeTimeout               ErrorCode = "TIMEOUT"
+	ErrorCodeInternalError         ErrorCode = "INTERNAL_ERROR"
+	ErrorCodeAuthRequired          ErrorCode = "AUTH_REQUIRED"
+	ErrorCodeAuthTokenExpired      ErrorCode = "AUTH_TOKEN_EXPIRED"
+	ErrorCodeAuthTokenInvalid      ErrorCode = "AUTH_TOKEN_INVALID"
+	ErrorCodeSandboxNotFound       ErrorCode = "SANDBOX_NOT_FOUND"
+	ErrorCodeSandboxAlreadyExists  ErrorCode = "SANDBOX_ALREADY_EXISTS"
+	ErrorCodeSandboxNotRunning     ErrorCode = "SANDBOX_NOT_RUNNING"
+	ErrorCodeResourceUnavailable   ErrorCode = "RESOURCE_UNAVAILABLE"
+	ErrorCodeResourceNotFound      ErrorCode = "RESOURCE_NOT_FOUND"
+	ErrorCodeRateLimited           ErrorCode = "RATE_LIMITED"
+	ErrorCodeInsufficientCredits   ErrorCode = "INSUFFICIENT_CREDITS"
+	ErrorCodeValidationError       ErrorCode = "VALIDATION_ERROR"
+	ErrorCodeInvalidRequest        ErrorCode = "INVALID_REQUEST"
+	ErrorCodeUpstreamError         ErrorCode = "UPSTREAM_ERROR"
+	ErrorCodeUpstreamTimeout       ErrorCode = "UPSTREAM_TIMEOUT"
+	ErrorCodeUpstreamUnavailable   ErrorCode = "UPSTREAM_UNAVAILABLE"
+)
+
+func NewErrorCodeFromString(s string) (ErrorCode, error) {
+	switch s {
+	case "UNAUTHORIZED":
+		return ErrorCodeUnauthorized, nil
+	case "BAD_REQUEST":
+		return ErrorCodeBadRequest, nil
+	case "NOT_FOUND":
+		return ErrorCodeNotFound, nil
+	case "INVALID_JSON":
+		return ErrorCodeInvalidJSON, nil
+	case "VM_NOT_FOUND":
+		return ErrorCodeVMNotFound, nil
+	case "VM_ALREADY_EXISTS":
+		return ErrorCodeVMAlreadyExists, nil
+	case "VM_INVALID_STATE":
+		return ErrorCodeVMInvalidState, nil
+	case "IMAGE_NOT_FOUND":
+		return ErrorCodeImageNotFound, nil
+	case "FILE_NOT_FOUND":
+		return ErrorCodeFileNotFound, nil
+	case "COMMAND_NOT_FOUND":
+		return ErrorCodeCommandNotFound, nil
+	case "EXEC_FAILED":
+		return ErrorCodeExecFailed, nil
+	case "FILE_OPERATION_ERROR":
+		return ErrorCodeFileOperationError, nil
+	case "INSUFFICIENT_RESOURCES":
+		return ErrorCodeInsufficientResources, nil
+	case "CACHE_CONFLICT":
+		return ErrorCodeCacheConflict, nil
+	case "TIMEOUT":
+		return ErrorCodeTimeout, nil
+	case "INTERNAL_ERROR":
+		return ErrorCodeInternalError, nil
+	case "AUTH_REQUIRED":
+		return ErrorCodeAuthRequired, nil
+	case "AUTH_TOKEN_EXPIRED":
+		return ErrorCodeAuthTokenExpired, nil
+	case "AUTH_TOKEN_INVALID":
+		return ErrorCodeAuthTokenInvalid, nil
+	case "SANDBOX_NOT_FOUND":
+		return ErrorCodeSandboxNotFound, nil
+	case "SANDBOX_ALREADY_EXISTS":
+		return ErrorCodeSandboxAlreadyExists, nil
+	case "SANDBOX_NOT_RUNNING":
+		return ErrorCodeSandboxNotRunning, nil
+	case "RESOURCE_UNAVAILABLE":
+		return ErrorCodeResourceUnavailable, nil
+	case "RESOURCE_NOT_FOUND":
+		return ErrorCodeResourceNotFound, nil
+	case "RATE_LIMITED":
+		return ErrorCodeRateLimited, nil
+	case "INSUFFICIENT_CREDITS":
+		return ErrorCodeInsufficientCredits, nil
+	case "VALIDATION_ERROR":
+		return ErrorCodeValidationError, nil
+	case "INVALID_REQUEST":
+		return ErrorCodeInvalidRequest, nil
+	case "UPSTREAM_ERROR":
+		return ErrorCodeUpstreamError, nil
+	case "UPSTREAM_TIMEOUT":
+		return ErrorCodeUpstreamTimeout, nil
+	case "UPSTREAM_UNAVAILABLE":
+		return ErrorCodeUpstreamUnavailable, nil
+	}
+	var t ErrorCode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e ErrorCode) Ptr() *ErrorCode {
+	return &e
+}
+
 type ErrorResponse struct {
-	Code      IsloErrorCode          `json:"code" url:"code"`
-	Message   string                 `json:"message" url:"message"`
-	Hint      *string                `json:"hint,omitempty" url:"hint,omitempty"`
-	Details   map[string]interface{} `json:"details,omitempty" url:"details,omitempty"`
-	RequestID *string                `json:"request_id,omitempty" url:"request_id,omitempty"`
+	Available *int64    `json:"available,omitempty" url:"available,omitempty"`
+	Code      ErrorCode `json:"code" url:"code"`
+	Limit     *int64    `json:"limit,omitempty" url:"limit,omitempty"`
+	Message   string    `json:"message" url:"message"`
+	RequestID *string   `json:"request_id,omitempty" url:"request_id,omitempty"`
+	Requested *int64    `json:"requested,omitempty" url:"requested,omitempty"`
+	// Optional capacity fields populated for `InsufficientResources` errors so
+	// clients (including peer agents) can recover the typed payload across
+	// HTTP boundaries instead of collapsing it to an opaque message.
+	Resource *string `json:"resource,omitempty" url:"resource,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (e *ErrorResponse) GetCode() IsloErrorCode {
+func (e *ErrorResponse) GetAvailable() *int64 {
+	if e == nil {
+		return nil
+	}
+	return e.Available
+}
+
+func (e *ErrorResponse) GetCode() ErrorCode {
 	if e == nil {
 		return ""
 	}
 	return e.Code
+}
+
+func (e *ErrorResponse) GetLimit() *int64 {
+	if e == nil {
+		return nil
+	}
+	return e.Limit
 }
 
 func (e *ErrorResponse) GetMessage() string {
@@ -34,25 +161,25 @@ func (e *ErrorResponse) GetMessage() string {
 	return e.Message
 }
 
-func (e *ErrorResponse) GetHint() *string {
-	if e == nil {
-		return nil
-	}
-	return e.Hint
-}
-
-func (e *ErrorResponse) GetDetails() map[string]interface{} {
-	if e == nil {
-		return nil
-	}
-	return e.Details
-}
-
 func (e *ErrorResponse) GetRequestID() *string {
 	if e == nil {
 		return nil
 	}
 	return e.RequestID
+}
+
+func (e *ErrorResponse) GetRequested() *int64 {
+	if e == nil {
+		return nil
+	}
+	return e.Requested
+}
+
+func (e *ErrorResponse) GetResource() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Resource
 }
 
 func (e *ErrorResponse) GetExtraProperties() map[string]interface{} {
@@ -131,6 +258,149 @@ func (h *HTTPValidationError) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", h)
+}
+
+type InitCustom struct {
+	// Optional init capabilities to run after platform init.
+	Capabilities []InitCustomCapabilitiesItem `json:"capabilities" url:"capabilities"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InitCustom) GetCapabilities() []InitCustomCapabilitiesItem {
+	if i == nil {
+		return nil
+	}
+	return i.Capabilities
+}
+
+func (i *InitCustom) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *InitCustom) UnmarshalJSON(data []byte) error {
+	type unmarshaler InitCustom
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = InitCustom(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InitCustom) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type InitCustomCapabilitiesItem string
+
+const (
+	InitCustomCapabilitiesItemSSH    InitCustomCapabilitiesItem = "ssh"
+	InitCustomCapabilitiesItemDocker InitCustomCapabilitiesItem = "docker"
+)
+
+func NewInitCustomCapabilitiesItemFromString(s string) (InitCustomCapabilitiesItem, error) {
+	switch s {
+	case "ssh":
+		return InitCustomCapabilitiesItemSSH, nil
+	case "docker":
+		return InitCustomCapabilitiesItemDocker, nil
+	}
+	var t InitCustomCapabilitiesItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InitCustomCapabilitiesItem) Ptr() *InitCustomCapabilitiesItem {
+	return &i
+}
+
+type InitFull struct {
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InitFull) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *InitFull) UnmarshalJSON(data []byte) error {
+	type unmarshaler InitFull
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = InitFull(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InitFull) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type InitMinimal struct {
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InitMinimal) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *InitMinimal) UnmarshalJSON(data []byte) error {
+	type unmarshaler InitMinimal
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = InitMinimal(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InitMinimal) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
 }
 
 // Machine-readable error codes for API responses.
@@ -219,6 +489,625 @@ func (i IsloErrorCode) Ptr() *IsloErrorCode {
 	return &i
 }
 
+type ListSandboxesQuery struct {
+	CreatedBy  *string  `json:"created_by,omitempty" url:"created_by,omitempty"`
+	Limit      *int     `json:"limit,omitempty" url:"limit,omitempty"`
+	NamePrefix *string  `json:"name_prefix,omitempty" url:"name_prefix,omitempty"`
+	Offset     *int     `json:"offset,omitempty" url:"offset,omitempty"`
+	Status     []string `json:"status,omitempty" url:"status,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *ListSandboxesQuery) GetCreatedBy() *string {
+	if l == nil {
+		return nil
+	}
+	return l.CreatedBy
+}
+
+func (l *ListSandboxesQuery) GetLimit() *int {
+	if l == nil {
+		return nil
+	}
+	return l.Limit
+}
+
+func (l *ListSandboxesQuery) GetNamePrefix() *string {
+	if l == nil {
+		return nil
+	}
+	return l.NamePrefix
+}
+
+func (l *ListSandboxesQuery) GetOffset() *int {
+	if l == nil {
+		return nil
+	}
+	return l.Offset
+}
+
+func (l *ListSandboxesQuery) GetStatus() []string {
+	if l == nil {
+		return nil
+	}
+	return l.Status
+}
+
+func (l *ListSandboxesQuery) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *ListSandboxesQuery) UnmarshalJSON(data []byte) error {
+	type unmarshaler ListSandboxesQuery
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = ListSandboxesQuery(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *ListSandboxesQuery) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type ListSnapshotsQuery struct {
+	Limit  *int `json:"limit,omitempty" url:"limit,omitempty"`
+	Offset *int `json:"offset,omitempty" url:"offset,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *ListSnapshotsQuery) GetLimit() *int {
+	if l == nil {
+		return nil
+	}
+	return l.Limit
+}
+
+func (l *ListSnapshotsQuery) GetOffset() *int {
+	if l == nil {
+		return nil
+	}
+	return l.Offset
+}
+
+func (l *ListSnapshotsQuery) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *ListSnapshotsQuery) UnmarshalJSON(data []byte) error {
+	type unmarshaler ListSnapshotsQuery
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = ListSnapshotsQuery(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *ListSnapshotsQuery) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+// Request to create a new sandbox.
+type SandboxCreate struct {
+	// User-friendly sandbox name. If omitted, a random slug is generated.
+	Name *string `json:"name,omitempty" url:"name,omitempty"`
+	// Container image to use
+	Image *string `json:"image,omitempty" url:"image,omitempty"`
+	// Number of vCPUs
+	Vcpus *int `json:"vcpus,omitempty" url:"vcpus,omitempty"`
+	// Memory in MB
+	MemoryMb *int `json:"memory_mb,omitempty" url:"memory_mb,omitempty"`
+	// Disk size in GB
+	DiskGb *int `json:"disk_gb,omitempty" url:"disk_gb,omitempty"`
+	// Tool cache key for golden cache lookup (computed by CLI)
+	CacheKey *string `json:"cache_key,omitempty" url:"cache_key,omitempty"`
+	// Environment variables to inject into the sandbox
+	Env map[string]*string `json:"env,omitempty" url:"env,omitempty"`
+	// Working directory relative to /workspace (e.g. 'my-project')
+	Workdir *string `json:"workdir,omitempty" url:"workdir,omitempty"`
+	// Sandbox init intent. Omitted typed SDK values should send minimal. Raw requests that omit both init and init_capabilities use legacy full init during migration. Platform init always runs.
+	Init *SandboxCreateInit `json:"init,omitempty" url:"init,omitempty"`
+	// Deprecated legacy init capabilities. Use init instead. None = full init, [] = platform init only, ['ssh'] = selected capabilities. Valid legacy values: core-gateway-proxy, ssh, docker.
+	InitCapabilities []SandboxCreateInitCapabilitiesItem `json:"init_capabilities,omitempty" url:"init_capabilities,omitempty"`
+	// Gateway profile name or ID to apply. Uses tenant default if omitted.
+	GatewayProfile *string `json:"gateway_profile,omitempty" url:"gateway_profile,omitempty"`
+	// Name of a snapshot to restore from. When set, the VM is created from the snapshot's filesystem.
+	SnapshotName *string `json:"snapshot_name,omitempty" url:"snapshot_name,omitempty"`
+	// Repository sources to clone into /workspace after VM init.
+	Sources []*GitSource `json:"sources,omitempty" url:"sources,omitempty"`
+	// Named setup script steps to execute sequentially after git clones.
+	SetupScripts []*SetupScript `json:"setup_scripts,omitempty" url:"setup_scripts,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SandboxCreate) GetName() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Name
+}
+
+func (s *SandboxCreate) GetImage() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Image
+}
+
+func (s *SandboxCreate) GetVcpus() *int {
+	if s == nil {
+		return nil
+	}
+	return s.Vcpus
+}
+
+func (s *SandboxCreate) GetMemoryMb() *int {
+	if s == nil {
+		return nil
+	}
+	return s.MemoryMb
+}
+
+func (s *SandboxCreate) GetDiskGb() *int {
+	if s == nil {
+		return nil
+	}
+	return s.DiskGb
+}
+
+func (s *SandboxCreate) GetCacheKey() *string {
+	if s == nil {
+		return nil
+	}
+	return s.CacheKey
+}
+
+func (s *SandboxCreate) GetEnv() map[string]*string {
+	if s == nil {
+		return nil
+	}
+	return s.Env
+}
+
+func (s *SandboxCreate) GetWorkdir() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Workdir
+}
+
+func (s *SandboxCreate) GetInit() *SandboxCreateInit {
+	if s == nil {
+		return nil
+	}
+	return s.Init
+}
+
+func (s *SandboxCreate) GetInitCapabilities() []SandboxCreateInitCapabilitiesItem {
+	if s == nil {
+		return nil
+	}
+	return s.InitCapabilities
+}
+
+func (s *SandboxCreate) GetGatewayProfile() *string {
+	if s == nil {
+		return nil
+	}
+	return s.GatewayProfile
+}
+
+func (s *SandboxCreate) GetSnapshotName() *string {
+	if s == nil {
+		return nil
+	}
+	return s.SnapshotName
+}
+
+func (s *SandboxCreate) GetSources() []*GitSource {
+	if s == nil {
+		return nil
+	}
+	return s.Sources
+}
+
+func (s *SandboxCreate) GetSetupScripts() []*SetupScript {
+	if s == nil {
+		return nil
+	}
+	return s.SetupScripts
+}
+
+func (s *SandboxCreate) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SandboxCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler SandboxCreate
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SandboxCreate(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SandboxCreate) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+// Sandbox init intent. Omitted typed SDK values should send minimal. Raw requests that omit both init and init_capabilities use legacy full init during migration. Platform init always runs.
+type SandboxCreateInit struct {
+	Type    string
+	Custom  *InitCustom
+	Full    *InitFull
+	Minimal *InitMinimal
+}
+
+func (s *SandboxCreateInit) GetType() string {
+	if s == nil {
+		return ""
+	}
+	return s.Type
+}
+
+func (s *SandboxCreateInit) GetCustom() *InitCustom {
+	if s == nil {
+		return nil
+	}
+	return s.Custom
+}
+
+func (s *SandboxCreateInit) GetFull() *InitFull {
+	if s == nil {
+		return nil
+	}
+	return s.Full
+}
+
+func (s *SandboxCreateInit) GetMinimal() *InitMinimal {
+	if s == nil {
+		return nil
+	}
+	return s.Minimal
+}
+
+func (s *SandboxCreateInit) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	s.Type = unmarshaler.Type
+	if unmarshaler.Type == "" {
+		return fmt.Errorf("%T did not include discriminant type", s)
+	}
+	switch unmarshaler.Type {
+	case "custom":
+		value := new(InitCustom)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		s.Custom = value
+	case "full":
+		value := new(InitFull)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		s.Full = value
+	case "minimal":
+		value := new(InitMinimal)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		s.Minimal = value
+	}
+	return nil
+}
+
+func (s SandboxCreateInit) MarshalJSON() ([]byte, error) {
+	if err := s.validate(); err != nil {
+		return nil, err
+	}
+	if s.Custom != nil {
+		return internal.MarshalJSONWithExtraProperty(s.Custom, "type", "custom")
+	}
+	if s.Full != nil {
+		return internal.MarshalJSONWithExtraProperty(s.Full, "type", "full")
+	}
+	if s.Minimal != nil {
+		return internal.MarshalJSONWithExtraProperty(s.Minimal, "type", "minimal")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", s)
+}
+
+type SandboxCreateInitVisitor interface {
+	VisitCustom(*InitCustom) error
+	VisitFull(*InitFull) error
+	VisitMinimal(*InitMinimal) error
+}
+
+func (s *SandboxCreateInit) Accept(visitor SandboxCreateInitVisitor) error {
+	if s.Custom != nil {
+		return visitor.VisitCustom(s.Custom)
+	}
+	if s.Full != nil {
+		return visitor.VisitFull(s.Full)
+	}
+	if s.Minimal != nil {
+		return visitor.VisitMinimal(s.Minimal)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", s)
+}
+
+func (s *SandboxCreateInit) validate() error {
+	if s == nil {
+		return fmt.Errorf("type %T is nil", s)
+	}
+	var fields []string
+	if s.Custom != nil {
+		fields = append(fields, "custom")
+	}
+	if s.Full != nil {
+		fields = append(fields, "full")
+	}
+	if s.Minimal != nil {
+		fields = append(fields, "minimal")
+	}
+	if len(fields) == 0 {
+		if s.Type != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", s, s.Type)
+		}
+		return fmt.Errorf("type %T is empty", s)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", s, fields)
+	}
+	if s.Type != "" {
+		field := fields[0]
+		if s.Type != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				s,
+				s.Type,
+				s,
+			)
+		}
+	}
+	return nil
+}
+
+type SandboxCreateInitCapabilitiesItem string
+
+const (
+	SandboxCreateInitCapabilitiesItemCoreGatewayProxy SandboxCreateInitCapabilitiesItem = "core-gateway-proxy"
+	SandboxCreateInitCapabilitiesItemSSH              SandboxCreateInitCapabilitiesItem = "ssh"
+	SandboxCreateInitCapabilitiesItemDocker           SandboxCreateInitCapabilitiesItem = "docker"
+)
+
+func NewSandboxCreateInitCapabilitiesItemFromString(s string) (SandboxCreateInitCapabilitiesItem, error) {
+	switch s {
+	case "core-gateway-proxy":
+		return SandboxCreateInitCapabilitiesItemCoreGatewayProxy, nil
+	case "ssh":
+		return SandboxCreateInitCapabilitiesItemSSH, nil
+	case "docker":
+		return SandboxCreateInitCapabilitiesItemDocker, nil
+	}
+	var t SandboxCreateInitCapabilitiesItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SandboxCreateInitCapabilitiesItem) Ptr() *SandboxCreateInitCapabilitiesItem {
+	return &s
+}
+
+// Network configuration of a sandbox.
+type SandboxNetwork struct {
+	IP  *string `json:"ip,omitempty" url:"ip,omitempty"`
+	Mac *string `json:"mac,omitempty" url:"mac,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SandboxNetwork) GetIP() *string {
+	if s == nil {
+		return nil
+	}
+	return s.IP
+}
+
+func (s *SandboxNetwork) GetMac() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Mac
+}
+
+func (s *SandboxNetwork) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SandboxNetwork) UnmarshalJSON(data []byte) error {
+	type unmarshaler SandboxNetwork
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SandboxNetwork(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SandboxNetwork) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SaveSnapshotRequest struct {
+	PresignedURL string `json:"presigned_url" url:"presigned_url"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SaveSnapshotRequest) GetPresignedURL() string {
+	if s == nil {
+		return ""
+	}
+	return s.PresignedURL
+}
+
+func (s *SaveSnapshotRequest) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SaveSnapshotRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler SaveSnapshotRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SaveSnapshotRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SaveSnapshotRequest) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SaveSnapshotResponse struct {
+	ChecksumSha256 string `json:"checksum_sha256" url:"checksum_sha256"`
+	SizeBytes      int64  `json:"size_bytes" url:"size_bytes"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SaveSnapshotResponse) GetChecksumSha256() string {
+	if s == nil {
+		return ""
+	}
+	return s.ChecksumSha256
+}
+
+func (s *SaveSnapshotResponse) GetSizeBytes() int64 {
+	if s == nil {
+		return 0
+	}
+	return s.SizeBytes
+}
+
+func (s *SaveSnapshotResponse) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SaveSnapshotResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler SaveSnapshotResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SaveSnapshotResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SaveSnapshotResponse) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
 // Request to exchange a Descope access key for a session token.
 type TokenRequest struct {
 	// Descope access key to exchange for a session JWT
@@ -271,6 +1160,8 @@ func (t *TokenRequest) String() string {
 type TokenResponse struct {
 	// Descope session JWT
 	SessionToken string `json:"session_token" url:"session_token"`
+	// Seconds until the session JWT expires
+	ExpiresIn int `json:"expires_in" url:"expires_in"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -281,6 +1172,13 @@ func (t *TokenResponse) GetSessionToken() string {
 		return ""
 	}
 	return t.SessionToken
+}
+
+func (t *TokenResponse) GetExpiresIn() int {
+	if t == nil {
+		return 0
+	}
+	return t.ExpiresIn
 }
 
 func (t *TokenResponse) GetExtraProperties() map[string]interface{} {
