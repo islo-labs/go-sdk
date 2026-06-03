@@ -6,36 +6,57 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
-	time "time"
 )
 
 type CreateShareRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-	// Port to share
-	Port int `json:"port" url:"-"`
-	// Time-to-live in seconds (1 minute to 7 days). Defaults to 24h.
-	TTLSeconds *int `json:"ttl_seconds,omitempty" url:"-"`
+	Port        int    `json:"port" url:"-"`
+	TTLSeconds  *int64 `json:"ttl_seconds,omitempty" url:"-"`
 }
 
 type ListSharesRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 }
 
 type RevokeShareRequest struct {
+	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-	ShareID     string `json:"-" url:"-"`
+	// Share ID
+	ShareID string `json:"-" url:"-"`
 }
 
-// Share details response.
 type ShareResponse struct {
-	ShareID   string     `json:"share_id" url:"share_id"`
-	URL       string     `json:"url" url:"url"`
-	Port      int        `json:"port" url:"port"`
-	CreatedAt time.Time  `json:"created_at" url:"created_at"`
-	ExpiresAt *time.Time `json:"expires_at,omitempty" url:"expires_at,omitempty"`
+	CreatedAt string  `json:"created_at" url:"created_at"`
+	ExpiresAt *string `json:"expires_at,omitempty" url:"expires_at,omitempty"`
+	Port      int     `json:"port" url:"port"`
+	ShareID   string  `json:"share_id" url:"share_id"`
+	URL       string  `json:"url" url:"url"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (s *ShareResponse) GetCreatedAt() string {
+	if s == nil {
+		return ""
+	}
+	return s.CreatedAt
+}
+
+func (s *ShareResponse) GetExpiresAt() *string {
+	if s == nil {
+		return nil
+	}
+	return s.ExpiresAt
+}
+
+func (s *ShareResponse) GetPort() int {
+	if s == nil {
+		return 0
+	}
+	return s.Port
 }
 
 func (s *ShareResponse) GetShareID() string {
@@ -52,46 +73,17 @@ func (s *ShareResponse) GetURL() string {
 	return s.URL
 }
 
-func (s *ShareResponse) GetPort() int {
-	if s == nil {
-		return 0
-	}
-	return s.Port
-}
-
-func (s *ShareResponse) GetCreatedAt() time.Time {
-	if s == nil {
-		return time.Time{}
-	}
-	return s.CreatedAt
-}
-
-func (s *ShareResponse) GetExpiresAt() *time.Time {
-	if s == nil {
-		return nil
-	}
-	return s.ExpiresAt
-}
-
 func (s *ShareResponse) GetExtraProperties() map[string]interface{} {
 	return s.extraProperties
 }
 
 func (s *ShareResponse) UnmarshalJSON(data []byte) error {
-	type embed ShareResponse
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-		ExpiresAt *internal.DateTime `json:"expires_at,omitempty"`
-	}{
-		embed: embed(*s),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+	type unmarshaler ShareResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*s = ShareResponse(unmarshaler.embed)
-	s.CreatedAt = unmarshaler.CreatedAt.Time()
-	s.ExpiresAt = unmarshaler.ExpiresAt.TimePtr()
+	*s = ShareResponse(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *s)
 	if err != nil {
 		return err
@@ -99,20 +91,6 @@ func (s *ShareResponse) UnmarshalJSON(data []byte) error {
 	s.extraProperties = extraProperties
 	s.rawJSON = json.RawMessage(data)
 	return nil
-}
-
-func (s *ShareResponse) MarshalJSON() ([]byte, error) {
-	type embed ShareResponse
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-		ExpiresAt *internal.DateTime `json:"expires_at,omitempty"`
-	}{
-		embed:     embed(*s),
-		CreatedAt: internal.NewDateTime(s.CreatedAt),
-		ExpiresAt: internal.NewOptionalDateTime(s.ExpiresAt),
-	}
-	return json.Marshal(marshaler)
 }
 
 func (s *ShareResponse) String() string {

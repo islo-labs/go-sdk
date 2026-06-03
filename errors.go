@@ -55,6 +55,30 @@ func (c *ConflictError) Unwrap() error {
 	return c.APIError
 }
 
+// Tenant suspended
+type ForbiddenError struct {
+	*core.APIError
+	Body *ErrorResponse
+}
+
+func (f *ForbiddenError) UnmarshalJSON(data []byte) error {
+	var body *ErrorResponse
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	f.StatusCode = 403
+	f.Body = body
+	return nil
+}
+
+func (f *ForbiddenError) MarshalJSON() ([]byte, error) {
+	return json.Marshal(f.Body)
+}
+
+func (f *ForbiddenError) Unwrap() error {
+	return f.APIError
+}
+
 // Not Found
 type NotFoundError struct {
 	*core.APIError
@@ -79,7 +103,7 @@ func (n *NotFoundError) Unwrap() error {
 	return n.APIError
 }
 
-// Payment Required
+// Billing denied (credits exhausted)
 type PaymentRequiredError struct {
 	*core.APIError
 	Body *ErrorResponse
@@ -103,7 +127,7 @@ func (p *PaymentRequiredError) Unwrap() error {
 	return p.APIError
 }
 
-// Service Unavailable
+// Insufficient resources
 type ServiceUnavailableError struct {
 	*core.APIError
 	Body *ErrorResponse
@@ -125,30 +149,6 @@ func (s *ServiceUnavailableError) MarshalJSON() ([]byte, error) {
 
 func (s *ServiceUnavailableError) Unwrap() error {
 	return s.APIError
-}
-
-// Too Many Requests
-type TooManyRequestsError struct {
-	*core.APIError
-	Body *ErrorResponse
-}
-
-func (t *TooManyRequestsError) UnmarshalJSON(data []byte) error {
-	var body *ErrorResponse
-	if err := json.Unmarshal(data, &body); err != nil {
-		return err
-	}
-	t.StatusCode = 429
-	t.Body = body
-	return nil
-}
-
-func (t *TooManyRequestsError) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.Body)
-}
-
-func (t *TooManyRequestsError) Unwrap() error {
-	return t.APIError
 }
 
 // Unauthorized
@@ -175,7 +175,7 @@ func (u *UnauthorizedError) Unwrap() error {
 	return u.APIError
 }
 
-// Unprocessable Content
+// Validation Error
 type UnprocessableEntityError struct {
 	*core.APIError
 	Body interface{}
