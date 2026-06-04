@@ -31,7 +31,7 @@ const (
 // ISLO_API_KEY environment variable is used. WithBaseURL configures the
 // control-plane URL and falls back to ISLO_BASE_URL, then
 // https://api.islo.dev. WithComputeURL configures the compute-plane URL
-// and falls back to ISLO_COMPUTE_URL, then https://compute.islo.dev.
+// and falls back to ISLO_COMPUTE_URL, then https://ca.compute.islo.dev.
 //
 // Most callers should use this rather than NewClient.
 func NewIslo(opts ...option.RequestOption) *Client {

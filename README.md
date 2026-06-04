@@ -63,7 +63,7 @@ func main() {
 |---|---|---|
 | `option.WithAPIKey(key)` | Islo API key (`ak_...`). | `$ISLO_API_KEY` |
 | `option.WithBaseURL(url)` | Control-plane API base URL. | `$ISLO_BASE_URL` or `https://api.islo.dev` |
-| `option.WithComputeURL(url)` | Compute-plane API base URL. | `$ISLO_COMPUTE_URL` or `https://compute.islo.dev` |
+| `option.WithComputeURL(url)` | Compute-plane API base URL. | `$ISLO_COMPUTE_URL` or `https://ca.compute.islo.dev` |
 | `option.WithEnvironment(controlURL, computeURL)` | Set both control and compute URLs together. | Production URLs |
 | `option.WithHTTPClient(c)` | Bring your own `*http.Client`. Its `Transport` is wrapped for auth; `Timeout` is preserved. | `&http.Client{}` |
 
