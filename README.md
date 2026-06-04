@@ -62,10 +62,22 @@ func main() {
 | Option | Description | Default |
 |---|---|---|
 | `option.WithAPIKey(key)` | Islo API key (`ak_...`). | `$ISLO_API_KEY` |
-| `option.WithBaseURL(url)` | API base URL. | `$ISLO_BASE_URL` or `https://api.islo.dev` |
+| `option.WithBaseURL(url)` | Control-plane API base URL. | `$ISLO_BASE_URL` or `https://api.islo.dev` |
+| `option.WithComputeURL(url)` | Compute-plane API base URL. | `$ISLO_COMPUTE_URL` or `https://ca.compute.islo.dev` |
+| `option.WithEnvironment(controlURL, computeURL)` | Set both control and compute URLs together. | Production URLs |
 | `option.WithHTTPClient(c)` | Bring your own `*http.Client`. Its `Transport` is wrapped for auth; `Timeout` is preserved. | `&http.Client{}` |
 
-The token cache is keyed on `(baseURL, apiKey)`, so multiple `NewIslo` calls with the same key share one cached token.
+For custom deployments, configure the control and compute planes independently:
+
+```go
+c := client.NewIslo(
+    option.WithAPIKey("ak_..."),
+    option.WithBaseURL("https://api.customer.example.com"),
+    option.WithComputeURL("https://compute.customer.example.com"),
+)
+```
+
+The token cache is keyed on `(controlURL, apiKey)`, so multiple `NewIslo` calls with the same key share one cached token.
 
 ## Errors
 

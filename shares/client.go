@@ -35,7 +35,6 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-// List active shares for a sandbox.
 func (c *Client) ListShares(
 	ctx context.Context,
 	request *gosdk.ListSharesRequest,
@@ -45,7 +44,7 @@ func (c *Client) ListShares(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://ca.compute.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/sandboxes/%v/shares",
@@ -63,11 +62,6 @@ func (c *Client) ListShares(
 		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
 				APIError: apiError,
 			}
 		},
@@ -93,7 +87,6 @@ func (c *Client) ListShares(
 	return response, nil
 }
 
-// Create a shareable URL for a sandbox port.
 func (c *Client) CreateShare(
 	ctx context.Context,
 	request *gosdk.CreateShareRequest,
@@ -103,7 +96,7 @@ func (c *Client) CreateShare(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://ca.compute.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/sandboxes/%v/shares",
@@ -115,6 +108,11 @@ func (c *Client) CreateShare(
 	)
 	headers.Set("Content-Type", "application/json")
 	errorCodes := internal.ErrorCodes{
+		400: func(apiError *core.APIError) error {
+			return &gosdk.BadRequestError{
+				APIError: apiError,
+			}
+		},
 		401: func(apiError *core.APIError) error {
 			return &gosdk.UnauthorizedError{
 				APIError: apiError,
@@ -122,11 +120,6 @@ func (c *Client) CreateShare(
 		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
 				APIError: apiError,
 			}
 		},
@@ -153,7 +146,6 @@ func (c *Client) CreateShare(
 	return response, nil
 }
 
-// Revoke a shareable URL.
 func (c *Client) RevokeShare(
 	ctx context.Context,
 	request *gosdk.RevokeShareRequest,
@@ -163,7 +155,7 @@ func (c *Client) RevokeShare(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://ca.compute.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/sandboxes/%v/shares/%v",
@@ -182,11 +174,6 @@ func (c *Client) RevokeShare(
 		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
 				APIError: apiError,
 			}
 		},

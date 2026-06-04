@@ -45,7 +45,7 @@ func (c *Client) ListSnapshots(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://ca.compute.islo.dev",
 	)
 	endpointURL := baseURL + "/snapshots/"
 	queryParams, err := internal.QueryValues(request)
@@ -62,11 +62,6 @@ func (c *Client) ListSnapshots(
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
 			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
 				APIError: apiError,
 			}
 		},
@@ -102,7 +97,7 @@ func (c *Client) CreateSnapshot(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://ca.compute.islo.dev",
 	)
 	endpointURL := baseURL + "/snapshots/"
 	headers := internal.MergeHeaders(
@@ -123,11 +118,6 @@ func (c *Client) CreateSnapshot(
 		},
 		409: func(apiError *core.APIError) error {
 			return &gosdk.ConflictError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
 				APIError: apiError,
 			}
 		},
@@ -169,7 +159,7 @@ func (c *Client) GetSnapshot(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://ca.compute.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/snapshots/%v",
@@ -187,11 +177,6 @@ func (c *Client) GetSnapshot(
 		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
 				APIError: apiError,
 			}
 		},
@@ -227,7 +212,7 @@ func (c *Client) DeleteSnapshot(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://ca.compute.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/snapshots/%v",
@@ -245,11 +230,6 @@ func (c *Client) DeleteSnapshot(
 		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
 				APIError: apiError,
 			}
 		},
