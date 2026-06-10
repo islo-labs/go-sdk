@@ -84,7 +84,7 @@ func TestNewIslo_BaseURLFallback(t *testing.T) {
 	}
 }
 
-func TestNewIslo_RoutesControlAndComputeURLs(t *testing.T) {
+func TestNewIslo_RoutesControlURLAndComputeURLFromEnv(t *testing.T) {
 	var (
 		controlPath string
 		computePath string
@@ -108,11 +108,11 @@ func TestNewIslo_RoutesControlAndComputeURLs(t *testing.T) {
 		w.WriteHeader(http.StatusNotFound)
 	}))
 	defer compute.Close()
+	t.Setenv("ISLO_COMPUTE_URL", compute.URL)
 
 	c := NewIslo(
 		option.WithAPIKey("ak_route"),
 		option.WithBaseURL(control.URL),
-		option.WithComputeURL(compute.URL),
 	)
 
 	_, _ = c.Credits.GetCreditBalance(context.Background())
@@ -156,47 +156,6 @@ func TestNewIslo_UsesEnvironmentVariablesForURLs(t *testing.T) {
 	t.Setenv("ISLO_COMPUTE_URL", compute.URL)
 
 	c := NewIslo()
-
-	_, _ = c.Credits.GetCreditBalance(context.Background())
-	_, _ = c.Sandboxes.ListSandboxes(context.Background(), nil)
-
-	if controlPath != "/credits/balance" {
-		t.Fatalf("control request path = %q, want /credits/balance", controlPath)
-	}
-	if computePath != "/sandboxes" {
-		t.Fatalf("compute request path = %q, want /sandboxes", computePath)
-	}
-}
-
-func TestNewIslo_WithEnvironmentConfiguresBothURLs(t *testing.T) {
-	var (
-		controlPath string
-		computePath string
-	)
-
-	control := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/auth/token" {
-			_ = json.NewEncoder(w).Encode(map[string]interface{}{
-				"session_token":  "jwt-environment",
-				"cookie_max_age": 600,
-			})
-			return
-		}
-		controlPath = r.URL.Path
-		w.WriteHeader(http.StatusNotFound)
-	}))
-	defer control.Close()
-
-	compute := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		computePath = r.URL.Path
-		w.WriteHeader(http.StatusNotFound)
-	}))
-	defer compute.Close()
-
-	c := NewIslo(
-		option.WithAPIKey("ak_environment"),
-		option.WithEnvironment(control.URL, compute.URL),
-	)
 
 	_, _ = c.Credits.GetCreditBalance(context.Background())
 	_, _ = c.Sandboxes.ListSandboxes(context.Background(), nil)

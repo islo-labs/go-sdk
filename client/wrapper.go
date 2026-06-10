@@ -30,8 +30,8 @@ const (
 // the token before expiry. If WithAPIKey is not provided, the
 // ISLO_API_KEY environment variable is used. WithBaseURL configures the
 // control-plane URL and falls back to ISLO_BASE_URL, then
-// https://api.islo.dev. WithComputeURL configures the compute-plane URL
-// and falls back to ISLO_COMPUTE_URL, then https://ca.compute.islo.dev.
+// https://api.islo.dev. The compute-plane URL is read from
+// ISLO_COMPUTE_URL and falls back to https://ca.compute.islo.dev.
 //
 // Most callers should use this rather than NewClient.
 func NewIslo(opts ...option.RequestOption) *Client {
@@ -50,10 +50,7 @@ func NewIslo(opts ...option.RequestOption) *Client {
 		baseURL = api.Environments.Production.Control
 	}
 
-	computeURL := options.ComputeURL
-	if computeURL == "" {
-		computeURL = os.Getenv(envIsloComputeURL)
-	}
+	computeURL := os.Getenv(envIsloComputeURL)
 	if computeURL == "" {
 		computeURL = api.Environments.Production.Compute
 	}
