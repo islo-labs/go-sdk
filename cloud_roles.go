@@ -52,7 +52,6 @@ type CloudRoleResponse struct {
 	ID                     string     `json:"id" url:"id"`
 	Provider               string     `json:"provider" url:"provider"`
 	RoleArn                string     `json:"role_arn" url:"role_arn"`
-	ExternalID             string     `json:"external_id" url:"external_id"`
 	SessionDurationSeconds int        `json:"session_duration_seconds" url:"session_duration_seconds"`
 	IsEnabled              bool       `json:"is_enabled" url:"is_enabled"`
 	CreatedAt              *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
@@ -81,13 +80,6 @@ func (c *CloudRoleResponse) GetRoleArn() string {
 		return ""
 	}
 	return c.RoleArn
-}
-
-func (c *CloudRoleResponse) GetExternalID() string {
-	if c == nil {
-		return ""
-	}
-	return c.ExternalID
 }
 
 func (c *CloudRoleResponse) GetSessionDurationSeconds() int {

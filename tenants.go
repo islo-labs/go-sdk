@@ -9,11 +9,16 @@ import (
 )
 
 type ComputeRegionResponse struct {
-	Key       string `json:"key" url:"key"`
-	Label     string `json:"label" url:"label"`
-	ApiUrl    string `json:"api_url" url:"api_url"`
-	WsURL     string `json:"ws_url" url:"ws_url"`
-	IsDefault *bool  `json:"is_default,omitempty" url:"is_default,omitempty"`
+	// Stable region key used when creating sandboxes.
+	Key string `json:"key" url:"key"`
+	// Human-readable region name for UI display.
+	Label string `json:"label" url:"label"`
+	// Base HTTPS URL for the region's compute API.
+	ApiUrl string `json:"api_url" url:"api_url"`
+	// Base WebSocket URL for streaming compute operations.
+	WsURL string `json:"ws_url" url:"ws_url"`
+	// Whether this is the tenant's default compute region.
+	IsDefault *bool `json:"is_default,omitempty" url:"is_default,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -87,6 +92,7 @@ func (c *ComputeRegionResponse) String() string {
 }
 
 type TenantRegionsResponse struct {
+	// Compute regions available to the authenticated tenant.
 	Regions []*ComputeRegionResponse `json:"regions" url:"regions"`
 
 	extraProperties map[string]interface{}

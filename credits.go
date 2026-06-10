@@ -9,8 +9,10 @@ import (
 )
 
 type CreditBalance struct {
-	BalanceCents int     `json:"balance_cents" url:"balance_cents"`
-	Currency     *string `json:"currency,omitempty" url:"currency,omitempty"`
+	// Available credit balance in cents of the returned currency.
+	BalanceCents int `json:"balance_cents" url:"balance_cents"`
+	// ISO 4217 currency code.
+	Currency *string `json:"currency,omitempty" url:"currency,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
