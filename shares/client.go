@@ -35,6 +35,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
+// List active public shares for a sandbox.
 func (c *Client) ListShares(
 	ctx context.Context,
 	request *gosdk.ListSharesRequest,
@@ -87,6 +88,7 @@ func (c *Client) ListShares(
 	return response, nil
 }
 
+// Create a temporary public share for a sandbox port.
 func (c *Client) CreateShare(
 	ctx context.Context,
 	request *gosdk.CreateShareRequest,
@@ -146,6 +148,7 @@ func (c *Client) CreateShare(
 	return response, nil
 }
 
+// Revoke a sandbox port share.
 func (c *Client) RevokeShare(
 	ctx context.Context,
 	request *gosdk.RevokeShareRequest,
