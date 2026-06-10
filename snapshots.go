@@ -15,12 +15,12 @@ type SnapshotCreate struct {
 }
 
 type DeleteSnapshotRequest struct {
-	// Name
+	// Snapshot name
 	Name string `json:"-" url:"-"`
 }
 
 type GetSnapshotRequest struct {
-	// Name
+	// Snapshot name
 	Name string `json:"-" url:"-"`
 }
 
