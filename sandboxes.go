@@ -15,6 +15,7 @@ type CreateSandboxRequest struct {
 	GatewayProfile *string            `json:"gateway_profile,omitempty" url:"-"`
 	Image          *string            `json:"image,omitempty" url:"-"`
 	Init           *SandboxInit       `json:"init,omitempty" url:"-"`
+	Lifecycle      *LifecyclePolicy   `json:"lifecycle,omitempty" url:"-"`
 	MemoryMb       *int               `json:"memory_mb,omitempty" url:"-"`
 	Name           *string            `json:"name,omitempty" url:"-"`
 	RequestID      *string            `json:"request_id,omitempty" url:"-"`
@@ -96,6 +97,10 @@ type KillSessionRequest struct {
 }
 
 type ListSandboxesRequest struct {
+	// Search term for sandbox name, image, creator, or public ID. Takes precedence over `search` when both are provided.
+	Q *string `json:"-" url:"q,omitempty"`
+	// Search term for sandbox name, image, creator, or public ID. Alias for `q`.
+	Search     *string   `json:"-" url:"search,omitempty"`
 	Status     []*string `json:"-" url:"status,omitempty"`
 	NamePrefix *string   `json:"-" url:"name_prefix,omitempty"`
 	CreatedBy  *string   `json:"-" url:"created_by,omitempty"`
@@ -122,6 +127,28 @@ type ResumeSandboxRequest struct {
 type StopSandboxRequest struct {
 	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
+}
+
+type AutoResumePolicy string
+
+const (
+	AutoResumePolicyNever      AutoResumePolicy = "never"
+	AutoResumePolicyOnActivity AutoResumePolicy = "on_activity"
+)
+
+func NewAutoResumePolicyFromString(s string) (AutoResumePolicy, error) {
+	switch s {
+	case "never":
+		return AutoResumePolicyNever, nil
+	case "on_activity":
+		return AutoResumePolicyOnActivity, nil
+	}
+	var t AutoResumePolicy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AutoResumePolicy) Ptr() *AutoResumePolicy {
+	return &a
 }
 
 type CreateSessionResponse struct {
@@ -459,6 +486,76 @@ func NewInitCapabilityFromString(s string) (InitCapability, error) {
 
 func (i InitCapability) Ptr() *InitCapability {
 	return &i
+}
+
+type LifecyclePolicy struct {
+	AutoResume     *AutoResumePolicy `json:"auto_resume,omitempty" url:"auto_resume,omitempty"`
+	DeleteAfter    *int64            `json:"delete_after,omitempty" url:"delete_after,omitempty"`
+	PauseAfter     *int64            `json:"pause_after,omitempty" url:"pause_after,omitempty"`
+	PauseAfterIdle *int64            `json:"pause_after_idle,omitempty" url:"pause_after_idle,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LifecyclePolicy) GetAutoResume() *AutoResumePolicy {
+	if l == nil {
+		return nil
+	}
+	return l.AutoResume
+}
+
+func (l *LifecyclePolicy) GetDeleteAfter() *int64 {
+	if l == nil {
+		return nil
+	}
+	return l.DeleteAfter
+}
+
+func (l *LifecyclePolicy) GetPauseAfter() *int64 {
+	if l == nil {
+		return nil
+	}
+	return l.PauseAfter
+}
+
+func (l *LifecyclePolicy) GetPauseAfterIdle() *int64 {
+	if l == nil {
+		return nil
+	}
+	return l.PauseAfterIdle
+}
+
+func (l *LifecyclePolicy) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LifecyclePolicy) UnmarshalJSON(data []byte) error {
+	type unmarshaler LifecyclePolicy
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LifecyclePolicy(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LifecyclePolicy) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
 }
 
 type ListSessionsResponse struct {
@@ -853,6 +950,7 @@ type SandboxResponse struct {
 	DeletedAt  *string            `json:"deleted_at,omitempty" url:"deleted_at,omitempty"`
 	ID         string             `json:"id" url:"id"`
 	Image      string             `json:"image" url:"image"`
+	Lifecycle  *LifecyclePolicy   `json:"lifecycle,omitempty" url:"lifecycle,omitempty"`
 	Name       string             `json:"name" url:"name"`
 	SetupSteps []*SetupStepResult `json:"setup_steps,omitempty" url:"setup_steps,omitempty"`
 	Spec       *SandboxSpec       `json:"spec,omitempty" url:"spec,omitempty"`
@@ -896,6 +994,13 @@ func (s *SandboxResponse) GetImage() string {
 		return ""
 	}
 	return s.Image
+}
+
+func (s *SandboxResponse) GetLifecycle() *LifecyclePolicy {
+	if s == nil {
+		return nil
+	}
+	return s.Lifecycle
 }
 
 func (s *SandboxResponse) GetName() string {

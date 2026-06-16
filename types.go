@@ -30,6 +30,7 @@ const (
 	ErrorCodeTenantSuspended      ErrorCode = "TENANT_SUSPENDED"
 	ErrorCodeRateLimited          ErrorCode = "RATE_LIMITED"
 	ErrorCodeTimeout              ErrorCode = "TIMEOUT"
+	ErrorCodeGone                 ErrorCode = "GONE"
 	ErrorCodeInternalError        ErrorCode = "INTERNAL_ERROR"
 )
 
@@ -73,6 +74,8 @@ func NewErrorCodeFromString(s string) (ErrorCode, error) {
 		return ErrorCodeRateLimited, nil
 	case "TIMEOUT":
 		return ErrorCodeTimeout, nil
+	case "GONE":
+		return ErrorCodeGone, nil
 	case "INTERNAL_ERROR":
 		return ErrorCodeInternalError, nil
 	}
