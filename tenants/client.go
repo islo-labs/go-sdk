@@ -35,7 +35,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-// List compute regions allowed for the current tenant.
+// Return the compute regions the authenticated tenant may use, including the API and WebSocket base URLs for each region.
 func (c *Client) ListTenantComputeRegions(
 	ctx context.Context,
 	opts ...option.RequestOption,

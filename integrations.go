@@ -31,13 +31,7 @@ type GetIntegrationStatusRequest struct {
 	Provider string `json:"-" url:"-"`
 }
 
-// Shape of the Descope outbound app backing this integration.
-//
-// Limited to the two underlying Descope app types: “OAUTH“ (oidc) and
-// “API_KEY“ (custom_api_key). The injection style for an API-key
-// integration (bearer / basic / custom header) is configured on the
-// GatewayRule, not the integration itself, so any number of rules can
-// re-use the same stored credential with different injection conventions.
+// Authentication method supported by an integration.
 type AuthMethod string
 
 const (
@@ -261,20 +255,12 @@ func (c *CustomIntegration) String() string {
 // identifier embedded in “descope_app_id“ and used as “provider_key“
 // in gateway rules.
 type CustomService struct {
-	DescopeAppID string     `json:"descope_app_id" url:"descope_app_id"`
-	Name         string     `json:"name" url:"name"`
-	Slug         string     `json:"slug" url:"slug"`
-	AuthMethod   AuthMethod `json:"auth_method" url:"auth_method"`
+	Name       string     `json:"name" url:"name"`
+	Slug       string     `json:"slug" url:"slug"`
+	AuthMethod AuthMethod `json:"auth_method" url:"auth_method"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
-}
-
-func (c *CustomService) GetDescopeAppID() string {
-	if c == nil {
-		return ""
-	}
-	return c.DescopeAppID
 }
 
 func (c *CustomService) GetName() string {
@@ -701,13 +687,12 @@ func (i *IntegrationProvidersResponse) String() string {
 // free-form text the creator typed); presets surface their static name
 // via the frontend's preset catalog so this stays None for them.
 type IntegrationStatus struct {
-	Provider     string            `json:"provider" url:"provider"`
-	Connected    bool              `json:"connected" url:"connected"`
-	Level        *IntegrationLevel `json:"level,omitempty" url:"level,omitempty"`
-	AuthMethod   *AuthMethod       `json:"auth_method,omitempty" url:"auth_method,omitempty"`
-	DescopeAppID *string           `json:"descope_app_id,omitempty" url:"descope_app_id,omitempty"`
-	PresetID     *string           `json:"preset_id,omitempty" url:"preset_id,omitempty"`
-	DisplayName  *string           `json:"display_name,omitempty" url:"display_name,omitempty"`
+	Provider    string            `json:"provider" url:"provider"`
+	Connected   bool              `json:"connected" url:"connected"`
+	Level       *IntegrationLevel `json:"level,omitempty" url:"level,omitempty"`
+	AuthMethod  *AuthMethod       `json:"auth_method,omitempty" url:"auth_method,omitempty"`
+	PresetID    *string           `json:"preset_id,omitempty" url:"preset_id,omitempty"`
+	DisplayName *string           `json:"display_name,omitempty" url:"display_name,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -739,13 +724,6 @@ func (i *IntegrationStatus) GetAuthMethod() *AuthMethod {
 		return nil
 	}
 	return i.AuthMethod
-}
-
-func (i *IntegrationStatus) GetDescopeAppID() *string {
-	if i == nil {
-		return nil
-	}
-	return i.DescopeAppID
 }
 
 func (i *IntegrationStatus) GetPresetID() *string {
@@ -794,12 +772,7 @@ func (i *IntegrationStatus) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
-// A single Descope outbound app backing one (auth_method, scope) combo.
-//
-// Presets pre-provision up to four Descope outbound apps, one per
-// “auth_method“ x “scope“ combination they support. Shipping them
-// on “GET /integrations/providers“ lets the frontend resolve the right
-// “app_id“ locally and skip a server round-trip on the connect path.
+// Connection option for one authentication method and scope.
 type ProviderApp struct {
 	AuthMethod AuthMethod       `json:"auth_method" url:"auth_method"`
 	Scope      IntegrationLevel `json:"scope" url:"scope"`

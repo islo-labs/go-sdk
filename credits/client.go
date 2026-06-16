@@ -35,6 +35,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
+// Return the tenant's available prepaid credit balance in cents.
 func (c *Client) GetCreditBalance(
 	ctx context.Context,
 	opts ...option.RequestOption,

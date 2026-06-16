@@ -6,25 +6,24 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
-	time "time"
 )
 
 type CreateSandboxRequest struct {
-	CacheKey         *string                `json:"cache_key,omitempty" url:"-"`
-	DiskGb           *int                   `json:"disk_gb,omitempty" url:"-"`
-	Env              map[string]*string     `json:"env,omitempty" url:"-"`
-	GatewayProfile   *string                `json:"gateway_profile,omitempty" url:"-"`
-	Image            *string                `json:"image,omitempty" url:"-"`
-	Init             *SandboxInit           `json:"init,omitempty" url:"-"`
-	InitCapabilities []LegacyInitCapability `json:"init_capabilities,omitempty" url:"-"`
-	MemoryMb         *int                   `json:"memory_mb,omitempty" url:"-"`
-	Name             *string                `json:"name,omitempty" url:"-"`
-	SetupScripts     []*SetupScript         `json:"setup_scripts,omitempty" url:"-"`
-	SnapshotName     *string                `json:"snapshot_name,omitempty" url:"-"`
-	SnapshotURL      *string                `json:"snapshot_url,omitempty" url:"-"`
-	Sources          []*GitSource           `json:"sources,omitempty" url:"-"`
-	Vcpus            *int                   `json:"vcpus,omitempty" url:"-"`
-	Workdir          *string                `json:"workdir,omitempty" url:"-"`
+	CacheKey       *string            `json:"cache_key,omitempty" url:"-"`
+	DiskGb         *int               `json:"disk_gb,omitempty" url:"-"`
+	Env            map[string]*string `json:"env,omitempty" url:"-"`
+	GatewayProfile *string            `json:"gateway_profile,omitempty" url:"-"`
+	Image          *string            `json:"image,omitempty" url:"-"`
+	Init           *SandboxInit       `json:"init,omitempty" url:"-"`
+	MemoryMb       *int               `json:"memory_mb,omitempty" url:"-"`
+	Name           *string            `json:"name,omitempty" url:"-"`
+	RequestID      *string            `json:"request_id,omitempty" url:"-"`
+	SetupScripts   []*SetupScript     `json:"setup_scripts,omitempty" url:"-"`
+	SnapshotName   *string            `json:"snapshot_name,omitempty" url:"-"`
+	SnapshotURL    *string            `json:"snapshot_url,omitempty" url:"-"`
+	Sources        []*GitSource       `json:"sources,omitempty" url:"-"`
+	Vcpus          *int               `json:"vcpus,omitempty" url:"-"`
+	Workdir        *string            `json:"workdir,omitempty" url:"-"`
 }
 
 type CreateSessionRequest struct {
@@ -72,57 +71,11 @@ type ExecRequest struct {
 	Workdir *string `json:"workdir,omitempty" url:"-"`
 }
 
-type ExecVMRequest struct {
-	// Sandbox name
-	SandboxName string `json:"-" url:"-"`
-	// Command and arguments to execute (e.g., ["/entrypoint.sh"])
-	Args []string `json:"args,omitempty" url:"-"`
-	// Optional environment variables to pass to the command
-	EnvVars map[string]*string `json:"env_vars,omitempty" url:"-"`
-	// Accepted but ignored (CLI sends this field).
-	TimeoutSecs *int64 `json:"timeout_secs,omitempty" url:"-"`
-	// User to run the command as (e.g., "islo"). If not specified, uses image default.
-	User *string `json:"user,omitempty" url:"-"`
-	// Working directory for the command. If not specified, uses the image's WorkingDir (from Dockerfile).
-	Workdir *string `json:"workdir,omitempty" url:"-"`
-}
-
-type GetAgentSessionEventsRequest struct {
-	SandboxID   string `json:"-" url:"-"`
-	SessionName string `json:"-" url:"-"`
-	// Stable unique session path from the session list response. Use this to disambiguate duplicate session names.
-	SessionPath *string `json:"-" url:"session_path,omitempty"`
-	// When true, include descendant subagent sessions under the requested session
-	IncludeDescendants *bool `json:"-" url:"include_descendants,omitempty"`
-	// Page size — number of events to return
-	Limit *int `json:"-" url:"limit,omitempty"`
-	// Number of events to skip (for pagination)
-	Offset *int `json:"-" url:"offset,omitempty"`
-	// Only return events after this timestamp (exclusive). Applied before offset.
-	Since *time.Time `json:"-" url:"since,omitempty"`
-}
-
 type GetExecResultRequest struct {
 	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 	// Exec ID
 	ExecID string `json:"-" url:"-"`
-}
-
-type GetExecSessionAsciinemaRequest struct {
-	SandboxID string `json:"-" url:"-"`
-	ExecID    string `json:"-" url:"-"`
-	// Maximum number of log lines
-	Limit *int `json:"-" url:"limit,omitempty"`
-}
-
-type GetExecSessionLogsRequest struct {
-	SandboxID string `json:"-" url:"-"`
-	ExecID    string `json:"-" url:"-"`
-	// Maximum number of log lines
-	Limit *int `json:"-" url:"limit,omitempty"`
-	// Only return logs after this timestamp
-	Since *time.Time `json:"-" url:"since,omitempty"`
 }
 
 type GetSandboxRequest struct {
@@ -142,26 +95,13 @@ type KillSessionRequest struct {
 	Session string `json:"-" url:"-"`
 }
 
-type ListAgentSessionsRequest struct {
-	SandboxID string `json:"-" url:"-"`
-	// Only return sessions with activity at or after this timestamp
-	Since *time.Time `json:"-" url:"since,omitempty"`
-	// Include child/subagent sessions in addition to root sessions
-	IncludeSubagents *bool `json:"-" url:"include_subagents,omitempty"`
-}
-
-type ListExecSessionsRequest struct {
-	SandboxID string `json:"-" url:"-"`
-	// Only return sessions with activity at or after this timestamp
-	Since *time.Time `json:"-" url:"since,omitempty"`
-}
-
 type ListSandboxesRequest struct {
 	Status     []*string `json:"-" url:"status,omitempty"`
 	NamePrefix *string   `json:"-" url:"name_prefix,omitempty"`
 	CreatedBy  *string   `json:"-" url:"created_by,omitempty"`
 	Limit      *int      `json:"-" url:"limit,omitempty"`
 	Offset     *int      `json:"-" url:"offset,omitempty"`
+	Cursor     *string   `json:"-" url:"cursor,omitempty"`
 }
 
 type ListSessionsRequest struct {
@@ -174,510 +114,14 @@ type PauseSandboxRequest struct {
 	SandboxName string `json:"-" url:"-"`
 }
 
-type PromoteSandboxCacheRequest struct {
-	// Sandbox name
-	SandboxName string `json:"-" url:"-"`
-}
-
 type ResumeSandboxRequest struct {
 	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 }
 
-type SandboxExecInteractiveRequest struct {
-	// Sandbox name
-	SandboxName string `json:"-" url:"-"`
-}
-
-type SandboxPortForwardRequest struct {
-	// Sandbox name
-	SandboxName string `json:"-" url:"-"`
-	// Target port inside the sandbox VM
-	Port int `json:"-" url:"port"`
-}
-
-type SandboxProxyRequest struct {
-	// Sandbox name
-	SandboxName string `json:"-" url:"-"`
-	// Target port inside the sandbox VM
-	Port int `json:"-" url:"-"`
-	// Path suffix forwarded to the VM
-	Path string `json:"-" url:"-"`
-}
-
-type SandboxProxyRootRequest struct {
-	// Sandbox name
-	SandboxName string `json:"-" url:"-"`
-	// Target port inside the sandbox VM
-	Port int `json:"-" url:"-"`
-}
-
-type SandboxWsProxyRequest struct {
-	// Sandbox name
-	SandboxName string `json:"-" url:"-"`
-	// Target port inside the sandbox VM
-	Port int `json:"-" url:"-"`
-	// Optional path suffix forwarded to the VM
-	Path *string `json:"-" url:"-"`
-}
-
 type StopSandboxRequest struct {
 	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
-}
-
-// A single event from an agent session trace.
-type AgentSessionEventResponse struct {
-	SessionPath              string    `json:"session_path" url:"session_path"`
-	SessionName              string    `json:"session_name" url:"session_name"`
-	ParentSessionPath        *string   `json:"parent_session_path,omitempty" url:"parent_session_path,omitempty"`
-	ParentSessionName        *string   `json:"parent_session_name,omitempty" url:"parent_session_name,omitempty"`
-	RootSessionPath          string    `json:"root_session_path" url:"root_session_path"`
-	RootSessionName          string    `json:"root_session_name" url:"root_session_name"`
-	IsSubagent               bool      `json:"is_subagent" url:"is_subagent"`
-	SessionDepth             int       `json:"session_depth" url:"session_depth"`
-	AgentID                  *string   `json:"agent_id,omitempty" url:"agent_id,omitempty"`
-	Timestamp                time.Time `json:"timestamp" url:"timestamp"`
-	EventType                string    `json:"event_type" url:"event_type"`
-	Actor                    string    `json:"actor" url:"actor"`
-	Model                    string    `json:"model" url:"model"`
-	InputTokens              *int      `json:"input_tokens,omitempty" url:"input_tokens,omitempty"`
-	OutputTokens             *int      `json:"output_tokens,omitempty" url:"output_tokens,omitempty"`
-	HarnessName              string    `json:"harness_name" url:"harness_name"`
-	Cwd                      string    `json:"cwd" url:"cwd"`
-	Body                     string    `json:"body" url:"body"`
-	CacheCreationInputTokens *int      `json:"cache_creation_input_tokens,omitempty" url:"cache_creation_input_tokens,omitempty"`
-	CacheReadInputTokens     *int      `json:"cache_read_input_tokens,omitempty" url:"cache_read_input_tokens,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AgentSessionEventResponse) GetSessionPath() string {
-	if a == nil {
-		return ""
-	}
-	return a.SessionPath
-}
-
-func (a *AgentSessionEventResponse) GetSessionName() string {
-	if a == nil {
-		return ""
-	}
-	return a.SessionName
-}
-
-func (a *AgentSessionEventResponse) GetParentSessionPath() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ParentSessionPath
-}
-
-func (a *AgentSessionEventResponse) GetParentSessionName() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ParentSessionName
-}
-
-func (a *AgentSessionEventResponse) GetRootSessionPath() string {
-	if a == nil {
-		return ""
-	}
-	return a.RootSessionPath
-}
-
-func (a *AgentSessionEventResponse) GetRootSessionName() string {
-	if a == nil {
-		return ""
-	}
-	return a.RootSessionName
-}
-
-func (a *AgentSessionEventResponse) GetIsSubagent() bool {
-	if a == nil {
-		return false
-	}
-	return a.IsSubagent
-}
-
-func (a *AgentSessionEventResponse) GetSessionDepth() int {
-	if a == nil {
-		return 0
-	}
-	return a.SessionDepth
-}
-
-func (a *AgentSessionEventResponse) GetAgentID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.AgentID
-}
-
-func (a *AgentSessionEventResponse) GetTimestamp() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.Timestamp
-}
-
-func (a *AgentSessionEventResponse) GetEventType() string {
-	if a == nil {
-		return ""
-	}
-	return a.EventType
-}
-
-func (a *AgentSessionEventResponse) GetActor() string {
-	if a == nil {
-		return ""
-	}
-	return a.Actor
-}
-
-func (a *AgentSessionEventResponse) GetModel() string {
-	if a == nil {
-		return ""
-	}
-	return a.Model
-}
-
-func (a *AgentSessionEventResponse) GetInputTokens() *int {
-	if a == nil {
-		return nil
-	}
-	return a.InputTokens
-}
-
-func (a *AgentSessionEventResponse) GetOutputTokens() *int {
-	if a == nil {
-		return nil
-	}
-	return a.OutputTokens
-}
-
-func (a *AgentSessionEventResponse) GetHarnessName() string {
-	if a == nil {
-		return ""
-	}
-	return a.HarnessName
-}
-
-func (a *AgentSessionEventResponse) GetCwd() string {
-	if a == nil {
-		return ""
-	}
-	return a.Cwd
-}
-
-func (a *AgentSessionEventResponse) GetBody() string {
-	if a == nil {
-		return ""
-	}
-	return a.Body
-}
-
-func (a *AgentSessionEventResponse) GetCacheCreationInputTokens() *int {
-	if a == nil {
-		return nil
-	}
-	return a.CacheCreationInputTokens
-}
-
-func (a *AgentSessionEventResponse) GetCacheReadInputTokens() *int {
-	if a == nil {
-		return nil
-	}
-	return a.CacheReadInputTokens
-}
-
-func (a *AgentSessionEventResponse) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AgentSessionEventResponse) UnmarshalJSON(data []byte) error {
-	type embed AgentSessionEventResponse
-	var unmarshaler = struct {
-		embed
-		Timestamp *internal.DateTime `json:"timestamp"`
-	}{
-		embed: embed(*a),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*a = AgentSessionEventResponse(unmarshaler.embed)
-	a.Timestamp = unmarshaler.Timestamp.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AgentSessionEventResponse) MarshalJSON() ([]byte, error) {
-	type embed AgentSessionEventResponse
-	var marshaler = struct {
-		embed
-		Timestamp *internal.DateTime `json:"timestamp"`
-	}{
-		embed:     embed(*a),
-		Timestamp: internal.NewDateTime(a.Timestamp),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (a *AgentSessionEventResponse) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-// Agent session summary, aggregated from trace events.
-type AgentSessionResponse struct {
-	SessionPath              string    `json:"session_path" url:"session_path"`
-	SessionName              string    `json:"session_name" url:"session_name"`
-	ParentSessionPath        *string   `json:"parent_session_path,omitempty" url:"parent_session_path,omitempty"`
-	ParentSessionName        *string   `json:"parent_session_name,omitempty" url:"parent_session_name,omitempty"`
-	RootSessionPath          string    `json:"root_session_path" url:"root_session_path"`
-	RootSessionName          string    `json:"root_session_name" url:"root_session_name"`
-	IsSubagent               bool      `json:"is_subagent" url:"is_subagent"`
-	SessionDepth             int       `json:"session_depth" url:"session_depth"`
-	AgentID                  *string   `json:"agent_id,omitempty" url:"agent_id,omitempty"`
-	ChildCount               int       `json:"child_count" url:"child_count"`
-	FirstTimestamp           time.Time `json:"first_timestamp" url:"first_timestamp"`
-	LastTimestamp            time.Time `json:"last_timestamp" url:"last_timestamp"`
-	EventCount               int       `json:"event_count" url:"event_count"`
-	Model                    string    `json:"model" url:"model"`
-	TotalInputTokens         int       `json:"total_input_tokens" url:"total_input_tokens"`
-	TotalOutputTokens        int       `json:"total_output_tokens" url:"total_output_tokens"`
-	Cwd                      string    `json:"cwd" url:"cwd"`
-	GitBranch                string    `json:"git_branch" url:"git_branch"`
-	HarnessName              string    `json:"harness_name" url:"harness_name"`
-	TotalCacheCreationTokens int       `json:"total_cache_creation_tokens" url:"total_cache_creation_tokens"`
-	TotalCacheReadTokens     int       `json:"total_cache_read_tokens" url:"total_cache_read_tokens"`
-	FirstUserText            string    `json:"first_user_text" url:"first_user_text"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AgentSessionResponse) GetSessionPath() string {
-	if a == nil {
-		return ""
-	}
-	return a.SessionPath
-}
-
-func (a *AgentSessionResponse) GetSessionName() string {
-	if a == nil {
-		return ""
-	}
-	return a.SessionName
-}
-
-func (a *AgentSessionResponse) GetParentSessionPath() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ParentSessionPath
-}
-
-func (a *AgentSessionResponse) GetParentSessionName() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ParentSessionName
-}
-
-func (a *AgentSessionResponse) GetRootSessionPath() string {
-	if a == nil {
-		return ""
-	}
-	return a.RootSessionPath
-}
-
-func (a *AgentSessionResponse) GetRootSessionName() string {
-	if a == nil {
-		return ""
-	}
-	return a.RootSessionName
-}
-
-func (a *AgentSessionResponse) GetIsSubagent() bool {
-	if a == nil {
-		return false
-	}
-	return a.IsSubagent
-}
-
-func (a *AgentSessionResponse) GetSessionDepth() int {
-	if a == nil {
-		return 0
-	}
-	return a.SessionDepth
-}
-
-func (a *AgentSessionResponse) GetAgentID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.AgentID
-}
-
-func (a *AgentSessionResponse) GetChildCount() int {
-	if a == nil {
-		return 0
-	}
-	return a.ChildCount
-}
-
-func (a *AgentSessionResponse) GetFirstTimestamp() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.FirstTimestamp
-}
-
-func (a *AgentSessionResponse) GetLastTimestamp() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.LastTimestamp
-}
-
-func (a *AgentSessionResponse) GetEventCount() int {
-	if a == nil {
-		return 0
-	}
-	return a.EventCount
-}
-
-func (a *AgentSessionResponse) GetModel() string {
-	if a == nil {
-		return ""
-	}
-	return a.Model
-}
-
-func (a *AgentSessionResponse) GetTotalInputTokens() int {
-	if a == nil {
-		return 0
-	}
-	return a.TotalInputTokens
-}
-
-func (a *AgentSessionResponse) GetTotalOutputTokens() int {
-	if a == nil {
-		return 0
-	}
-	return a.TotalOutputTokens
-}
-
-func (a *AgentSessionResponse) GetCwd() string {
-	if a == nil {
-		return ""
-	}
-	return a.Cwd
-}
-
-func (a *AgentSessionResponse) GetGitBranch() string {
-	if a == nil {
-		return ""
-	}
-	return a.GitBranch
-}
-
-func (a *AgentSessionResponse) GetHarnessName() string {
-	if a == nil {
-		return ""
-	}
-	return a.HarnessName
-}
-
-func (a *AgentSessionResponse) GetTotalCacheCreationTokens() int {
-	if a == nil {
-		return 0
-	}
-	return a.TotalCacheCreationTokens
-}
-
-func (a *AgentSessionResponse) GetTotalCacheReadTokens() int {
-	if a == nil {
-		return 0
-	}
-	return a.TotalCacheReadTokens
-}
-
-func (a *AgentSessionResponse) GetFirstUserText() string {
-	if a == nil {
-		return ""
-	}
-	return a.FirstUserText
-}
-
-func (a *AgentSessionResponse) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AgentSessionResponse) UnmarshalJSON(data []byte) error {
-	type embed AgentSessionResponse
-	var unmarshaler = struct {
-		embed
-		FirstTimestamp *internal.DateTime `json:"first_timestamp"`
-		LastTimestamp  *internal.DateTime `json:"last_timestamp"`
-	}{
-		embed: embed(*a),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*a = AgentSessionResponse(unmarshaler.embed)
-	a.FirstTimestamp = unmarshaler.FirstTimestamp.Time()
-	a.LastTimestamp = unmarshaler.LastTimestamp.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AgentSessionResponse) MarshalJSON() ([]byte, error) {
-	type embed AgentSessionResponse
-	var marshaler = struct {
-		embed
-		FirstTimestamp *internal.DateTime `json:"first_timestamp"`
-		LastTimestamp  *internal.DateTime `json:"last_timestamp"`
-	}{
-		embed:          embed(*a),
-		FirstTimestamp: internal.NewDateTime(a.FirstTimestamp),
-		LastTimestamp:  internal.NewDateTime(a.LastTimestamp),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (a *AgentSessionResponse) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
 }
 
 type CreateSessionResponse struct {
@@ -732,175 +176,6 @@ func (c *CreateSessionResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
-}
-
-// A single log line from an exec session.
-type ExecLogLineResponse struct {
-	Timestamp time.Time                 `json:"timestamp" url:"timestamp"`
-	Seq       int                       `json:"seq" url:"seq"`
-	Stream    ExecLogLineResponseStream `json:"stream" url:"stream"`
-	Data      string                    `json:"data" url:"data"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (e *ExecLogLineResponse) GetTimestamp() time.Time {
-	if e == nil {
-		return time.Time{}
-	}
-	return e.Timestamp
-}
-
-func (e *ExecLogLineResponse) GetSeq() int {
-	if e == nil {
-		return 0
-	}
-	return e.Seq
-}
-
-func (e *ExecLogLineResponse) GetStream() ExecLogLineResponseStream {
-	if e == nil {
-		return ""
-	}
-	return e.Stream
-}
-
-func (e *ExecLogLineResponse) GetData() string {
-	if e == nil {
-		return ""
-	}
-	return e.Data
-}
-
-func (e *ExecLogLineResponse) GetExtraProperties() map[string]interface{} {
-	return e.extraProperties
-}
-
-func (e *ExecLogLineResponse) UnmarshalJSON(data []byte) error {
-	type embed ExecLogLineResponse
-	var unmarshaler = struct {
-		embed
-		Timestamp *internal.DateTime `json:"timestamp"`
-	}{
-		embed: embed(*e),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*e = ExecLogLineResponse(unmarshaler.embed)
-	e.Timestamp = unmarshaler.Timestamp.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *e)
-	if err != nil {
-		return err
-	}
-	e.extraProperties = extraProperties
-	e.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (e *ExecLogLineResponse) MarshalJSON() ([]byte, error) {
-	type embed ExecLogLineResponse
-	var marshaler = struct {
-		embed
-		Timestamp *internal.DateTime `json:"timestamp"`
-	}{
-		embed:     embed(*e),
-		Timestamp: internal.NewDateTime(e.Timestamp),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (e *ExecLogLineResponse) String() string {
-	if len(e.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(e); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", e)
-}
-
-type ExecLogLineResponseStream string
-
-const (
-	ExecLogLineResponseStreamStdout ExecLogLineResponseStream = "stdout"
-	ExecLogLineResponseStreamStderr ExecLogLineResponseStream = "stderr"
-	ExecLogLineResponseStreamStdin  ExecLogLineResponseStream = "stdin"
-)
-
-func NewExecLogLineResponseStreamFromString(s string) (ExecLogLineResponseStream, error) {
-	switch s {
-	case "stdout":
-		return ExecLogLineResponseStreamStdout, nil
-	case "stderr":
-		return ExecLogLineResponseStreamStderr, nil
-	case "stdin":
-		return ExecLogLineResponseStreamStdin, nil
-	}
-	var t ExecLogLineResponseStream
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (e ExecLogLineResponseStream) Ptr() *ExecLogLineResponseStream {
-	return &e
-}
-
-// Raw logs for a specific exec session.
-type ExecLogsResponse struct {
-	ExecID string                 `json:"exec_id" url:"exec_id"`
-	Logs   []*ExecLogLineResponse `json:"logs" url:"logs"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (e *ExecLogsResponse) GetExecID() string {
-	if e == nil {
-		return ""
-	}
-	return e.ExecID
-}
-
-func (e *ExecLogsResponse) GetLogs() []*ExecLogLineResponse {
-	if e == nil {
-		return nil
-	}
-	return e.Logs
-}
-
-func (e *ExecLogsResponse) GetExtraProperties() map[string]interface{} {
-	return e.extraProperties
-}
-
-func (e *ExecLogsResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler ExecLogsResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*e = ExecLogsResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *e)
-	if err != nil {
-		return err
-	}
-	e.extraProperties = extraProperties
-	e.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (e *ExecLogsResponse) String() string {
-	if len(e.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(e); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", e)
 }
 
 // Command execution started response.
@@ -1053,117 +328,6 @@ func (e *ExecResultResponse) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
-// Exec session summary.
-type ExecSessionResponse struct {
-	ExecID string `json:"exec_id" url:"exec_id"`
-	// True for interactive (WebSocket/PTY) sessions, False for exec (run command, stream output)
-	IsInteractive  *bool     `json:"is_interactive,omitempty" url:"is_interactive,omitempty"`
-	FirstTimestamp time.Time `json:"first_timestamp" url:"first_timestamp"`
-	LastTimestamp  time.Time `json:"last_timestamp" url:"last_timestamp"`
-	LogCount       int       `json:"log_count" url:"log_count"`
-	// First stdin line: user input for interactive sessions, command invocation for exec sessions.
-	FirstStdinLine *string `json:"first_stdin_line,omitempty" url:"first_stdin_line,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (e *ExecSessionResponse) GetExecID() string {
-	if e == nil {
-		return ""
-	}
-	return e.ExecID
-}
-
-func (e *ExecSessionResponse) GetIsInteractive() *bool {
-	if e == nil {
-		return nil
-	}
-	return e.IsInteractive
-}
-
-func (e *ExecSessionResponse) GetFirstTimestamp() time.Time {
-	if e == nil {
-		return time.Time{}
-	}
-	return e.FirstTimestamp
-}
-
-func (e *ExecSessionResponse) GetLastTimestamp() time.Time {
-	if e == nil {
-		return time.Time{}
-	}
-	return e.LastTimestamp
-}
-
-func (e *ExecSessionResponse) GetLogCount() int {
-	if e == nil {
-		return 0
-	}
-	return e.LogCount
-}
-
-func (e *ExecSessionResponse) GetFirstStdinLine() *string {
-	if e == nil {
-		return nil
-	}
-	return e.FirstStdinLine
-}
-
-func (e *ExecSessionResponse) GetExtraProperties() map[string]interface{} {
-	return e.extraProperties
-}
-
-func (e *ExecSessionResponse) UnmarshalJSON(data []byte) error {
-	type embed ExecSessionResponse
-	var unmarshaler = struct {
-		embed
-		FirstTimestamp *internal.DateTime `json:"first_timestamp"`
-		LastTimestamp  *internal.DateTime `json:"last_timestamp"`
-	}{
-		embed: embed(*e),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*e = ExecSessionResponse(unmarshaler.embed)
-	e.FirstTimestamp = unmarshaler.FirstTimestamp.Time()
-	e.LastTimestamp = unmarshaler.LastTimestamp.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *e)
-	if err != nil {
-		return err
-	}
-	e.extraProperties = extraProperties
-	e.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (e *ExecSessionResponse) MarshalJSON() ([]byte, error) {
-	type embed ExecSessionResponse
-	var marshaler = struct {
-		embed
-		FirstTimestamp *internal.DateTime `json:"first_timestamp"`
-		LastTimestamp  *internal.DateTime `json:"last_timestamp"`
-	}{
-		embed:          embed(*e),
-		FirstTimestamp: internal.NewDateTime(e.FirstTimestamp),
-		LastTimestamp:  internal.NewDateTime(e.LastTimestamp),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (e *ExecSessionResponse) String() string {
-	if len(e.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(e); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", e)
-}
-
 type FileUploadStatusResponse struct {
 	Status string `json:"status" url:"status"`
 
@@ -1297,32 +461,6 @@ func (i InitCapability) Ptr() *InitCapability {
 	return &i
 }
 
-// Deprecated legacy init capabilities accepted for compatibility.
-type LegacyInitCapability string
-
-const (
-	LegacyInitCapabilityCoreGatewayProxy LegacyInitCapability = "core-gateway-proxy"
-	LegacyInitCapabilitySSH              LegacyInitCapability = "ssh"
-	LegacyInitCapabilityDocker           LegacyInitCapability = "docker"
-)
-
-func NewLegacyInitCapabilityFromString(s string) (LegacyInitCapability, error) {
-	switch s {
-	case "core-gateway-proxy":
-		return LegacyInitCapabilityCoreGatewayProxy, nil
-	case "ssh":
-		return LegacyInitCapabilitySSH, nil
-	case "docker":
-		return LegacyInitCapabilityDocker, nil
-	}
-	var t LegacyInitCapability
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (l LegacyInitCapability) Ptr() *LegacyInitCapability {
-	return &l
-}
-
 type ListSessionsResponse struct {
 	Sessions []*SessionInfo `json:"sessions" url:"sessions"`
 
@@ -1370,10 +508,11 @@ func (l *ListSessionsResponse) String() string {
 }
 
 type PaginatedSandboxResponse struct {
-	Items  []*SandboxResponse `json:"items" url:"items"`
-	Limit  int                `json:"limit" url:"limit"`
-	Offset int                `json:"offset" url:"offset"`
-	Total  int                `json:"total" url:"total"`
+	Items      []*SandboxResponse `json:"items" url:"items"`
+	Limit      int                `json:"limit" url:"limit"`
+	NextCursor *string            `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
+	Offset     int                `json:"offset" url:"offset"`
+	Total      int                `json:"total" url:"total"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1391,6 +530,13 @@ func (p *PaginatedSandboxResponse) GetLimit() int {
 		return 0
 	}
 	return p.Limit
+}
+
+func (p *PaginatedSandboxResponse) GetNextCursor() *string {
+	if p == nil {
+		return nil
+	}
+	return p.NextCursor
 }
 
 func (p *PaginatedSandboxResponse) GetOffset() int {
@@ -1428,68 +574,6 @@ func (p *PaginatedSandboxResponse) UnmarshalJSON(data []byte) error {
 }
 
 func (p *PaginatedSandboxResponse) String() string {
-	if len(p.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(p); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", p)
-}
-
-type PromoteCacheResponse struct {
-	CacheKey string `json:"cache_key" url:"cache_key"`
-	Status   string `json:"status" url:"status"`
-	TenantID string `json:"tenant_id" url:"tenant_id"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (p *PromoteCacheResponse) GetCacheKey() string {
-	if p == nil {
-		return ""
-	}
-	return p.CacheKey
-}
-
-func (p *PromoteCacheResponse) GetStatus() string {
-	if p == nil {
-		return ""
-	}
-	return p.Status
-}
-
-func (p *PromoteCacheResponse) GetTenantID() string {
-	if p == nil {
-		return ""
-	}
-	return p.TenantID
-}
-
-func (p *PromoteCacheResponse) GetExtraProperties() map[string]interface{} {
-	return p.extraProperties
-}
-
-func (p *PromoteCacheResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler PromoteCacheResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*p = PromoteCacheResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *p)
-	if err != nil {
-		return err
-	}
-	p.extraProperties = extraProperties
-	p.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (p *PromoteCacheResponse) String() string {
 	if len(p.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
 			return value
@@ -1764,19 +848,16 @@ func (s *SandboxInitMinimal) String() string {
 }
 
 type SandboxResponse struct {
-	CreatedAt       string             `json:"created_at" url:"created_at"`
-	CreatedBy       *string            `json:"created_by,omitempty" url:"created_by,omitempty"`
-	CreatedByEntity *string            `json:"created_by_entity,omitempty" url:"created_by_entity,omitempty"`
-	DeletedAt       *string            `json:"deleted_at,omitempty" url:"deleted_at,omitempty"`
-	ID              string             `json:"id" url:"id"`
-	Image           string             `json:"image" url:"image"`
-	Name            string             `json:"name" url:"name"`
-	OwnerNodeID     *string            `json:"owner_node_id,omitempty" url:"owner_node_id,omitempty"`
-	SetupSteps      []*SetupStepResult `json:"setup_steps,omitempty" url:"setup_steps,omitempty"`
-	Spec            *SandboxSpec       `json:"spec,omitempty" url:"spec,omitempty"`
-	Status          string             `json:"status" url:"status"`
-	VmId            *string            `json:"vm_id,omitempty" url:"vm_id,omitempty"`
-	Workdir         *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
+	CreatedAt  string             `json:"created_at" url:"created_at"`
+	CreatedBy  *string            `json:"created_by,omitempty" url:"created_by,omitempty"`
+	DeletedAt  *string            `json:"deleted_at,omitempty" url:"deleted_at,omitempty"`
+	ID         string             `json:"id" url:"id"`
+	Image      string             `json:"image" url:"image"`
+	Name       string             `json:"name" url:"name"`
+	SetupSteps []*SetupStepResult `json:"setup_steps,omitempty" url:"setup_steps,omitempty"`
+	Spec       *SandboxSpec       `json:"spec,omitempty" url:"spec,omitempty"`
+	Status     string             `json:"status" url:"status"`
+	Workdir    *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1794,13 +875,6 @@ func (s *SandboxResponse) GetCreatedBy() *string {
 		return nil
 	}
 	return s.CreatedBy
-}
-
-func (s *SandboxResponse) GetCreatedByEntity() *string {
-	if s == nil {
-		return nil
-	}
-	return s.CreatedByEntity
 }
 
 func (s *SandboxResponse) GetDeletedAt() *string {
@@ -1831,13 +905,6 @@ func (s *SandboxResponse) GetName() string {
 	return s.Name
 }
 
-func (s *SandboxResponse) GetOwnerNodeID() *string {
-	if s == nil {
-		return nil
-	}
-	return s.OwnerNodeID
-}
-
 func (s *SandboxResponse) GetSetupSteps() []*SetupStepResult {
 	if s == nil {
 		return nil
@@ -1857,13 +924,6 @@ func (s *SandboxResponse) GetStatus() string {
 		return ""
 	}
 	return s.Status
-}
-
-func (s *SandboxResponse) GetVmId() *string {
-	if s == nil {
-		return nil
-	}
-	return s.VmId
 }
 
 func (s *SandboxResponse) GetWorkdir() *string {
@@ -2111,7 +1171,6 @@ func (s *SetupScript) String() string {
 
 type SetupStepResult struct {
 	Name   string  `json:"name" url:"name"`
-	Script *string `json:"script,omitempty" url:"script,omitempty"`
 	Status string  `json:"status" url:"status"`
 	Stderr *string `json:"stderr,omitempty" url:"stderr,omitempty"`
 	Stdout *string `json:"stdout,omitempty" url:"stdout,omitempty"`
@@ -2125,13 +1184,6 @@ func (s *SetupStepResult) GetName() string {
 		return ""
 	}
 	return s.Name
-}
-
-func (s *SetupStepResult) GetScript() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Script
 }
 
 func (s *SetupStepResult) GetStatus() string {

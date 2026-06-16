@@ -35,11 +35,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-// List available preset providers and their pre-provisioned Descope apps.
-//
-// The “apps“ array carries every (auth_method, scope) -> app_id combo a
-// preset supports, so the modal can resolve the right “app_id“ locally
-// and skip a server round-trip on the connect path.
+// Return the integration providers available to connect from Islo, including the supported authentication methods and connection scopes.
 func (c *Client) ListIntegrationProviders(
 	ctx context.Context,
 	opts ...option.RequestOption,
