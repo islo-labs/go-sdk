@@ -14,6 +14,7 @@ import (
 	shares "github.com/islo-labs/go-sdk/shares"
 	snapshots "github.com/islo-labs/go-sdk/snapshots"
 	tenants "github.com/islo-labs/go-sdk/tenants"
+	webhooks "github.com/islo-labs/go-sdk/webhooks"
 	http "net/http"
 	os "os"
 )
@@ -31,6 +32,7 @@ type Client struct {
 	Sandboxes       *sandboxes.Client
 	Shares          *shares.Client
 	Snapshots       *snapshots.Client
+	Webhooks        *webhooks.Client
 }
 
 func NewClient(opts ...option.RequestOption) *Client {
@@ -55,5 +57,6 @@ func NewClient(opts ...option.RequestOption) *Client {
 		Sandboxes:       sandboxes.NewClient(opts...),
 		Shares:          shares.NewClient(opts...),
 		Snapshots:       snapshots.NewClient(opts...),
+		Webhooks:        webhooks.NewClient(opts...),
 	}
 }
