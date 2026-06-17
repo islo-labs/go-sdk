@@ -4529,6 +4529,68 @@ func (i *IncomingWebhookCondition) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+type IncomingWebhookGitSource struct {
+	Branch     *string `json:"branch,omitempty" url:"branch,omitempty"`
+	RepoURL    string  `json:"repo_url" url:"repo_url"`
+	TargetPath *string `json:"target_path,omitempty" url:"target_path,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *IncomingWebhookGitSource) GetBranch() *string {
+	if i == nil {
+		return nil
+	}
+	return i.Branch
+}
+
+func (i *IncomingWebhookGitSource) GetRepoURL() string {
+	if i == nil {
+		return ""
+	}
+	return i.RepoURL
+}
+
+func (i *IncomingWebhookGitSource) GetTargetPath() *string {
+	if i == nil {
+		return nil
+	}
+	return i.TargetPath
+}
+
+func (i *IncomingWebhookGitSource) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *IncomingWebhookGitSource) UnmarshalJSON(data []byte) error {
+	type unmarshaler IncomingWebhookGitSource
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = IncomingWebhookGitSource(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *IncomingWebhookGitSource) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
 type IncomingWebhookRule struct {
 	Actions []*IncomingWebhookAction  `json:"actions" url:"actions"`
 	When    *IncomingWebhookCondition `json:"when,omitempty" url:"when,omitempty"`
@@ -4654,16 +4716,31 @@ func (i *IncomingWebhookSandboxLifecycle) String() string {
 }
 
 type IncomingWebhookSandboxTemplate struct {
-	DiskGb         int                              `json:"disk_gb" url:"disk_gb"`
-	GatewayProfile *string                          `json:"gateway_profile,omitempty" url:"gateway_profile,omitempty"`
-	Image          string                           `json:"image" url:"image"`
-	Lifecycle      *IncomingWebhookSandboxLifecycle `json:"lifecycle,omitempty" url:"lifecycle,omitempty"`
-	MemoryMb       int                              `json:"memory_mb" url:"memory_mb"`
-	Vcpus          int                              `json:"vcpus" url:"vcpus"`
-	Workdir        *string                          `json:"workdir,omitempty" url:"workdir,omitempty"`
+	CacheKey         *string                          `json:"cache_key,omitempty" url:"cache_key,omitempty"`
+	DiskGb           int                              `json:"disk_gb" url:"disk_gb"`
+	Env              map[string]*string               `json:"env,omitempty" url:"env,omitempty"`
+	GatewayProfile   *string                          `json:"gateway_profile,omitempty" url:"gateway_profile,omitempty"`
+	Image            string                           `json:"image" url:"image"`
+	Init             *SandboxInit                     `json:"init,omitempty" url:"init,omitempty"`
+	InitCapabilities []LegacyInitCapability           `json:"init_capabilities,omitempty" url:"init_capabilities,omitempty"`
+	Lifecycle        *IncomingWebhookSandboxLifecycle `json:"lifecycle,omitempty" url:"lifecycle,omitempty"`
+	MemoryMb         int                              `json:"memory_mb" url:"memory_mb"`
+	SetupScripts     []*IncomingWebhookSetupScript    `json:"setup_scripts,omitempty" url:"setup_scripts,omitempty"`
+	SnapshotName     *string                          `json:"snapshot_name,omitempty" url:"snapshot_name,omitempty"`
+	SnapshotURL      *string                          `json:"snapshot_url,omitempty" url:"snapshot_url,omitempty"`
+	Sources          []*IncomingWebhookGitSource      `json:"sources,omitempty" url:"sources,omitempty"`
+	Vcpus            int                              `json:"vcpus" url:"vcpus"`
+	Workdir          *string                          `json:"workdir,omitempty" url:"workdir,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (i *IncomingWebhookSandboxTemplate) GetCacheKey() *string {
+	if i == nil {
+		return nil
+	}
+	return i.CacheKey
 }
 
 func (i *IncomingWebhookSandboxTemplate) GetDiskGb() int {
@@ -4671,6 +4748,13 @@ func (i *IncomingWebhookSandboxTemplate) GetDiskGb() int {
 		return 0
 	}
 	return i.DiskGb
+}
+
+func (i *IncomingWebhookSandboxTemplate) GetEnv() map[string]*string {
+	if i == nil {
+		return nil
+	}
+	return i.Env
 }
 
 func (i *IncomingWebhookSandboxTemplate) GetGatewayProfile() *string {
@@ -4687,6 +4771,20 @@ func (i *IncomingWebhookSandboxTemplate) GetImage() string {
 	return i.Image
 }
 
+func (i *IncomingWebhookSandboxTemplate) GetInit() *SandboxInit {
+	if i == nil {
+		return nil
+	}
+	return i.Init
+}
+
+func (i *IncomingWebhookSandboxTemplate) GetInitCapabilities() []LegacyInitCapability {
+	if i == nil {
+		return nil
+	}
+	return i.InitCapabilities
+}
+
 func (i *IncomingWebhookSandboxTemplate) GetLifecycle() *IncomingWebhookSandboxLifecycle {
 	if i == nil {
 		return nil
@@ -4699,6 +4797,34 @@ func (i *IncomingWebhookSandboxTemplate) GetMemoryMb() int {
 		return 0
 	}
 	return i.MemoryMb
+}
+
+func (i *IncomingWebhookSandboxTemplate) GetSetupScripts() []*IncomingWebhookSetupScript {
+	if i == nil {
+		return nil
+	}
+	return i.SetupScripts
+}
+
+func (i *IncomingWebhookSandboxTemplate) GetSnapshotName() *string {
+	if i == nil {
+		return nil
+	}
+	return i.SnapshotName
+}
+
+func (i *IncomingWebhookSandboxTemplate) GetSnapshotURL() *string {
+	if i == nil {
+		return nil
+	}
+	return i.SnapshotURL
+}
+
+func (i *IncomingWebhookSandboxTemplate) GetSources() []*IncomingWebhookGitSource {
+	if i == nil {
+		return nil
+	}
+	return i.Sources
 }
 
 func (i *IncomingWebhookSandboxTemplate) GetVcpus() int {
@@ -4836,6 +4962,60 @@ func (i *IncomingWebhookSecretRef) UnmarshalJSON(data []byte) error {
 }
 
 func (i *IncomingWebhookSecretRef) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type IncomingWebhookSetupScript struct {
+	Name   *string `json:"name,omitempty" url:"name,omitempty"`
+	Script string  `json:"script" url:"script"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *IncomingWebhookSetupScript) GetName() *string {
+	if i == nil {
+		return nil
+	}
+	return i.Name
+}
+
+func (i *IncomingWebhookSetupScript) GetScript() string {
+	if i == nil {
+		return ""
+	}
+	return i.Script
+}
+
+func (i *IncomingWebhookSetupScript) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *IncomingWebhookSetupScript) UnmarshalJSON(data []byte) error {
+	type unmarshaler IncomingWebhookSetupScript
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = IncomingWebhookSetupScript(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *IncomingWebhookSetupScript) String() string {
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5208,6 +5388,32 @@ func (j *JwtVerifier) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", j)
+}
+
+// Deprecated legacy init capabilities accepted for compatibility.
+type LegacyInitCapability string
+
+const (
+	LegacyInitCapabilityCoreGatewayProxy LegacyInitCapability = "core-gateway-proxy"
+	LegacyInitCapabilitySSH              LegacyInitCapability = "ssh"
+	LegacyInitCapabilityDocker           LegacyInitCapability = "docker"
+)
+
+func NewLegacyInitCapabilityFromString(s string) (LegacyInitCapability, error) {
+	switch s {
+	case "core-gateway-proxy":
+		return LegacyInitCapabilityCoreGatewayProxy, nil
+	case "ssh":
+		return LegacyInitCapabilitySSH, nil
+	case "docker":
+		return LegacyInitCapabilityDocker, nil
+	}
+	var t LegacyInitCapability
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l LegacyInitCapability) Ptr() *LegacyInitCapability {
+	return &l
 }
 
 type PayloadMapping struct {
