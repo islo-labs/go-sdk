@@ -7,6 +7,7 @@ import (
 	core "github.com/islo-labs/go-sdk/core"
 	credits "github.com/islo-labs/go-sdk/credits"
 	gatewayprofiles "github.com/islo-labs/go-sdk/gatewayprofiles"
+	inference "github.com/islo-labs/go-sdk/inference"
 	integrations "github.com/islo-labs/go-sdk/integrations"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
@@ -29,6 +30,7 @@ type Client struct {
 	Integrations    *integrations.Client
 	GatewayProfiles *gatewayprofiles.Client
 	CloudRoles      *cloudroles.Client
+	Inference       *inference.Client
 	Sandboxes       *sandboxes.Client
 	Shares          *shares.Client
 	Snapshots       *snapshots.Client
@@ -54,6 +56,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 		Integrations:    integrations.NewClient(opts...),
 		GatewayProfiles: gatewayprofiles.NewClient(opts...),
 		CloudRoles:      cloudroles.NewClient(opts...),
+		Inference:       inference.NewClient(opts...),
 		Sandboxes:       sandboxes.NewClient(opts...),
 		Shares:          shares.NewClient(opts...),
 		Snapshots:       snapshots.NewClient(opts...),
