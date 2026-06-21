@@ -4,6 +4,7 @@ package client
 
 import (
 	cloudroles "github.com/islo-labs/go-sdk/cloudroles"
+	containerregistries "github.com/islo-labs/go-sdk/containerregistries"
 	core "github.com/islo-labs/go-sdk/core"
 	credits "github.com/islo-labs/go-sdk/credits"
 	gatewayprofiles "github.com/islo-labs/go-sdk/gatewayprofiles"
@@ -25,16 +26,17 @@ type Client struct {
 	caller  *internal.Caller
 	header  http.Header
 
-	Tenants         *tenants.Client
-	Credits         *credits.Client
-	Integrations    *integrations.Client
-	GatewayProfiles *gatewayprofiles.Client
-	CloudRoles      *cloudroles.Client
-	Inference       *inference.Client
-	Sandboxes       *sandboxes.Client
-	Shares          *shares.Client
-	Snapshots       *snapshots.Client
-	Webhooks        *webhooks.Client
+	Tenants             *tenants.Client
+	Credits             *credits.Client
+	Integrations        *integrations.Client
+	GatewayProfiles     *gatewayprofiles.Client
+	CloudRoles          *cloudroles.Client
+	Inference           *inference.Client
+	ContainerRegistries *containerregistries.Client
+	Sandboxes           *sandboxes.Client
+	Shares              *shares.Client
+	Snapshots           *snapshots.Client
+	Webhooks            *webhooks.Client
 }
 
 func NewClient(opts ...option.RequestOption) *Client {
@@ -50,16 +52,17 @@ func NewClient(opts ...option.RequestOption) *Client {
 				MaxAttempts: options.MaxAttempts,
 			},
 		),
-		header:          options.ToHeader(),
-		Tenants:         tenants.NewClient(opts...),
-		Credits:         credits.NewClient(opts...),
-		Integrations:    integrations.NewClient(opts...),
-		GatewayProfiles: gatewayprofiles.NewClient(opts...),
-		CloudRoles:      cloudroles.NewClient(opts...),
-		Inference:       inference.NewClient(opts...),
-		Sandboxes:       sandboxes.NewClient(opts...),
-		Shares:          shares.NewClient(opts...),
-		Snapshots:       snapshots.NewClient(opts...),
-		Webhooks:        webhooks.NewClient(opts...),
+		header:              options.ToHeader(),
+		Tenants:             tenants.NewClient(opts...),
+		Credits:             credits.NewClient(opts...),
+		Integrations:        integrations.NewClient(opts...),
+		GatewayProfiles:     gatewayprofiles.NewClient(opts...),
+		CloudRoles:          cloudroles.NewClient(opts...),
+		Inference:           inference.NewClient(opts...),
+		ContainerRegistries: containerregistries.NewClient(opts...),
+		Sandboxes:           sandboxes.NewClient(opts...),
+		Shares:              shares.NewClient(opts...),
+		Snapshots:           snapshots.NewClient(opts...),
+		Webhooks:            webhooks.NewClient(opts...),
 	}
 }
