@@ -37,6 +37,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 
 func (c *Client) ListCloudRoles(
 	ctx context.Context,
+	request *gosdk.ListCloudRolesRequest,
 	opts ...option.RequestOption,
 ) ([]*gosdk.CloudRoleResponse, error) {
 	options := core.NewRequestOptions(opts...)
@@ -46,6 +47,13 @@ func (c *Client) ListCloudRoles(
 		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/cloud-roles"
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),

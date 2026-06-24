@@ -16,7 +16,8 @@ type GatewayProfileCreate struct {
 	InternetEnabled *bool          `json:"internet_enabled,omitempty" url:"-"`
 	IsDefault       *bool          `json:"is_default,omitempty" url:"-"`
 	// Cloud role public ID (UUID)
-	CloudRole *string `json:"cloud_role,omitempty" url:"-"`
+	CloudRole         *string                                `json:"cloud_role,omitempty" url:"-"`
+	IntegrationPolicy *GatewayProfileCreateIntegrationPolicy `json:"integration_policy,omitempty" url:"-"`
 }
 
 type GatewayRuleCreate struct {
@@ -48,6 +49,43 @@ type GetGatewayProfileRequest struct {
 type RuleReorderRequest struct {
 	ProfileID string             `json:"-" url:"-"`
 	Rules     []*RuleReorderItem `json:"rules,omitempty" url:"-"`
+}
+
+type AllIntegrationsPolicy struct {
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AllIntegrationsPolicy) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AllIntegrationsPolicy) UnmarshalJSON(data []byte) error {
+	type unmarshaler AllIntegrationsPolicy
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AllIntegrationsPolicy(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AllIntegrationsPolicy) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
 }
 
 type AuthStrategySchema struct {
@@ -286,6 +324,52 @@ func (c ContentTypeContentFilterDirection) Ptr() *ContentTypeContentFilterDirect
 	return &c
 }
 
+type CustomIntegrationsPolicy struct {
+	Keys []string `json:"keys,omitempty" url:"keys,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CustomIntegrationsPolicy) GetKeys() []string {
+	if c == nil {
+		return nil
+	}
+	return c.Keys
+}
+
+func (c *CustomIntegrationsPolicy) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *CustomIntegrationsPolicy) UnmarshalJSON(data []byte) error {
+	type unmarshaler CustomIntegrationsPolicy
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CustomIntegrationsPolicy(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CustomIntegrationsPolicy) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 type GatewayAction string
 
 const (
@@ -309,17 +393,18 @@ func (g GatewayAction) Ptr() *GatewayAction {
 }
 
 type GatewayProfileDetailResponse struct {
-	ID              string                 `json:"id" url:"id"`
-	Name            string                 `json:"name" url:"name"`
-	Description     *string                `json:"description,omitempty" url:"description,omitempty"`
-	DefaultAction   string                 `json:"default_action" url:"default_action"`
-	InternetEnabled bool                   `json:"internet_enabled" url:"internet_enabled"`
-	IsDefault       bool                   `json:"is_default" url:"is_default"`
-	CloudRole       *CloudRoleRef          `json:"cloud_role,omitempty" url:"cloud_role,omitempty"`
-	RuleCount       *int                   `json:"rule_count,omitempty" url:"rule_count,omitempty"`
-	CreatedAt       *time.Time             `json:"created_at,omitempty" url:"created_at,omitempty"`
-	UpdatedAt       *time.Time             `json:"updated_at,omitempty" url:"updated_at,omitempty"`
-	Rules           []*GatewayRuleResponse `json:"rules,omitempty" url:"rules,omitempty"`
+	ID                string                                         `json:"id" url:"id"`
+	Name              string                                         `json:"name" url:"name"`
+	Description       *string                                        `json:"description,omitempty" url:"description,omitempty"`
+	DefaultAction     string                                         `json:"default_action" url:"default_action"`
+	InternetEnabled   bool                                           `json:"internet_enabled" url:"internet_enabled"`
+	IsDefault         bool                                           `json:"is_default" url:"is_default"`
+	CloudRole         *CloudRoleRef                                  `json:"cloud_role,omitempty" url:"cloud_role,omitempty"`
+	IntegrationPolicy *GatewayProfileDetailResponseIntegrationPolicy `json:"integration_policy,omitempty" url:"integration_policy,omitempty"`
+	RuleCount         *int                                           `json:"rule_count,omitempty" url:"rule_count,omitempty"`
+	CreatedAt         *time.Time                                     `json:"created_at,omitempty" url:"created_at,omitempty"`
+	UpdatedAt         *time.Time                                     `json:"updated_at,omitempty" url:"updated_at,omitempty"`
+	Rules             []*GatewayRuleResponse                         `json:"rules,omitempty" url:"rules,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -372,6 +457,13 @@ func (g *GatewayProfileDetailResponse) GetCloudRole() *CloudRoleRef {
 		return nil
 	}
 	return g.CloudRole
+}
+
+func (g *GatewayProfileDetailResponse) GetIntegrationPolicy() *GatewayProfileDetailResponseIntegrationPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.IntegrationPolicy
 }
 
 func (g *GatewayProfileDetailResponse) GetRuleCount() *int {
@@ -456,17 +548,135 @@ func (g *GatewayProfileDetailResponse) String() string {
 	return fmt.Sprintf("%#v", g)
 }
 
+type GatewayProfileDetailResponseIntegrationPolicy struct {
+	Mode   string
+	All    *AllIntegrationsPolicy
+	Custom *CustomIntegrationsPolicy
+}
+
+func (g *GatewayProfileDetailResponseIntegrationPolicy) GetMode() string {
+	if g == nil {
+		return ""
+	}
+	return g.Mode
+}
+
+func (g *GatewayProfileDetailResponseIntegrationPolicy) GetAll() *AllIntegrationsPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.All
+}
+
+func (g *GatewayProfileDetailResponseIntegrationPolicy) GetCustom() *CustomIntegrationsPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.Custom
+}
+
+func (g *GatewayProfileDetailResponseIntegrationPolicy) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Mode string `json:"mode"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	g.Mode = unmarshaler.Mode
+	if unmarshaler.Mode == "" {
+		return fmt.Errorf("%T did not include discriminant mode", g)
+	}
+	switch unmarshaler.Mode {
+	case "all":
+		value := new(AllIntegrationsPolicy)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.All = value
+	case "custom":
+		value := new(CustomIntegrationsPolicy)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.Custom = value
+	}
+	return nil
+}
+
+func (g GatewayProfileDetailResponseIntegrationPolicy) MarshalJSON() ([]byte, error) {
+	if err := g.validate(); err != nil {
+		return nil, err
+	}
+	if g.All != nil {
+		return internal.MarshalJSONWithExtraProperty(g.All, "mode", "all")
+	}
+	if g.Custom != nil {
+		return internal.MarshalJSONWithExtraProperty(g.Custom, "mode", "custom")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+type GatewayProfileDetailResponseIntegrationPolicyVisitor interface {
+	VisitAll(*AllIntegrationsPolicy) error
+	VisitCustom(*CustomIntegrationsPolicy) error
+}
+
+func (g *GatewayProfileDetailResponseIntegrationPolicy) Accept(visitor GatewayProfileDetailResponseIntegrationPolicyVisitor) error {
+	if g.All != nil {
+		return visitor.VisitAll(g.All)
+	}
+	if g.Custom != nil {
+		return visitor.VisitCustom(g.Custom)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+func (g *GatewayProfileDetailResponseIntegrationPolicy) validate() error {
+	if g == nil {
+		return fmt.Errorf("type %T is nil", g)
+	}
+	var fields []string
+	if g.All != nil {
+		fields = append(fields, "all")
+	}
+	if g.Custom != nil {
+		fields = append(fields, "custom")
+	}
+	if len(fields) == 0 {
+		if g.Mode != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.Mode)
+		}
+		return fmt.Errorf("type %T is empty", g)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", g, fields)
+	}
+	if g.Mode != "" {
+		field := fields[0]
+		if g.Mode != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				g,
+				g.Mode,
+				g,
+			)
+		}
+	}
+	return nil
+}
+
 type GatewayProfileResponse struct {
-	ID              string        `json:"id" url:"id"`
-	Name            string        `json:"name" url:"name"`
-	Description     *string       `json:"description,omitempty" url:"description,omitempty"`
-	DefaultAction   string        `json:"default_action" url:"default_action"`
-	InternetEnabled bool          `json:"internet_enabled" url:"internet_enabled"`
-	IsDefault       bool          `json:"is_default" url:"is_default"`
-	CloudRole       *CloudRoleRef `json:"cloud_role,omitempty" url:"cloud_role,omitempty"`
-	RuleCount       *int          `json:"rule_count,omitempty" url:"rule_count,omitempty"`
-	CreatedAt       *time.Time    `json:"created_at,omitempty" url:"created_at,omitempty"`
-	UpdatedAt       *time.Time    `json:"updated_at,omitempty" url:"updated_at,omitempty"`
+	ID                string                                   `json:"id" url:"id"`
+	Name              string                                   `json:"name" url:"name"`
+	Description       *string                                  `json:"description,omitempty" url:"description,omitempty"`
+	DefaultAction     string                                   `json:"default_action" url:"default_action"`
+	InternetEnabled   bool                                     `json:"internet_enabled" url:"internet_enabled"`
+	IsDefault         bool                                     `json:"is_default" url:"is_default"`
+	CloudRole         *CloudRoleRef                            `json:"cloud_role,omitempty" url:"cloud_role,omitempty"`
+	IntegrationPolicy *GatewayProfileResponseIntegrationPolicy `json:"integration_policy,omitempty" url:"integration_policy,omitempty"`
+	RuleCount         *int                                     `json:"rule_count,omitempty" url:"rule_count,omitempty"`
+	CreatedAt         *time.Time                               `json:"created_at,omitempty" url:"created_at,omitempty"`
+	UpdatedAt         *time.Time                               `json:"updated_at,omitempty" url:"updated_at,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -519,6 +729,13 @@ func (g *GatewayProfileResponse) GetCloudRole() *CloudRoleRef {
 		return nil
 	}
 	return g.CloudRole
+}
+
+func (g *GatewayProfileResponse) GetIntegrationPolicy() *GatewayProfileResponseIntegrationPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.IntegrationPolicy
 }
 
 func (g *GatewayProfileResponse) GetRuleCount() *int {
@@ -594,6 +811,123 @@ func (g *GatewayProfileResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", g)
+}
+
+type GatewayProfileResponseIntegrationPolicy struct {
+	Mode   string
+	All    *AllIntegrationsPolicy
+	Custom *CustomIntegrationsPolicy
+}
+
+func (g *GatewayProfileResponseIntegrationPolicy) GetMode() string {
+	if g == nil {
+		return ""
+	}
+	return g.Mode
+}
+
+func (g *GatewayProfileResponseIntegrationPolicy) GetAll() *AllIntegrationsPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.All
+}
+
+func (g *GatewayProfileResponseIntegrationPolicy) GetCustom() *CustomIntegrationsPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.Custom
+}
+
+func (g *GatewayProfileResponseIntegrationPolicy) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Mode string `json:"mode"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	g.Mode = unmarshaler.Mode
+	if unmarshaler.Mode == "" {
+		return fmt.Errorf("%T did not include discriminant mode", g)
+	}
+	switch unmarshaler.Mode {
+	case "all":
+		value := new(AllIntegrationsPolicy)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.All = value
+	case "custom":
+		value := new(CustomIntegrationsPolicy)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.Custom = value
+	}
+	return nil
+}
+
+func (g GatewayProfileResponseIntegrationPolicy) MarshalJSON() ([]byte, error) {
+	if err := g.validate(); err != nil {
+		return nil, err
+	}
+	if g.All != nil {
+		return internal.MarshalJSONWithExtraProperty(g.All, "mode", "all")
+	}
+	if g.Custom != nil {
+		return internal.MarshalJSONWithExtraProperty(g.Custom, "mode", "custom")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+type GatewayProfileResponseIntegrationPolicyVisitor interface {
+	VisitAll(*AllIntegrationsPolicy) error
+	VisitCustom(*CustomIntegrationsPolicy) error
+}
+
+func (g *GatewayProfileResponseIntegrationPolicy) Accept(visitor GatewayProfileResponseIntegrationPolicyVisitor) error {
+	if g.All != nil {
+		return visitor.VisitAll(g.All)
+	}
+	if g.Custom != nil {
+		return visitor.VisitCustom(g.Custom)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+func (g *GatewayProfileResponseIntegrationPolicy) validate() error {
+	if g == nil {
+		return fmt.Errorf("type %T is nil", g)
+	}
+	var fields []string
+	if g.All != nil {
+		fields = append(fields, "all")
+	}
+	if g.Custom != nil {
+		fields = append(fields, "custom")
+	}
+	if len(fields) == 0 {
+		if g.Mode != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.Mode)
+		}
+		return fmt.Errorf("type %T is empty", g)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", g, fields)
+	}
+	if g.Mode != "" {
+		field := fields[0]
+		if g.Mode != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				g,
+				g.Mode,
+				g,
+			)
+		}
+	}
+	return nil
 }
 
 type GatewayRuleResponse struct {
@@ -1135,6 +1469,240 @@ func (s SizeLimitContentFilterDirection) Ptr() *SizeLimitContentFilterDirection 
 	return &s
 }
 
+type GatewayProfileCreateIntegrationPolicy struct {
+	Mode   string
+	All    *AllIntegrationsPolicy
+	Custom *CustomIntegrationsPolicy
+}
+
+func (g *GatewayProfileCreateIntegrationPolicy) GetMode() string {
+	if g == nil {
+		return ""
+	}
+	return g.Mode
+}
+
+func (g *GatewayProfileCreateIntegrationPolicy) GetAll() *AllIntegrationsPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.All
+}
+
+func (g *GatewayProfileCreateIntegrationPolicy) GetCustom() *CustomIntegrationsPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.Custom
+}
+
+func (g *GatewayProfileCreateIntegrationPolicy) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Mode string `json:"mode"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	g.Mode = unmarshaler.Mode
+	if unmarshaler.Mode == "" {
+		return fmt.Errorf("%T did not include discriminant mode", g)
+	}
+	switch unmarshaler.Mode {
+	case "all":
+		value := new(AllIntegrationsPolicy)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.All = value
+	case "custom":
+		value := new(CustomIntegrationsPolicy)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.Custom = value
+	}
+	return nil
+}
+
+func (g GatewayProfileCreateIntegrationPolicy) MarshalJSON() ([]byte, error) {
+	if err := g.validate(); err != nil {
+		return nil, err
+	}
+	if g.All != nil {
+		return internal.MarshalJSONWithExtraProperty(g.All, "mode", "all")
+	}
+	if g.Custom != nil {
+		return internal.MarshalJSONWithExtraProperty(g.Custom, "mode", "custom")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+type GatewayProfileCreateIntegrationPolicyVisitor interface {
+	VisitAll(*AllIntegrationsPolicy) error
+	VisitCustom(*CustomIntegrationsPolicy) error
+}
+
+func (g *GatewayProfileCreateIntegrationPolicy) Accept(visitor GatewayProfileCreateIntegrationPolicyVisitor) error {
+	if g.All != nil {
+		return visitor.VisitAll(g.All)
+	}
+	if g.Custom != nil {
+		return visitor.VisitCustom(g.Custom)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+func (g *GatewayProfileCreateIntegrationPolicy) validate() error {
+	if g == nil {
+		return fmt.Errorf("type %T is nil", g)
+	}
+	var fields []string
+	if g.All != nil {
+		fields = append(fields, "all")
+	}
+	if g.Custom != nil {
+		fields = append(fields, "custom")
+	}
+	if len(fields) == 0 {
+		if g.Mode != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.Mode)
+		}
+		return fmt.Errorf("type %T is empty", g)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", g, fields)
+	}
+	if g.Mode != "" {
+		field := fields[0]
+		if g.Mode != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				g,
+				g.Mode,
+				g,
+			)
+		}
+	}
+	return nil
+}
+
+type GatewayProfileUpdateIntegrationPolicy struct {
+	Mode   string
+	All    *AllIntegrationsPolicy
+	Custom *CustomIntegrationsPolicy
+}
+
+func (g *GatewayProfileUpdateIntegrationPolicy) GetMode() string {
+	if g == nil {
+		return ""
+	}
+	return g.Mode
+}
+
+func (g *GatewayProfileUpdateIntegrationPolicy) GetAll() *AllIntegrationsPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.All
+}
+
+func (g *GatewayProfileUpdateIntegrationPolicy) GetCustom() *CustomIntegrationsPolicy {
+	if g == nil {
+		return nil
+	}
+	return g.Custom
+}
+
+func (g *GatewayProfileUpdateIntegrationPolicy) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Mode string `json:"mode"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	g.Mode = unmarshaler.Mode
+	if unmarshaler.Mode == "" {
+		return fmt.Errorf("%T did not include discriminant mode", g)
+	}
+	switch unmarshaler.Mode {
+	case "all":
+		value := new(AllIntegrationsPolicy)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.All = value
+	case "custom":
+		value := new(CustomIntegrationsPolicy)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		g.Custom = value
+	}
+	return nil
+}
+
+func (g GatewayProfileUpdateIntegrationPolicy) MarshalJSON() ([]byte, error) {
+	if err := g.validate(); err != nil {
+		return nil, err
+	}
+	if g.All != nil {
+		return internal.MarshalJSONWithExtraProperty(g.All, "mode", "all")
+	}
+	if g.Custom != nil {
+		return internal.MarshalJSONWithExtraProperty(g.Custom, "mode", "custom")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+type GatewayProfileUpdateIntegrationPolicyVisitor interface {
+	VisitAll(*AllIntegrationsPolicy) error
+	VisitCustom(*CustomIntegrationsPolicy) error
+}
+
+func (g *GatewayProfileUpdateIntegrationPolicy) Accept(visitor GatewayProfileUpdateIntegrationPolicyVisitor) error {
+	if g.All != nil {
+		return visitor.VisitAll(g.All)
+	}
+	if g.Custom != nil {
+		return visitor.VisitCustom(g.Custom)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", g)
+}
+
+func (g *GatewayProfileUpdateIntegrationPolicy) validate() error {
+	if g == nil {
+		return fmt.Errorf("type %T is nil", g)
+	}
+	var fields []string
+	if g.All != nil {
+		fields = append(fields, "all")
+	}
+	if g.Custom != nil {
+		fields = append(fields, "custom")
+	}
+	if len(fields) == 0 {
+		if g.Mode != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.Mode)
+		}
+		return fmt.Errorf("type %T is empty", g)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", g, fields)
+	}
+	if g.Mode != "" {
+		field := fields[0]
+		if g.Mode != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				g,
+				g.Mode,
+				g,
+			)
+		}
+	}
+	return nil
+}
+
 type GatewayRuleCreateContentFilter struct {
 	FilterType  string
 	ContentType *ContentTypeContentFilter
@@ -1474,6 +2042,8 @@ type GatewayProfileUpdate struct {
 	IsDefault       *bool          `json:"is_default,omitempty" url:"-"`
 	// Cloud role public ID (UUID), empty string to unset
 	CloudRole *string `json:"cloud_role,omitempty" url:"-"`
+	// Omit to leave unchanged; send {"mode": "all"} to allow all integrations
+	IntegrationPolicy *GatewayProfileUpdateIntegrationPolicy `json:"integration_policy,omitempty" url:"-"`
 }
 
 type GatewayRuleUpdate struct {
