@@ -10,9 +10,10 @@ import (
 )
 
 type CloudRoleCreate struct {
-	Provider               CloudProvider `json:"provider" url:"-"`
-	RoleArn                string        `json:"role_arn" url:"-"`
-	SessionDurationSeconds *int          `json:"session_duration_seconds,omitempty" url:"-"`
+	Provider               CloudProvider  `json:"provider" url:"-"`
+	Type                   *CloudRoleType `json:"type,omitempty" url:"-"`
+	RoleArn                string         `json:"role_arn" url:"-"`
+	SessionDurationSeconds *int           `json:"session_duration_seconds,omitempty" url:"-"`
 }
 
 type DeleteCloudRoleRequest struct {
@@ -21,6 +22,11 @@ type DeleteCloudRoleRequest struct {
 
 type GetCloudRoleRequest struct {
 	RoleID string `json:"-" url:"-"`
+}
+
+type ListCloudRolesRequest struct {
+	// Filter by role type
+	Type *CloudRoleType `json:"-" url:"type,omitempty"`
 }
 
 type CloudProvider string
@@ -51,9 +57,11 @@ func (c CloudProvider) Ptr() *CloudProvider {
 type CloudRoleResponse struct {
 	ID                     string     `json:"id" url:"id"`
 	Provider               string     `json:"provider" url:"provider"`
+	Type                   string     `json:"type" url:"type"`
 	RoleArn                string     `json:"role_arn" url:"role_arn"`
 	SessionDurationSeconds int        `json:"session_duration_seconds" url:"session_duration_seconds"`
 	IsEnabled              bool       `json:"is_enabled" url:"is_enabled"`
+	IsloTrustRoleArn       string     `json:"islo_trust_role_arn" url:"islo_trust_role_arn"`
 	CreatedAt              *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
 	UpdatedAt              *time.Time `json:"updated_at,omitempty" url:"updated_at,omitempty"`
 
@@ -75,6 +83,13 @@ func (c *CloudRoleResponse) GetProvider() string {
 	return c.Provider
 }
 
+func (c *CloudRoleResponse) GetType() string {
+	if c == nil {
+		return ""
+	}
+	return c.Type
+}
+
 func (c *CloudRoleResponse) GetRoleArn() string {
 	if c == nil {
 		return ""
@@ -94,6 +109,13 @@ func (c *CloudRoleResponse) GetIsEnabled() bool {
 		return false
 	}
 	return c.IsEnabled
+}
+
+func (c *CloudRoleResponse) GetIsloTrustRoleArn() string {
+	if c == nil {
+		return ""
+	}
+	return c.IsloTrustRoleArn
 }
 
 func (c *CloudRoleResponse) GetCreatedAt() *time.Time {
@@ -162,6 +184,28 @@ func (c *CloudRoleResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+type CloudRoleType string
+
+const (
+	CloudRoleTypeGateway CloudRoleType = "gateway"
+	CloudRoleTypeCompute CloudRoleType = "compute"
+)
+
+func NewCloudRoleTypeFromString(s string) (CloudRoleType, error) {
+	switch s {
+	case "gateway":
+		return CloudRoleTypeGateway, nil
+	case "compute":
+		return CloudRoleTypeCompute, nil
+	}
+	var t CloudRoleType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CloudRoleType) Ptr() *CloudRoleType {
+	return &c
 }
 
 type CloudRoleUpdate struct {
