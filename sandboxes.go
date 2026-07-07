@@ -9,22 +9,23 @@ import (
 )
 
 type CreateSandboxRequest struct {
-	CacheKey       *string            `json:"cache_key,omitempty" url:"-"`
-	DiskGb         *int               `json:"disk_gb,omitempty" url:"-"`
-	Env            map[string]*string `json:"env,omitempty" url:"-"`
-	GatewayProfile *string            `json:"gateway_profile,omitempty" url:"-"`
-	Image          *string            `json:"image,omitempty" url:"-"`
-	Init           *SandboxInit       `json:"init,omitempty" url:"-"`
-	Lifecycle      *LifecyclePolicy   `json:"lifecycle,omitempty" url:"-"`
-	MemoryMb       *int               `json:"memory_mb,omitempty" url:"-"`
-	Name           *string            `json:"name,omitempty" url:"-"`
-	RequestID      *string            `json:"request_id,omitempty" url:"-"`
-	SetupScripts   []*SetupScript     `json:"setup_scripts,omitempty" url:"-"`
-	SnapshotName   *string            `json:"snapshot_name,omitempty" url:"-"`
-	SnapshotURL    *string            `json:"snapshot_url,omitempty" url:"-"`
-	Sources        []*GitSource       `json:"sources,omitempty" url:"-"`
-	Vcpus          *int               `json:"vcpus,omitempty" url:"-"`
-	Workdir        *string            `json:"workdir,omitempty" url:"-"`
+	CacheKey        *string            `json:"cache_key,omitempty" url:"-"`
+	DiskGb          *int               `json:"disk_gb,omitempty" url:"-"`
+	Env             map[string]*string `json:"env,omitempty" url:"-"`
+	GatewayProfile  *string            `json:"gateway_profile,omitempty" url:"-"`
+	Image           *string            `json:"image,omitempty" url:"-"`
+	Init            *SandboxInit       `json:"init,omitempty" url:"-"`
+	InternetEnabled *bool              `json:"internet_enabled,omitempty" url:"-"`
+	Lifecycle       *LifecyclePolicy   `json:"lifecycle,omitempty" url:"-"`
+	MemoryMb        *int               `json:"memory_mb,omitempty" url:"-"`
+	Name            *string            `json:"name,omitempty" url:"-"`
+	RequestID       *string            `json:"request_id,omitempty" url:"-"`
+	SetupScripts    []*SetupScript     `json:"setup_scripts,omitempty" url:"-"`
+	SnapshotName    *string            `json:"snapshot_name,omitempty" url:"-"`
+	SnapshotURL     *string            `json:"snapshot_url,omitempty" url:"-"`
+	Sources         []*GitSource       `json:"sources,omitempty" url:"-"`
+	Vcpus           *int               `json:"vcpus,omitempty" url:"-"`
+	Workdir         *string            `json:"workdir,omitempty" url:"-"`
 }
 
 type CreateSessionRequest struct {
@@ -659,17 +660,18 @@ func (p *PaginatedSandboxResponse) String() string {
 }
 
 type SandboxResponse struct {
-	CreatedAt  string             `json:"created_at" url:"created_at"`
-	CreatedBy  *string            `json:"created_by,omitempty" url:"created_by,omitempty"`
-	DeletedAt  *string            `json:"deleted_at,omitempty" url:"deleted_at,omitempty"`
-	ID         string             `json:"id" url:"id"`
-	Image      string             `json:"image" url:"image"`
-	Lifecycle  *LifecyclePolicy   `json:"lifecycle,omitempty" url:"lifecycle,omitempty"`
-	Name       string             `json:"name" url:"name"`
-	SetupSteps []*SetupStepResult `json:"setup_steps,omitempty" url:"setup_steps,omitempty"`
-	Spec       *SandboxSpec       `json:"spec,omitempty" url:"spec,omitempty"`
-	Status     string             `json:"status" url:"status"`
-	Workdir    *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
+	CreatedAt     string             `json:"created_at" url:"created_at"`
+	CreatedBy     *string            `json:"created_by,omitempty" url:"created_by,omitempty"`
+	CreationPhase *string            `json:"creation_phase,omitempty" url:"creation_phase,omitempty"`
+	DeletedAt     *string            `json:"deleted_at,omitempty" url:"deleted_at,omitempty"`
+	ID            string             `json:"id" url:"id"`
+	Image         string             `json:"image" url:"image"`
+	Lifecycle     *LifecyclePolicy   `json:"lifecycle,omitempty" url:"lifecycle,omitempty"`
+	Name          string             `json:"name" url:"name"`
+	SetupSteps    []*SetupStepResult `json:"setup_steps,omitempty" url:"setup_steps,omitempty"`
+	Spec          *SandboxSpec       `json:"spec,omitempty" url:"spec,omitempty"`
+	Status        string             `json:"status" url:"status"`
+	Workdir       *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -687,6 +689,13 @@ func (s *SandboxResponse) GetCreatedBy() *string {
 		return nil
 	}
 	return s.CreatedBy
+}
+
+func (s *SandboxResponse) GetCreationPhase() *string {
+	if s == nil {
+		return nil
+	}
+	return s.CreationPhase
 }
 
 func (s *SandboxResponse) GetDeletedAt() *string {
