@@ -2164,6 +2164,7 @@ type IncomingWebhookAction struct {
 	PauseSandbox  *IncomingWebhookActionPauseSandbox
 	DeleteSandbox *IncomingWebhookActionDeleteSandbox
 	DeliverToPort *IncomingWebhookActionDeliverToPort
+	TriggerJob    *IncomingWebhookActionTriggerJob
 }
 
 func (i *IncomingWebhookAction) GetActionType() string {
@@ -2208,6 +2209,13 @@ func (i *IncomingWebhookAction) GetDeliverToPort() *IncomingWebhookActionDeliver
 	return i.DeliverToPort
 }
 
+func (i *IncomingWebhookAction) GetTriggerJob() *IncomingWebhookActionTriggerJob {
+	if i == nil {
+		return nil
+	}
+	return i.TriggerJob
+}
+
 func (i *IncomingWebhookAction) UnmarshalJSON(data []byte) error {
 	var unmarshaler struct {
 		ActionType string `json:"action_type"`
@@ -2250,6 +2258,12 @@ func (i *IncomingWebhookAction) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		i.DeliverToPort = value
+	case "trigger_job":
+		value := new(IncomingWebhookActionTriggerJob)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		i.TriggerJob = value
 	}
 	return nil
 }
@@ -2273,6 +2287,9 @@ func (i IncomingWebhookAction) MarshalJSON() ([]byte, error) {
 	if i.DeliverToPort != nil {
 		return internal.MarshalJSONWithExtraProperty(i.DeliverToPort, "action_type", "deliver_to_port")
 	}
+	if i.TriggerJob != nil {
+		return internal.MarshalJSONWithExtraProperty(i.TriggerJob, "action_type", "trigger_job")
+	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", i)
 }
 
@@ -2282,6 +2299,7 @@ type IncomingWebhookActionVisitor interface {
 	VisitPauseSandbox(*IncomingWebhookActionPauseSandbox) error
 	VisitDeleteSandbox(*IncomingWebhookActionDeleteSandbox) error
 	VisitDeliverToPort(*IncomingWebhookActionDeliverToPort) error
+	VisitTriggerJob(*IncomingWebhookActionTriggerJob) error
 }
 
 func (i *IncomingWebhookAction) Accept(visitor IncomingWebhookActionVisitor) error {
@@ -2299,6 +2317,9 @@ func (i *IncomingWebhookAction) Accept(visitor IncomingWebhookActionVisitor) err
 	}
 	if i.DeliverToPort != nil {
 		return visitor.VisitDeliverToPort(i.DeliverToPort)
+	}
+	if i.TriggerJob != nil {
+		return visitor.VisitTriggerJob(i.TriggerJob)
 	}
 	return fmt.Errorf("type %T does not define a non-empty union type", i)
 }
@@ -2322,6 +2343,9 @@ func (i *IncomingWebhookAction) validate() error {
 	}
 	if i.DeliverToPort != nil {
 		fields = append(fields, "deliver_to_port")
+	}
+	if i.TriggerJob != nil {
+		fields = append(fields, "trigger_job")
 	}
 	if len(fields) == 0 {
 		if i.ActionType != "" {
@@ -2562,6 +2586,76 @@ func (i *IncomingWebhookActionResumeSandbox) UnmarshalJSON(data []byte) error {
 }
 
 func (i *IncomingWebhookActionResumeSandbox) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type IncomingWebhookActionTriggerJob struct {
+	JobName   string                      `json:"job_name" url:"job_name"`
+	Params    map[string]*JobParamMapping `json:"params,omitempty" url:"params,omitempty"`
+	Region    *string                     `json:"region,omitempty" url:"region,omitempty"`
+	VersionID *string                     `json:"version_id,omitempty" url:"version_id,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *IncomingWebhookActionTriggerJob) GetJobName() string {
+	if i == nil {
+		return ""
+	}
+	return i.JobName
+}
+
+func (i *IncomingWebhookActionTriggerJob) GetParams() map[string]*JobParamMapping {
+	if i == nil {
+		return nil
+	}
+	return i.Params
+}
+
+func (i *IncomingWebhookActionTriggerJob) GetRegion() *string {
+	if i == nil {
+		return nil
+	}
+	return i.Region
+}
+
+func (i *IncomingWebhookActionTriggerJob) GetVersionID() *string {
+	if i == nil {
+		return nil
+	}
+	return i.VersionID
+}
+
+func (i *IncomingWebhookActionTriggerJob) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *IncomingWebhookActionTriggerJob) UnmarshalJSON(data []byte) error {
+	type unmarshaler IncomingWebhookActionTriggerJob
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = IncomingWebhookActionTriggerJob(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *IncomingWebhookActionTriggerJob) String() string {
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5326,6 +5420,52 @@ func (i *IPAllowlistVerifier) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", i)
+}
+
+type JobParamMapping struct {
+	Source *ValueSource `json:"source" url:"source"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobParamMapping) GetSource() *ValueSource {
+	if j == nil {
+		return nil
+	}
+	return j.Source
+}
+
+func (j *JobParamMapping) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobParamMapping) UnmarshalJSON(data []byte) error {
+	type unmarshaler JobParamMapping
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JobParamMapping(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobParamMapping) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
 }
 
 type JwtVerifier struct {

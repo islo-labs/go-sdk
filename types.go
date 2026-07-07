@@ -6,6 +6,7 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	time "time"
 )
 
 type ErrorCode string
@@ -319,6 +320,290 @@ func (i IsloErrorCode) Ptr() *IsloErrorCode {
 	return &i
 }
 
+type JobRunResponse struct {
+	ID           string                     `json:"id" url:"id"`
+	JobName      string                     `json:"job_name" url:"job_name"`
+	JobVersionID string                     `json:"job_version_id" url:"job_version_id"`
+	Status       string                     `json:"status" url:"status"`
+	Region       *string                    `json:"region,omitempty" url:"region,omitempty"`
+	RunParams    map[string]interface{}     `json:"run_params" url:"run_params"`
+	StepTimeline []*JobRunStepTimelineEntry `json:"step_timeline" url:"step_timeline"`
+	ArtifactRefs []map[string]interface{}   `json:"artifact_refs" url:"artifact_refs"`
+	StartedAt    *time.Time                 `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt  *time.Time                 `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ErrorMessage *string                    `json:"error_message,omitempty" url:"error_message,omitempty"`
+	CreatedAt    time.Time                  `json:"created_at" url:"created_at"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobRunResponse) GetID() string {
+	if j == nil {
+		return ""
+	}
+	return j.ID
+}
+
+func (j *JobRunResponse) GetJobName() string {
+	if j == nil {
+		return ""
+	}
+	return j.JobName
+}
+
+func (j *JobRunResponse) GetJobVersionID() string {
+	if j == nil {
+		return ""
+	}
+	return j.JobVersionID
+}
+
+func (j *JobRunResponse) GetStatus() string {
+	if j == nil {
+		return ""
+	}
+	return j.Status
+}
+
+func (j *JobRunResponse) GetRegion() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Region
+}
+
+func (j *JobRunResponse) GetRunParams() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.RunParams
+}
+
+func (j *JobRunResponse) GetStepTimeline() []*JobRunStepTimelineEntry {
+	if j == nil {
+		return nil
+	}
+	return j.StepTimeline
+}
+
+func (j *JobRunResponse) GetArtifactRefs() []map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.ArtifactRefs
+}
+
+func (j *JobRunResponse) GetStartedAt() *time.Time {
+	if j == nil {
+		return nil
+	}
+	return j.StartedAt
+}
+
+func (j *JobRunResponse) GetCompletedAt() *time.Time {
+	if j == nil {
+		return nil
+	}
+	return j.CompletedAt
+}
+
+func (j *JobRunResponse) GetErrorMessage() *string {
+	if j == nil {
+		return nil
+	}
+	return j.ErrorMessage
+}
+
+func (j *JobRunResponse) GetCreatedAt() time.Time {
+	if j == nil {
+		return time.Time{}
+	}
+	return j.CreatedAt
+}
+
+func (j *JobRunResponse) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobRunResponse) UnmarshalJSON(data []byte) error {
+	type embed JobRunResponse
+	var unmarshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+		CreatedAt   *internal.DateTime `json:"created_at"`
+	}{
+		embed: embed(*j),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*j = JobRunResponse(unmarshaler.embed)
+	j.StartedAt = unmarshaler.StartedAt.TimePtr()
+	j.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	j.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobRunResponse) MarshalJSON() ([]byte, error) {
+	type embed JobRunResponse
+	var marshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+		CreatedAt   *internal.DateTime `json:"created_at"`
+	}{
+		embed:       embed(*j),
+		StartedAt:   internal.NewOptionalDateTime(j.StartedAt),
+		CompletedAt: internal.NewOptionalDateTime(j.CompletedAt),
+		CreatedAt:   internal.NewDateTime(j.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (j *JobRunResponse) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JobRunStepTimelineEntry struct {
+	Name             string     `json:"name" url:"name"`
+	Action           string     `json:"action" url:"action"`
+	Status           string     `json:"status" url:"status"`
+	TaskName         string     `json:"task_name" url:"task_name"`
+	StartedAt        *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt      *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ErrorMessage     *string    `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ComputeCommandID *string    `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobRunStepTimelineEntry) GetName() string {
+	if j == nil {
+		return ""
+	}
+	return j.Name
+}
+
+func (j *JobRunStepTimelineEntry) GetAction() string {
+	if j == nil {
+		return ""
+	}
+	return j.Action
+}
+
+func (j *JobRunStepTimelineEntry) GetStatus() string {
+	if j == nil {
+		return ""
+	}
+	return j.Status
+}
+
+func (j *JobRunStepTimelineEntry) GetTaskName() string {
+	if j == nil {
+		return ""
+	}
+	return j.TaskName
+}
+
+func (j *JobRunStepTimelineEntry) GetStartedAt() *time.Time {
+	if j == nil {
+		return nil
+	}
+	return j.StartedAt
+}
+
+func (j *JobRunStepTimelineEntry) GetCompletedAt() *time.Time {
+	if j == nil {
+		return nil
+	}
+	return j.CompletedAt
+}
+
+func (j *JobRunStepTimelineEntry) GetErrorMessage() *string {
+	if j == nil {
+		return nil
+	}
+	return j.ErrorMessage
+}
+
+func (j *JobRunStepTimelineEntry) GetComputeCommandID() *string {
+	if j == nil {
+		return nil
+	}
+	return j.ComputeCommandID
+}
+
+func (j *JobRunStepTimelineEntry) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobRunStepTimelineEntry) UnmarshalJSON(data []byte) error {
+	type embed JobRunStepTimelineEntry
+	var unmarshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed: embed(*j),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*j = JobRunStepTimelineEntry(unmarshaler.embed)
+	j.StartedAt = unmarshaler.StartedAt.TimePtr()
+	j.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobRunStepTimelineEntry) MarshalJSON() ([]byte, error) {
+	type embed JobRunStepTimelineEntry
+	var marshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed:       embed(*j),
+		StartedAt:   internal.NewOptionalDateTime(j.StartedAt),
+		CompletedAt: internal.NewOptionalDateTime(j.CompletedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (j *JobRunStepTimelineEntry) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
 // Intent-based sandbox init selection.
 type SandboxInit struct {
 	Type    string
@@ -462,10 +747,20 @@ func (s *SandboxInit) validate() error {
 }
 
 type SandboxInitCustom struct {
+	// Block until capabilities are fully ready (e.g. sshd accepts
+	// connections, dockerd responds to API calls). Defaults to false.
+	AwaitReady   *bool            `json:"await_ready,omitempty" url:"await_ready,omitempty"`
 	Capabilities []InitCapability `json:"capabilities" url:"capabilities"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (s *SandboxInitCustom) GetAwaitReady() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.AwaitReady
 }
 
 func (s *SandboxInitCustom) GetCapabilities() []InitCapability {

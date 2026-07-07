@@ -4,6 +4,7 @@ package client
 
 import (
 	cloudroles "github.com/islo-labs/go-sdk/cloudroles"
+	computeevents "github.com/islo-labs/go-sdk/computeevents"
 	containerregistries "github.com/islo-labs/go-sdk/containerregistries"
 	core "github.com/islo-labs/go-sdk/core"
 	credits "github.com/islo-labs/go-sdk/credits"
@@ -11,6 +12,9 @@ import (
 	inference "github.com/islo-labs/go-sdk/inference"
 	integrations "github.com/islo-labs/go-sdk/integrations"
 	internal "github.com/islo-labs/go-sdk/internal"
+	jobruns "github.com/islo-labs/go-sdk/jobruns"
+	jobs "github.com/islo-labs/go-sdk/jobs"
+	knowledge "github.com/islo-labs/go-sdk/knowledge"
 	option "github.com/islo-labs/go-sdk/option"
 	sandboxes "github.com/islo-labs/go-sdk/sandboxes"
 	shares "github.com/islo-labs/go-sdk/shares"
@@ -27,12 +31,16 @@ type Client struct {
 	header  http.Header
 
 	Tenants             *tenants.Client
+	Knowledge           *knowledge.Client
 	Credits             *credits.Client
 	Integrations        *integrations.Client
 	GatewayProfiles     *gatewayprofiles.Client
 	CloudRoles          *cloudroles.Client
 	Inference           *inference.Client
 	ContainerRegistries *containerregistries.Client
+	Jobs                *jobs.Client
+	JobRuns             *jobruns.Client
+	ComputeEvents       *computeevents.Client
 	Sandboxes           *sandboxes.Client
 	Shares              *shares.Client
 	Snapshots           *snapshots.Client
@@ -54,12 +62,16 @@ func NewClient(opts ...option.RequestOption) *Client {
 		),
 		header:              options.ToHeader(),
 		Tenants:             tenants.NewClient(opts...),
+		Knowledge:           knowledge.NewClient(opts...),
 		Credits:             credits.NewClient(opts...),
 		Integrations:        integrations.NewClient(opts...),
 		GatewayProfiles:     gatewayprofiles.NewClient(opts...),
 		CloudRoles:          cloudroles.NewClient(opts...),
 		Inference:           inference.NewClient(opts...),
 		ContainerRegistries: containerregistries.NewClient(opts...),
+		Jobs:                jobs.NewClient(opts...),
+		JobRuns:             jobruns.NewClient(opts...),
+		ComputeEvents:       computeevents.NewClient(opts...),
 		Sandboxes:           sandboxes.NewClient(opts...),
 		Shares:              shares.NewClient(opts...),
 		Snapshots:           snapshots.NewClient(opts...),

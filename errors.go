@@ -7,6 +7,30 @@ import (
 	core "github.com/islo-labs/go-sdk/core"
 )
 
+// Bad Gateway
+type BadGatewayError struct {
+	*core.APIError
+	Body *ErrorResponse
+}
+
+func (b *BadGatewayError) UnmarshalJSON(data []byte) error {
+	var body *ErrorResponse
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	b.StatusCode = 502
+	b.Body = body
+	return nil
+}
+
+func (b *BadGatewayError) MarshalJSON() ([]byte, error) {
+	return json.Marshal(b.Body)
+}
+
+func (b *BadGatewayError) Unwrap() error {
+	return b.APIError
+}
+
 // Bad Request
 type BadRequestError struct {
 	*core.APIError
@@ -82,11 +106,11 @@ func (f *ForbiddenError) Unwrap() error {
 // Not Found
 type NotFoundError struct {
 	*core.APIError
-	Body *ErrorResponse
+	Body interface{}
 }
 
 func (n *NotFoundError) UnmarshalJSON(data []byte) error {
-	var body *ErrorResponse
+	var body interface{}
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
@@ -127,7 +151,7 @@ func (p *PaymentRequiredError) Unwrap() error {
 	return p.APIError
 }
 
-// Insufficient resources
+// Service Unavailable
 type ServiceUnavailableError struct {
 	*core.APIError
 	Body *ErrorResponse
@@ -178,11 +202,11 @@ func (u *UnauthorizedError) Unwrap() error {
 // Validation Error
 type UnprocessableEntityError struct {
 	*core.APIError
-	Body *HTTPValidationError
+	Body interface{}
 }
 
 func (u *UnprocessableEntityError) UnmarshalJSON(data []byte) error {
-	var body *HTTPValidationError
+	var body interface{}
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
