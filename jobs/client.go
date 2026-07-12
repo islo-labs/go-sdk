@@ -198,6 +198,51 @@ func (c *Client) GetJob(
 	return response, nil
 }
 
+func (c *Client) DeleteJob(
+	ctx context.Context,
+	request *gosdk.DeleteJobRequest,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/jobs/%v",
+		request.Name,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	errorCodes := internal.ErrorCodes{
+		422: func(apiError *core.APIError) error {
+			return &gosdk.UnprocessableEntityError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodDelete,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *Client) ListJobs(
 	ctx context.Context,
 	request *gosdk.ListJobsRequest,
