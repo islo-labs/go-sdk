@@ -9,6 +9,28 @@ import (
 	time "time"
 )
 
+type AutoResumePolicy string
+
+const (
+	AutoResumePolicyNever      AutoResumePolicy = "never"
+	AutoResumePolicyOnActivity AutoResumePolicy = "on_activity"
+)
+
+func NewAutoResumePolicyFromString(s string) (AutoResumePolicy, error) {
+	switch s {
+	case "never":
+		return AutoResumePolicyNever, nil
+	case "on_activity":
+		return AutoResumePolicyOnActivity, nil
+	}
+	var t AutoResumePolicy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AutoResumePolicy) Ptr() *AutoResumePolicy {
+	return &a
+}
+
 type ErrorCode string
 
 const (
@@ -186,6 +208,69 @@ func (e *ErrorResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", e)
+}
+
+// A git source to clone into /workspace.
+type GitSource struct {
+	Branch     *string `json:"branch,omitempty" url:"branch,omitempty"`
+	RepoURL    string  `json:"repo_url" url:"repo_url"`
+	TargetPath *string `json:"target_path,omitempty" url:"target_path,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (g *GitSource) GetBranch() *string {
+	if g == nil {
+		return nil
+	}
+	return g.Branch
+}
+
+func (g *GitSource) GetRepoURL() string {
+	if g == nil {
+		return ""
+	}
+	return g.RepoURL
+}
+
+func (g *GitSource) GetTargetPath() *string {
+	if g == nil {
+		return nil
+	}
+	return g.TargetPath
+}
+
+func (g *GitSource) GetExtraProperties() map[string]interface{} {
+	return g.extraProperties
+}
+
+func (g *GitSource) UnmarshalJSON(data []byte) error {
+	type unmarshaler GitSource
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*g = GitSource(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *g)
+	if err != nil {
+		return err
+	}
+	g.extraProperties = extraProperties
+	g.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (g *GitSource) String() string {
+	if len(g.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(g); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", g)
 }
 
 type HTTPValidationError struct {
@@ -604,6 +689,76 @@ func (j *JobRunStepTimelineEntry) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+type LifecyclePolicy struct {
+	AutoResume     *AutoResumePolicy `json:"auto_resume,omitempty" url:"auto_resume,omitempty"`
+	DeleteAfter    *int64            `json:"delete_after,omitempty" url:"delete_after,omitempty"`
+	PauseAfter     *int64            `json:"pause_after,omitempty" url:"pause_after,omitempty"`
+	PauseAfterIdle *int64            `json:"pause_after_idle,omitempty" url:"pause_after_idle,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LifecyclePolicy) GetAutoResume() *AutoResumePolicy {
+	if l == nil {
+		return nil
+	}
+	return l.AutoResume
+}
+
+func (l *LifecyclePolicy) GetDeleteAfter() *int64 {
+	if l == nil {
+		return nil
+	}
+	return l.DeleteAfter
+}
+
+func (l *LifecyclePolicy) GetPauseAfter() *int64 {
+	if l == nil {
+		return nil
+	}
+	return l.PauseAfter
+}
+
+func (l *LifecyclePolicy) GetPauseAfterIdle() *int64 {
+	if l == nil {
+		return nil
+	}
+	return l.PauseAfterIdle
+}
+
+func (l *LifecyclePolicy) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LifecyclePolicy) UnmarshalJSON(data []byte) error {
+	type unmarshaler LifecyclePolicy
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LifecyclePolicy(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LifecyclePolicy) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
 // Intent-based sandbox init selection.
 type SandboxInit struct {
 	Type    string
@@ -802,6 +957,28 @@ func (s *SandboxInitCustom) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
+type SandboxInitCustomCapabilitiesItem string
+
+const (
+	SandboxInitCustomCapabilitiesItemSSH    SandboxInitCustomCapabilitiesItem = "ssh"
+	SandboxInitCustomCapabilitiesItemDocker SandboxInitCustomCapabilitiesItem = "docker"
+)
+
+func NewSandboxInitCustomCapabilitiesItemFromString(s string) (SandboxInitCustomCapabilitiesItem, error) {
+	switch s {
+	case "ssh":
+		return SandboxInitCustomCapabilitiesItemSSH, nil
+	case "docker":
+		return SandboxInitCustomCapabilitiesItemDocker, nil
+	}
+	var t SandboxInitCustomCapabilitiesItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SandboxInitCustomCapabilitiesItem) Ptr() *SandboxInitCustomCapabilitiesItem {
+	return &s
+}
+
 type SandboxInitFull struct {
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -865,6 +1042,61 @@ func (s *SandboxInitMinimal) UnmarshalJSON(data []byte) error {
 }
 
 func (s *SandboxInitMinimal) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+// A named setup script to execute after git clones.
+type SetupScript struct {
+	Name   *string `json:"name,omitempty" url:"name,omitempty"`
+	Script string  `json:"script" url:"script"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SetupScript) GetName() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Name
+}
+
+func (s *SetupScript) GetScript() string {
+	if s == nil {
+		return ""
+	}
+	return s.Script
+}
+
+func (s *SetupScript) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SetupScript) UnmarshalJSON(data []byte) error {
+	type unmarshaler SetupScript
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SetupScript(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SetupScript) String() string {
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value

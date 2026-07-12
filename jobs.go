@@ -9,6 +9,10 @@ import (
 	time "time"
 )
 
+type DeleteJobRequest struct {
+	Name string `json:"-" url:"-"`
+}
+
 type DeleteJobScheduleRequest struct {
 	Name string `json:"-" url:"-"`
 }
@@ -77,14 +81,14 @@ type JobRunCreate struct {
 }
 
 type JobDeployRequest struct {
-	// Parsed job.toml content as JSON object
-	Manifest map[string]interface{} `json:"manifest" url:"manifest"`
+	// Job manifest (authored as TOML or JSON, stored as JSON)
+	Manifest *JobManifestInput `json:"manifest" url:"manifest"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (j *JobDeployRequest) GetManifest() map[string]interface{} {
+func (j *JobDeployRequest) GetManifest() *JobManifestInput {
 	if j == nil {
 		return nil
 	}
@@ -211,6 +215,148 @@ func (j *JobListItem) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+// Full job.toml manifest (TOML or JSON authoring; stored as JSON).
+type JobManifestInput struct {
+	Job          *JobSection          `json:"job" url:"job"`
+	Run          *RunSectionInput     `json:"run" url:"run"`
+	Schedule     *ScheduleSection     `json:"schedule,omitempty" url:"schedule,omitempty"`
+	Verification *VerificationSection `json:"verification,omitempty" url:"verification,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobManifestInput) GetJob() *JobSection {
+	if j == nil {
+		return nil
+	}
+	return j.Job
+}
+
+func (j *JobManifestInput) GetRun() *RunSectionInput {
+	if j == nil {
+		return nil
+	}
+	return j.Run
+}
+
+func (j *JobManifestInput) GetSchedule() *ScheduleSection {
+	if j == nil {
+		return nil
+	}
+	return j.Schedule
+}
+
+func (j *JobManifestInput) GetVerification() *VerificationSection {
+	if j == nil {
+		return nil
+	}
+	return j.Verification
+}
+
+func (j *JobManifestInput) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobManifestInput) UnmarshalJSON(data []byte) error {
+	type unmarshaler JobManifestInput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JobManifestInput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobManifestInput) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+// Full job.toml manifest (TOML or JSON authoring; stored as JSON).
+type JobManifestOutput struct {
+	Job          *JobSection          `json:"job" url:"job"`
+	Run          *RunSectionOutput    `json:"run" url:"run"`
+	Schedule     *ScheduleSection     `json:"schedule,omitempty" url:"schedule,omitempty"`
+	Verification *VerificationSection `json:"verification,omitempty" url:"verification,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobManifestOutput) GetJob() *JobSection {
+	if j == nil {
+		return nil
+	}
+	return j.Job
+}
+
+func (j *JobManifestOutput) GetRun() *RunSectionOutput {
+	if j == nil {
+		return nil
+	}
+	return j.Run
+}
+
+func (j *JobManifestOutput) GetSchedule() *ScheduleSection {
+	if j == nil {
+		return nil
+	}
+	return j.Schedule
+}
+
+func (j *JobManifestOutput) GetVerification() *VerificationSection {
+	if j == nil {
+		return nil
+	}
+	return j.Verification
+}
+
+func (j *JobManifestOutput) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobManifestOutput) UnmarshalJSON(data []byte) error {
+	type unmarshaler JobManifestOutput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JobManifestOutput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobManifestOutput) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
 type JobParamDefinition struct {
 	Name string `json:"name" url:"name"`
 	// string | integer | number | boolean
@@ -312,6 +458,128 @@ func (j *JobParamDefinition) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", j)
+}
+
+type JobParamSpec struct {
+	Type        JobParamSpecType `json:"type" url:"type"`
+	Required    *bool            `json:"required,omitempty" url:"required,omitempty"`
+	Default     interface{}      `json:"default,omitempty" url:"default,omitempty"`
+	Description *string          `json:"description,omitempty" url:"description,omitempty"`
+	Pattern     *string          `json:"pattern,omitempty" url:"pattern,omitempty"`
+	Prefix      *string          `json:"prefix,omitempty" url:"prefix,omitempty"`
+	Enum        []interface{}    `json:"enum,omitempty" url:"enum,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobParamSpec) GetType() JobParamSpecType {
+	if j == nil {
+		return ""
+	}
+	return j.Type
+}
+
+func (j *JobParamSpec) GetRequired() *bool {
+	if j == nil {
+		return nil
+	}
+	return j.Required
+}
+
+func (j *JobParamSpec) GetDefault() interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.Default
+}
+
+func (j *JobParamSpec) GetDescription() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Description
+}
+
+func (j *JobParamSpec) GetPattern() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Pattern
+}
+
+func (j *JobParamSpec) GetPrefix() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Prefix
+}
+
+func (j *JobParamSpec) GetEnum() []interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.Enum
+}
+
+func (j *JobParamSpec) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobParamSpec) UnmarshalJSON(data []byte) error {
+	type unmarshaler JobParamSpec
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JobParamSpec(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobParamSpec) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JobParamSpecType string
+
+const (
+	JobParamSpecTypeString  JobParamSpecType = "string"
+	JobParamSpecTypeInteger JobParamSpecType = "integer"
+	JobParamSpecTypeNumber  JobParamSpecType = "number"
+	JobParamSpecTypeBoolean JobParamSpecType = "boolean"
+)
+
+func NewJobParamSpecTypeFromString(s string) (JobParamSpecType, error) {
+	switch s {
+	case "string":
+		return JobParamSpecTypeString, nil
+	case "integer":
+		return JobParamSpecTypeInteger, nil
+	case "number":
+		return JobParamSpecTypeNumber, nil
+	case "boolean":
+		return JobParamSpecTypeBoolean, nil
+	}
+	var t JobParamSpecType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JobParamSpecType) Ptr() *JobParamSpecType {
+	return &j
 }
 
 type JobResponse struct {
@@ -489,12 +757,83 @@ func (j *JobScheduleResponse) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+type JobSection struct {
+	// Job name; must match jobs/<name>/ and deploy path
+	Name        string                   `json:"name" url:"name"`
+	Version     *string                  `json:"version,omitempty" url:"version,omitempty"`
+	Description *string                  `json:"description,omitempty" url:"description,omitempty"`
+	Params      map[string]*JobParamSpec `json:"params,omitempty" url:"params,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobSection) GetName() string {
+	if j == nil {
+		return ""
+	}
+	return j.Name
+}
+
+func (j *JobSection) GetVersion() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Version
+}
+
+func (j *JobSection) GetDescription() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Description
+}
+
+func (j *JobSection) GetParams() map[string]*JobParamSpec {
+	if j == nil {
+		return nil
+	}
+	return j.Params
+}
+
+func (j *JobSection) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobSection) UnmarshalJSON(data []byte) error {
+	type unmarshaler JobSection
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JobSection(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobSection) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
 type JobVersionResponse struct {
-	ID            string                 `json:"id" url:"id"`
-	VersionNumber int                    `json:"version_number" url:"version_number"`
-	ContentHash   string                 `json:"content_hash" url:"content_hash"`
-	DeployedAt    time.Time              `json:"deployed_at" url:"deployed_at"`
-	Manifest      map[string]interface{} `json:"manifest" url:"manifest"`
+	ID            string             `json:"id" url:"id"`
+	VersionNumber int                `json:"version_number" url:"version_number"`
+	ContentHash   string             `json:"content_hash" url:"content_hash"`
+	DeployedAt    time.Time          `json:"deployed_at" url:"deployed_at"`
+	Manifest      *JobManifestOutput `json:"manifest" url:"manifest"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -528,7 +867,7 @@ func (j *JobVersionResponse) GetDeployedAt() time.Time {
 	return j.DeployedAt
 }
 
-func (j *JobVersionResponse) GetManifest() map[string]interface{} {
+func (j *JobVersionResponse) GetManifest() *JobManifestOutput {
 	if j == nil {
 		return nil
 	}
@@ -583,6 +922,1236 @@ func (j *JobVersionResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", j)
+}
+
+type RunSectionInput struct {
+	FailFast           *bool                   `json:"fail_fast,omitempty" url:"fail_fast,omitempty"`
+	Fanout             *bool                   `json:"fanout,omitempty" url:"fanout,omitempty"`
+	Concurrency        *int                    `json:"concurrency,omitempty" url:"concurrency,omitempty"`
+	Workdir            *string                 `json:"workdir,omitempty" url:"workdir,omitempty"`
+	Timeout            *RunSectionInputTimeout `json:"timeout,omitempty" url:"timeout,omitempty"`
+	Region             *string                 `json:"region,omitempty" url:"region,omitempty"`
+	TeardownOnComplete *bool                   `json:"teardown_on_complete,omitempty" url:"teardown_on_complete,omitempty"`
+	ResumeOnStart      *bool                   `json:"resume_on_start,omitempty" url:"resume_on_start,omitempty"`
+	Sandbox            *SandboxConfig          `json:"sandbox,omitempty" url:"sandbox,omitempty"`
+	Tasks              []*TaskInput            `json:"tasks" url:"tasks"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RunSectionInput) GetFailFast() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.FailFast
+}
+
+func (r *RunSectionInput) GetFanout() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Fanout
+}
+
+func (r *RunSectionInput) GetConcurrency() *int {
+	if r == nil {
+		return nil
+	}
+	return r.Concurrency
+}
+
+func (r *RunSectionInput) GetWorkdir() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Workdir
+}
+
+func (r *RunSectionInput) GetTimeout() *RunSectionInputTimeout {
+	if r == nil {
+		return nil
+	}
+	return r.Timeout
+}
+
+func (r *RunSectionInput) GetRegion() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Region
+}
+
+func (r *RunSectionInput) GetTeardownOnComplete() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.TeardownOnComplete
+}
+
+func (r *RunSectionInput) GetResumeOnStart() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.ResumeOnStart
+}
+
+func (r *RunSectionInput) GetSandbox() *SandboxConfig {
+	if r == nil {
+		return nil
+	}
+	return r.Sandbox
+}
+
+func (r *RunSectionInput) GetTasks() []*TaskInput {
+	if r == nil {
+		return nil
+	}
+	return r.Tasks
+}
+
+func (r *RunSectionInput) GetExtraProperties() map[string]interface{} {
+	return r.extraProperties
+}
+
+func (r *RunSectionInput) UnmarshalJSON(data []byte) error {
+	type unmarshaler RunSectionInput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RunSectionInput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RunSectionInput) String() string {
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+type RunSectionInputTimeout struct {
+	String  string
+	Integer int
+
+	typ string
+}
+
+func (r *RunSectionInputTimeout) GetString() string {
+	if r == nil {
+		return ""
+	}
+	return r.String
+}
+
+func (r *RunSectionInputTimeout) GetInteger() int {
+	if r == nil {
+		return 0
+	}
+	return r.Integer
+}
+
+func (r *RunSectionInputTimeout) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		r.typ = "String"
+		r.String = valueString
+		return nil
+	}
+	var valueInteger int
+	if err := json.Unmarshal(data, &valueInteger); err == nil {
+		r.typ = "Integer"
+		r.Integer = valueInteger
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, r)
+}
+
+func (r RunSectionInputTimeout) MarshalJSON() ([]byte, error) {
+	if r.typ == "String" || r.String != "" {
+		return json.Marshal(r.String)
+	}
+	if r.typ == "Integer" || r.Integer != 0 {
+		return json.Marshal(r.Integer)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", r)
+}
+
+type RunSectionInputTimeoutVisitor interface {
+	VisitString(string) error
+	VisitInteger(int) error
+}
+
+func (r *RunSectionInputTimeout) Accept(visitor RunSectionInputTimeoutVisitor) error {
+	if r.typ == "String" || r.String != "" {
+		return visitor.VisitString(r.String)
+	}
+	if r.typ == "Integer" || r.Integer != 0 {
+		return visitor.VisitInteger(r.Integer)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", r)
+}
+
+type RunSectionOutput struct {
+	FailFast           *bool                    `json:"fail_fast,omitempty" url:"fail_fast,omitempty"`
+	Fanout             *bool                    `json:"fanout,omitempty" url:"fanout,omitempty"`
+	Concurrency        *int                     `json:"concurrency,omitempty" url:"concurrency,omitempty"`
+	Workdir            *string                  `json:"workdir,omitempty" url:"workdir,omitempty"`
+	Timeout            *RunSectionOutputTimeout `json:"timeout,omitempty" url:"timeout,omitempty"`
+	Region             *string                  `json:"region,omitempty" url:"region,omitempty"`
+	TeardownOnComplete *bool                    `json:"teardown_on_complete,omitempty" url:"teardown_on_complete,omitempty"`
+	ResumeOnStart      *bool                    `json:"resume_on_start,omitempty" url:"resume_on_start,omitempty"`
+	Sandbox            *SandboxConfig           `json:"sandbox,omitempty" url:"sandbox,omitempty"`
+	Tasks              []*TaskOutput            `json:"tasks" url:"tasks"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RunSectionOutput) GetFailFast() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.FailFast
+}
+
+func (r *RunSectionOutput) GetFanout() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Fanout
+}
+
+func (r *RunSectionOutput) GetConcurrency() *int {
+	if r == nil {
+		return nil
+	}
+	return r.Concurrency
+}
+
+func (r *RunSectionOutput) GetWorkdir() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Workdir
+}
+
+func (r *RunSectionOutput) GetTimeout() *RunSectionOutputTimeout {
+	if r == nil {
+		return nil
+	}
+	return r.Timeout
+}
+
+func (r *RunSectionOutput) GetRegion() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Region
+}
+
+func (r *RunSectionOutput) GetTeardownOnComplete() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.TeardownOnComplete
+}
+
+func (r *RunSectionOutput) GetResumeOnStart() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.ResumeOnStart
+}
+
+func (r *RunSectionOutput) GetSandbox() *SandboxConfig {
+	if r == nil {
+		return nil
+	}
+	return r.Sandbox
+}
+
+func (r *RunSectionOutput) GetTasks() []*TaskOutput {
+	if r == nil {
+		return nil
+	}
+	return r.Tasks
+}
+
+func (r *RunSectionOutput) GetExtraProperties() map[string]interface{} {
+	return r.extraProperties
+}
+
+func (r *RunSectionOutput) UnmarshalJSON(data []byte) error {
+	type unmarshaler RunSectionOutput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RunSectionOutput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RunSectionOutput) String() string {
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+type RunSectionOutputTimeout struct {
+	String  string
+	Integer int
+
+	typ string
+}
+
+func (r *RunSectionOutputTimeout) GetString() string {
+	if r == nil {
+		return ""
+	}
+	return r.String
+}
+
+func (r *RunSectionOutputTimeout) GetInteger() int {
+	if r == nil {
+		return 0
+	}
+	return r.Integer
+}
+
+func (r *RunSectionOutputTimeout) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		r.typ = "String"
+		r.String = valueString
+		return nil
+	}
+	var valueInteger int
+	if err := json.Unmarshal(data, &valueInteger); err == nil {
+		r.typ = "Integer"
+		r.Integer = valueInteger
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, r)
+}
+
+func (r RunSectionOutputTimeout) MarshalJSON() ([]byte, error) {
+	if r.typ == "String" || r.String != "" {
+		return json.Marshal(r.String)
+	}
+	if r.typ == "Integer" || r.Integer != 0 {
+		return json.Marshal(r.Integer)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", r)
+}
+
+type RunSectionOutputTimeoutVisitor interface {
+	VisitString(string) error
+	VisitInteger(int) error
+}
+
+func (r *RunSectionOutputTimeout) Accept(visitor RunSectionOutputTimeoutVisitor) error {
+	if r.typ == "String" || r.String != "" {
+		return visitor.VisitString(r.String)
+	}
+	if r.typ == "Integer" || r.Integer != 0 {
+		return visitor.VisitInteger(r.Integer)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", r)
+}
+
+// Sandbox requirements for job runs (matches compute IncomingWebhookSandboxTemplate shape).
+type SandboxConfig struct {
+	Mode            *SandboxConfigMode `json:"mode,omitempty" url:"mode,omitempty"`
+	Name            *string            `json:"name,omitempty" url:"name,omitempty"`
+	Image           *string            `json:"image,omitempty" url:"image,omitempty"`
+	Vcpus           *int               `json:"vcpus,omitempty" url:"vcpus,omitempty"`
+	MemoryMb        *int               `json:"memory_mb,omitempty" url:"memory_mb,omitempty"`
+	DiskGb          *int               `json:"disk_gb,omitempty" url:"disk_gb,omitempty"`
+	SnapshotName    *string            `json:"snapshot_name,omitempty" url:"snapshot_name,omitempty"`
+	SnapshotURL     *string            `json:"snapshot_url,omitempty" url:"snapshot_url,omitempty"`
+	GatewayProfile  *string            `json:"gateway_profile,omitempty" url:"gateway_profile,omitempty"`
+	Init            *SandboxConfigInit `json:"init,omitempty" url:"init,omitempty"`
+	InternetEnabled *bool              `json:"internet_enabled,omitempty" url:"internet_enabled,omitempty"`
+	Workdir         *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
+	CacheKey        *string            `json:"cache_key,omitempty" url:"cache_key,omitempty"`
+	Env             map[string]*string `json:"env,omitempty" url:"env,omitempty"`
+	Sources         []*GitSource       `json:"sources,omitempty" url:"sources,omitempty"`
+	SetupScripts    []*SetupScript     `json:"setup_scripts,omitempty" url:"setup_scripts,omitempty"`
+	Lifecycle       *LifecyclePolicy   `json:"lifecycle,omitempty" url:"lifecycle,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SandboxConfig) GetMode() *SandboxConfigMode {
+	if s == nil {
+		return nil
+	}
+	return s.Mode
+}
+
+func (s *SandboxConfig) GetName() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Name
+}
+
+func (s *SandboxConfig) GetImage() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Image
+}
+
+func (s *SandboxConfig) GetVcpus() *int {
+	if s == nil {
+		return nil
+	}
+	return s.Vcpus
+}
+
+func (s *SandboxConfig) GetMemoryMb() *int {
+	if s == nil {
+		return nil
+	}
+	return s.MemoryMb
+}
+
+func (s *SandboxConfig) GetDiskGb() *int {
+	if s == nil {
+		return nil
+	}
+	return s.DiskGb
+}
+
+func (s *SandboxConfig) GetSnapshotName() *string {
+	if s == nil {
+		return nil
+	}
+	return s.SnapshotName
+}
+
+func (s *SandboxConfig) GetSnapshotURL() *string {
+	if s == nil {
+		return nil
+	}
+	return s.SnapshotURL
+}
+
+func (s *SandboxConfig) GetGatewayProfile() *string {
+	if s == nil {
+		return nil
+	}
+	return s.GatewayProfile
+}
+
+func (s *SandboxConfig) GetInit() *SandboxConfigInit {
+	if s == nil {
+		return nil
+	}
+	return s.Init
+}
+
+func (s *SandboxConfig) GetInternetEnabled() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.InternetEnabled
+}
+
+func (s *SandboxConfig) GetWorkdir() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Workdir
+}
+
+func (s *SandboxConfig) GetCacheKey() *string {
+	if s == nil {
+		return nil
+	}
+	return s.CacheKey
+}
+
+func (s *SandboxConfig) GetEnv() map[string]*string {
+	if s == nil {
+		return nil
+	}
+	return s.Env
+}
+
+func (s *SandboxConfig) GetSources() []*GitSource {
+	if s == nil {
+		return nil
+	}
+	return s.Sources
+}
+
+func (s *SandboxConfig) GetSetupScripts() []*SetupScript {
+	if s == nil {
+		return nil
+	}
+	return s.SetupScripts
+}
+
+func (s *SandboxConfig) GetLifecycle() *LifecyclePolicy {
+	if s == nil {
+		return nil
+	}
+	return s.Lifecycle
+}
+
+func (s *SandboxConfig) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SandboxConfig) UnmarshalJSON(data []byte) error {
+	type unmarshaler SandboxConfig
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SandboxConfig(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SandboxConfig) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SandboxConfigInit struct {
+	Type    string
+	Custom  *SandboxInitCustom
+	Full    *SandboxInitFull
+	Minimal *SandboxInitMinimal
+}
+
+func (s *SandboxConfigInit) GetType() string {
+	if s == nil {
+		return ""
+	}
+	return s.Type
+}
+
+func (s *SandboxConfigInit) GetCustom() *SandboxInitCustom {
+	if s == nil {
+		return nil
+	}
+	return s.Custom
+}
+
+func (s *SandboxConfigInit) GetFull() *SandboxInitFull {
+	if s == nil {
+		return nil
+	}
+	return s.Full
+}
+
+func (s *SandboxConfigInit) GetMinimal() *SandboxInitMinimal {
+	if s == nil {
+		return nil
+	}
+	return s.Minimal
+}
+
+func (s *SandboxConfigInit) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	s.Type = unmarshaler.Type
+	if unmarshaler.Type == "" {
+		return fmt.Errorf("%T did not include discriminant type", s)
+	}
+	switch unmarshaler.Type {
+	case "custom":
+		value := new(SandboxInitCustom)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		s.Custom = value
+	case "full":
+		value := new(SandboxInitFull)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		s.Full = value
+	case "minimal":
+		value := new(SandboxInitMinimal)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		s.Minimal = value
+	}
+	return nil
+}
+
+func (s SandboxConfigInit) MarshalJSON() ([]byte, error) {
+	if err := s.validate(); err != nil {
+		return nil, err
+	}
+	if s.Custom != nil {
+		return internal.MarshalJSONWithExtraProperty(s.Custom, "type", "custom")
+	}
+	if s.Full != nil {
+		return internal.MarshalJSONWithExtraProperty(s.Full, "type", "full")
+	}
+	if s.Minimal != nil {
+		return internal.MarshalJSONWithExtraProperty(s.Minimal, "type", "minimal")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", s)
+}
+
+type SandboxConfigInitVisitor interface {
+	VisitCustom(*SandboxInitCustom) error
+	VisitFull(*SandboxInitFull) error
+	VisitMinimal(*SandboxInitMinimal) error
+}
+
+func (s *SandboxConfigInit) Accept(visitor SandboxConfigInitVisitor) error {
+	if s.Custom != nil {
+		return visitor.VisitCustom(s.Custom)
+	}
+	if s.Full != nil {
+		return visitor.VisitFull(s.Full)
+	}
+	if s.Minimal != nil {
+		return visitor.VisitMinimal(s.Minimal)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", s)
+}
+
+func (s *SandboxConfigInit) validate() error {
+	if s == nil {
+		return fmt.Errorf("type %T is nil", s)
+	}
+	var fields []string
+	if s.Custom != nil {
+		fields = append(fields, "custom")
+	}
+	if s.Full != nil {
+		fields = append(fields, "full")
+	}
+	if s.Minimal != nil {
+		fields = append(fields, "minimal")
+	}
+	if len(fields) == 0 {
+		if s.Type != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", s, s.Type)
+		}
+		return fmt.Errorf("type %T is empty", s)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", s, fields)
+	}
+	if s.Type != "" {
+		field := fields[0]
+		if s.Type != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				s,
+				s.Type,
+				s,
+			)
+		}
+	}
+	return nil
+}
+
+type SandboxConfigMode string
+
+const (
+	SandboxConfigModeProvision SandboxConfigMode = "provision"
+	SandboxConfigModeEnsure    SandboxConfigMode = "ensure"
+	SandboxConfigModeReuse     SandboxConfigMode = "reuse"
+)
+
+func NewSandboxConfigModeFromString(s string) (SandboxConfigMode, error) {
+	switch s {
+	case "provision":
+		return SandboxConfigModeProvision, nil
+	case "ensure":
+		return SandboxConfigModeEnsure, nil
+	case "reuse":
+		return SandboxConfigModeReuse, nil
+	}
+	var t SandboxConfigMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SandboxConfigMode) Ptr() *SandboxConfigMode {
+	return &s
+}
+
+type ScheduleSection struct {
+	Cron     string  `json:"cron" url:"cron"`
+	Timezone *string `json:"timezone,omitempty" url:"timezone,omitempty"`
+	Enabled  *bool   `json:"enabled,omitempty" url:"enabled,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *ScheduleSection) GetCron() string {
+	if s == nil {
+		return ""
+	}
+	return s.Cron
+}
+
+func (s *ScheduleSection) GetTimezone() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Timezone
+}
+
+func (s *ScheduleSection) GetEnabled() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Enabled
+}
+
+func (s *ScheduleSection) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *ScheduleSection) UnmarshalJSON(data []byte) error {
+	type unmarshaler ScheduleSection
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = ScheduleSection(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *ScheduleSection) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SnapshotStepAction struct {
+	Name string `json:"name" url:"name"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SnapshotStepAction) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SnapshotStepAction) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SnapshotStepAction) UnmarshalJSON(data []byte) error {
+	type unmarshaler SnapshotStepAction
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SnapshotStepAction(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SnapshotStepAction) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type TaskInput struct {
+	Name    string         `json:"name" url:"name"`
+	Sandbox *SandboxConfig `json:"sandbox,omitempty" url:"sandbox,omitempty"`
+	Steps   []*TaskStep    `json:"steps" url:"steps"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TaskInput) GetName() string {
+	if t == nil {
+		return ""
+	}
+	return t.Name
+}
+
+func (t *TaskInput) GetSandbox() *SandboxConfig {
+	if t == nil {
+		return nil
+	}
+	return t.Sandbox
+}
+
+func (t *TaskInput) GetSteps() []*TaskStep {
+	if t == nil {
+		return nil
+	}
+	return t.Steps
+}
+
+func (t *TaskInput) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TaskInput) UnmarshalJSON(data []byte) error {
+	type unmarshaler TaskInput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TaskInput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TaskInput) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+type TaskOutput struct {
+	Name    string         `json:"name" url:"name"`
+	Sandbox *SandboxConfig `json:"sandbox,omitempty" url:"sandbox,omitempty"`
+	Steps   []*TaskStep    `json:"steps" url:"steps"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TaskOutput) GetName() string {
+	if t == nil {
+		return ""
+	}
+	return t.Name
+}
+
+func (t *TaskOutput) GetSandbox() *SandboxConfig {
+	if t == nil {
+		return nil
+	}
+	return t.Sandbox
+}
+
+func (t *TaskOutput) GetSteps() []*TaskStep {
+	if t == nil {
+		return nil
+	}
+	return t.Steps
+}
+
+func (t *TaskOutput) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TaskOutput) UnmarshalJSON(data []byte) error {
+	type unmarshaler TaskOutput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TaskOutput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TaskOutput) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+// One compute action per step.
+type TaskStep struct {
+	Name     *string             `json:"name,omitempty" url:"name,omitempty"`
+	Workdir  *string             `json:"workdir,omitempty" url:"workdir,omitempty"`
+	Timeout  *int                `json:"timeout,omitempty" url:"timeout,omitempty"`
+	User     *string             `json:"user,omitempty" url:"user,omitempty"`
+	Exec     *TaskStepExec       `json:"exec,omitempty" url:"exec,omitempty"`
+	Snapshot *SnapshotStepAction `json:"snapshot,omitempty" url:"snapshot,omitempty"`
+	Pause    *bool               `json:"pause,omitempty" url:"pause,omitempty"`
+	Resume   *bool               `json:"resume,omitempty" url:"resume,omitempty"`
+	Delete   *bool               `json:"delete,omitempty" url:"delete,omitempty"`
+	Upload   *string             `json:"upload,omitempty" url:"upload,omitempty"`
+	Download *string             `json:"download,omitempty" url:"download,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TaskStep) GetName() *string {
+	if t == nil {
+		return nil
+	}
+	return t.Name
+}
+
+func (t *TaskStep) GetWorkdir() *string {
+	if t == nil {
+		return nil
+	}
+	return t.Workdir
+}
+
+func (t *TaskStep) GetTimeout() *int {
+	if t == nil {
+		return nil
+	}
+	return t.Timeout
+}
+
+func (t *TaskStep) GetUser() *string {
+	if t == nil {
+		return nil
+	}
+	return t.User
+}
+
+func (t *TaskStep) GetExec() *TaskStepExec {
+	if t == nil {
+		return nil
+	}
+	return t.Exec
+}
+
+func (t *TaskStep) GetSnapshot() *SnapshotStepAction {
+	if t == nil {
+		return nil
+	}
+	return t.Snapshot
+}
+
+func (t *TaskStep) GetPause() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Pause
+}
+
+func (t *TaskStep) GetResume() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Resume
+}
+
+func (t *TaskStep) GetDelete() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Delete
+}
+
+func (t *TaskStep) GetUpload() *string {
+	if t == nil {
+		return nil
+	}
+	return t.Upload
+}
+
+func (t *TaskStep) GetDownload() *string {
+	if t == nil {
+		return nil
+	}
+	return t.Download
+}
+
+func (t *TaskStep) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TaskStep) UnmarshalJSON(data []byte) error {
+	type unmarshaler TaskStep
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TaskStep(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TaskStep) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+type TaskStepExec struct {
+	StringList []string
+	String     string
+
+	typ string
+}
+
+func (t *TaskStepExec) GetStringList() []string {
+	if t == nil {
+		return nil
+	}
+	return t.StringList
+}
+
+func (t *TaskStepExec) GetString() string {
+	if t == nil {
+		return ""
+	}
+	return t.String
+}
+
+func (t *TaskStepExec) UnmarshalJSON(data []byte) error {
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		t.typ = "StringList"
+		t.StringList = valueStringList
+		return nil
+	}
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		t.typ = "String"
+		t.String = valueString
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, t)
+}
+
+func (t TaskStepExec) MarshalJSON() ([]byte, error) {
+	if t.typ == "StringList" || t.StringList != nil {
+		return json.Marshal(t.StringList)
+	}
+	if t.typ == "String" || t.String != "" {
+		return json.Marshal(t.String)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", t)
+}
+
+type TaskStepExecVisitor interface {
+	VisitStringList([]string) error
+	VisitString(string) error
+}
+
+func (t *TaskStepExec) Accept(visitor TaskStepExecVisitor) error {
+	if t.typ == "StringList" || t.StringList != nil {
+		return visitor.VisitStringList(t.StringList)
+	}
+	if t.typ == "String" || t.String != "" {
+		return visitor.VisitString(t.String)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", t)
+}
+
+type VerificationGate struct {
+	CompareTo   *string  `json:"compare_to,omitempty" url:"compare_to,omitempty"`
+	MinPassRate *float64 `json:"min_pass_rate,omitempty" url:"min_pass_rate,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (v *VerificationGate) GetCompareTo() *string {
+	if v == nil {
+		return nil
+	}
+	return v.CompareTo
+}
+
+func (v *VerificationGate) GetMinPassRate() *float64 {
+	if v == nil {
+		return nil
+	}
+	return v.MinPassRate
+}
+
+func (v *VerificationGate) GetExtraProperties() map[string]interface{} {
+	return v.extraProperties
+}
+
+func (v *VerificationGate) UnmarshalJSON(data []byte) error {
+	type unmarshaler VerificationGate
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*v = VerificationGate(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *v)
+	if err != nil {
+		return err
+	}
+	v.extraProperties = extraProperties
+	v.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (v *VerificationGate) String() string {
+	if len(v.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(v); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", v)
+}
+
+type VerificationSection struct {
+	Enabled *bool             `json:"enabled,omitempty" url:"enabled,omitempty"`
+	Gate    *VerificationGate `json:"gate,omitempty" url:"gate,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (v *VerificationSection) GetEnabled() *bool {
+	if v == nil {
+		return nil
+	}
+	return v.Enabled
+}
+
+func (v *VerificationSection) GetGate() *VerificationGate {
+	if v == nil {
+		return nil
+	}
+	return v.Gate
+}
+
+func (v *VerificationSection) GetExtraProperties() map[string]interface{} {
+	return v.extraProperties
+}
+
+func (v *VerificationSection) UnmarshalJSON(data []byte) error {
+	type unmarshaler VerificationSection
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*v = VerificationSection(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *v)
+	if err != nil {
+		return err
+	}
+	v.extraProperties = extraProperties
+	v.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (v *VerificationSection) String() string {
+	if len(v.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(v); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", v)
 }
 
 type ValidateJobManifestRequest struct {

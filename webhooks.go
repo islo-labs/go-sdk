@@ -4570,6 +4570,68 @@ func (i IncomingWebhookAutoResumePolicy) Ptr() *IncomingWebhookAutoResumePolicy 
 }
 
 type IncomingWebhookCondition struct {
+	IncomingWebhookConditionEquals *IncomingWebhookConditionEquals
+	JSONPathCondition              *JSONPathCondition
+
+	typ string
+}
+
+func (i *IncomingWebhookCondition) GetIncomingWebhookConditionEquals() *IncomingWebhookConditionEquals {
+	if i == nil {
+		return nil
+	}
+	return i.IncomingWebhookConditionEquals
+}
+
+func (i *IncomingWebhookCondition) GetJSONPathCondition() *JSONPathCondition {
+	if i == nil {
+		return nil
+	}
+	return i.JSONPathCondition
+}
+
+func (i *IncomingWebhookCondition) UnmarshalJSON(data []byte) error {
+	valueIncomingWebhookConditionEquals := new(IncomingWebhookConditionEquals)
+	if err := json.Unmarshal(data, &valueIncomingWebhookConditionEquals); err == nil {
+		i.typ = "IncomingWebhookConditionEquals"
+		i.IncomingWebhookConditionEquals = valueIncomingWebhookConditionEquals
+		return nil
+	}
+	valueJSONPathCondition := new(JSONPathCondition)
+	if err := json.Unmarshal(data, &valueJSONPathCondition); err == nil {
+		i.typ = "JSONPathCondition"
+		i.JSONPathCondition = valueJSONPathCondition
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, i)
+}
+
+func (i IncomingWebhookCondition) MarshalJSON() ([]byte, error) {
+	if i.typ == "IncomingWebhookConditionEquals" || i.IncomingWebhookConditionEquals != nil {
+		return json.Marshal(i.IncomingWebhookConditionEquals)
+	}
+	if i.typ == "JSONPathCondition" || i.JSONPathCondition != nil {
+		return json.Marshal(i.JSONPathCondition)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", i)
+}
+
+type IncomingWebhookConditionVisitor interface {
+	VisitIncomingWebhookConditionEquals(*IncomingWebhookConditionEquals) error
+	VisitJSONPathCondition(*JSONPathCondition) error
+}
+
+func (i *IncomingWebhookCondition) Accept(visitor IncomingWebhookConditionVisitor) error {
+	if i.typ == "IncomingWebhookConditionEquals" || i.IncomingWebhookConditionEquals != nil {
+		return visitor.VisitIncomingWebhookConditionEquals(i.IncomingWebhookConditionEquals)
+	}
+	if i.typ == "JSONPathCondition" || i.JSONPathCondition != nil {
+		return visitor.VisitJSONPathCondition(i.JSONPathCondition)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", i)
+}
+
+type IncomingWebhookConditionEquals struct {
 	Equals   interface{} `json:"equals" url:"equals"`
 	JSONPath string      `json:"json_path" url:"json_path"`
 
@@ -4577,31 +4639,31 @@ type IncomingWebhookCondition struct {
 	rawJSON         json.RawMessage
 }
 
-func (i *IncomingWebhookCondition) GetEquals() interface{} {
+func (i *IncomingWebhookConditionEquals) GetEquals() interface{} {
 	if i == nil {
 		return nil
 	}
 	return i.Equals
 }
 
-func (i *IncomingWebhookCondition) GetJSONPath() string {
+func (i *IncomingWebhookConditionEquals) GetJSONPath() string {
 	if i == nil {
 		return ""
 	}
 	return i.JSONPath
 }
 
-func (i *IncomingWebhookCondition) GetExtraProperties() map[string]interface{} {
+func (i *IncomingWebhookConditionEquals) GetExtraProperties() map[string]interface{} {
 	return i.extraProperties
 }
 
-func (i *IncomingWebhookCondition) UnmarshalJSON(data []byte) error {
-	type unmarshaler IncomingWebhookCondition
+func (i *IncomingWebhookConditionEquals) UnmarshalJSON(data []byte) error {
+	type unmarshaler IncomingWebhookConditionEquals
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*i = IncomingWebhookCondition(value)
+	*i = IncomingWebhookConditionEquals(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *i)
 	if err != nil {
 		return err
@@ -4611,7 +4673,7 @@ func (i *IncomingWebhookCondition) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (i *IncomingWebhookCondition) String() string {
+func (i *IncomingWebhookConditionEquals) String() string {
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5423,30 +5485,92 @@ func (i *IPAllowlistVerifier) String() string {
 }
 
 type JobParamMapping struct {
-	Source *ValueSource `json:"source" url:"source"`
+	JobParamMappingSource *JobParamMappingSource
+	JobParamMappingParts  *JobParamMappingParts
+
+	typ string
+}
+
+func (j *JobParamMapping) GetJobParamMappingSource() *JobParamMappingSource {
+	if j == nil {
+		return nil
+	}
+	return j.JobParamMappingSource
+}
+
+func (j *JobParamMapping) GetJobParamMappingParts() *JobParamMappingParts {
+	if j == nil {
+		return nil
+	}
+	return j.JobParamMappingParts
+}
+
+func (j *JobParamMapping) UnmarshalJSON(data []byte) error {
+	valueJobParamMappingSource := new(JobParamMappingSource)
+	if err := json.Unmarshal(data, &valueJobParamMappingSource); err == nil {
+		j.typ = "JobParamMappingSource"
+		j.JobParamMappingSource = valueJobParamMappingSource
+		return nil
+	}
+	valueJobParamMappingParts := new(JobParamMappingParts)
+	if err := json.Unmarshal(data, &valueJobParamMappingParts); err == nil {
+		j.typ = "JobParamMappingParts"
+		j.JobParamMappingParts = valueJobParamMappingParts
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, j)
+}
+
+func (j JobParamMapping) MarshalJSON() ([]byte, error) {
+	if j.typ == "JobParamMappingSource" || j.JobParamMappingSource != nil {
+		return json.Marshal(j.JobParamMappingSource)
+	}
+	if j.typ == "JobParamMappingParts" || j.JobParamMappingParts != nil {
+		return json.Marshal(j.JobParamMappingParts)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", j)
+}
+
+type JobParamMappingVisitor interface {
+	VisitJobParamMappingSource(*JobParamMappingSource) error
+	VisitJobParamMappingParts(*JobParamMappingParts) error
+}
+
+func (j *JobParamMapping) Accept(visitor JobParamMappingVisitor) error {
+	if j.typ == "JobParamMappingSource" || j.JobParamMappingSource != nil {
+		return visitor.VisitJobParamMappingSource(j.JobParamMappingSource)
+	}
+	if j.typ == "JobParamMappingParts" || j.JobParamMappingParts != nil {
+		return visitor.VisitJobParamMappingParts(j.JobParamMappingParts)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", j)
+}
+
+type JobParamMappingParts struct {
+	Parts []*MappingPart `json:"parts" url:"parts"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (j *JobParamMapping) GetSource() *ValueSource {
+func (j *JobParamMappingParts) GetParts() []*MappingPart {
 	if j == nil {
 		return nil
 	}
-	return j.Source
+	return j.Parts
 }
 
-func (j *JobParamMapping) GetExtraProperties() map[string]interface{} {
+func (j *JobParamMappingParts) GetExtraProperties() map[string]interface{} {
 	return j.extraProperties
 }
 
-func (j *JobParamMapping) UnmarshalJSON(data []byte) error {
-	type unmarshaler JobParamMapping
+func (j *JobParamMappingParts) UnmarshalJSON(data []byte) error {
+	type unmarshaler JobParamMappingParts
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*j = JobParamMapping(value)
+	*j = JobParamMappingParts(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *j)
 	if err != nil {
 		return err
@@ -5456,7 +5580,1096 @@ func (j *JobParamMapping) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (j *JobParamMapping) String() string {
+func (j *JobParamMappingParts) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JobParamMappingSource struct {
+	Source *ValueSource `json:"source" url:"source"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobParamMappingSource) GetSource() *ValueSource {
+	if j == nil {
+		return nil
+	}
+	return j.Source
+}
+
+func (j *JobParamMappingSource) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobParamMappingSource) UnmarshalJSON(data []byte) error {
+	type unmarshaler JobParamMappingSource
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JobParamMappingSource(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobParamMappingSource) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathCondition struct {
+	Op                 string
+	All                *JSONPathConditionAll
+	Any                *JSONPathConditionAny
+	Not                *JSONPathConditionNot
+	Equals             *JSONPathConditionEquals
+	NotEquals          *JSONPathConditionNotEquals
+	Exists             *JSONPathConditionExists
+	NotExists          *JSONPathConditionNotExists
+	Contains           *JSONPathConditionContains
+	Matches            *JSONPathConditionMatches
+	GreaterThan        *JSONPathConditionGreaterThan
+	GreaterThanOrEqual *JSONPathConditionGreaterThanOrEqual
+	LessThan           *JSONPathConditionLessThan
+	LessThanOrEqual    *JSONPathConditionLessThanOrEqual
+}
+
+func (j *JSONPathCondition) GetOp() string {
+	if j == nil {
+		return ""
+	}
+	return j.Op
+}
+
+func (j *JSONPathCondition) GetAll() *JSONPathConditionAll {
+	if j == nil {
+		return nil
+	}
+	return j.All
+}
+
+func (j *JSONPathCondition) GetAny() *JSONPathConditionAny {
+	if j == nil {
+		return nil
+	}
+	return j.Any
+}
+
+func (j *JSONPathCondition) GetNot() *JSONPathConditionNot {
+	if j == nil {
+		return nil
+	}
+	return j.Not
+}
+
+func (j *JSONPathCondition) GetEquals() *JSONPathConditionEquals {
+	if j == nil {
+		return nil
+	}
+	return j.Equals
+}
+
+func (j *JSONPathCondition) GetNotEquals() *JSONPathConditionNotEquals {
+	if j == nil {
+		return nil
+	}
+	return j.NotEquals
+}
+
+func (j *JSONPathCondition) GetExists() *JSONPathConditionExists {
+	if j == nil {
+		return nil
+	}
+	return j.Exists
+}
+
+func (j *JSONPathCondition) GetNotExists() *JSONPathConditionNotExists {
+	if j == nil {
+		return nil
+	}
+	return j.NotExists
+}
+
+func (j *JSONPathCondition) GetContains() *JSONPathConditionContains {
+	if j == nil {
+		return nil
+	}
+	return j.Contains
+}
+
+func (j *JSONPathCondition) GetMatches() *JSONPathConditionMatches {
+	if j == nil {
+		return nil
+	}
+	return j.Matches
+}
+
+func (j *JSONPathCondition) GetGreaterThan() *JSONPathConditionGreaterThan {
+	if j == nil {
+		return nil
+	}
+	return j.GreaterThan
+}
+
+func (j *JSONPathCondition) GetGreaterThanOrEqual() *JSONPathConditionGreaterThanOrEqual {
+	if j == nil {
+		return nil
+	}
+	return j.GreaterThanOrEqual
+}
+
+func (j *JSONPathCondition) GetLessThan() *JSONPathConditionLessThan {
+	if j == nil {
+		return nil
+	}
+	return j.LessThan
+}
+
+func (j *JSONPathCondition) GetLessThanOrEqual() *JSONPathConditionLessThanOrEqual {
+	if j == nil {
+		return nil
+	}
+	return j.LessThanOrEqual
+}
+
+func (j *JSONPathCondition) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Op string `json:"op"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	j.Op = unmarshaler.Op
+	if unmarshaler.Op == "" {
+		return fmt.Errorf("%T did not include discriminant op", j)
+	}
+	switch unmarshaler.Op {
+	case "all":
+		value := new(JSONPathConditionAll)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.All = value
+	case "any":
+		value := new(JSONPathConditionAny)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.Any = value
+	case "not":
+		value := new(JSONPathConditionNot)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.Not = value
+	case "equals":
+		value := new(JSONPathConditionEquals)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.Equals = value
+	case "not_equals":
+		value := new(JSONPathConditionNotEquals)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.NotEquals = value
+	case "exists":
+		value := new(JSONPathConditionExists)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.Exists = value
+	case "not_exists":
+		value := new(JSONPathConditionNotExists)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.NotExists = value
+	case "contains":
+		value := new(JSONPathConditionContains)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.Contains = value
+	case "matches":
+		value := new(JSONPathConditionMatches)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.Matches = value
+	case "greater_than":
+		value := new(JSONPathConditionGreaterThan)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.GreaterThan = value
+	case "greater_than_or_equal":
+		value := new(JSONPathConditionGreaterThanOrEqual)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.GreaterThanOrEqual = value
+	case "less_than":
+		value := new(JSONPathConditionLessThan)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.LessThan = value
+	case "less_than_or_equal":
+		value := new(JSONPathConditionLessThanOrEqual)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		j.LessThanOrEqual = value
+	}
+	return nil
+}
+
+func (j JSONPathCondition) MarshalJSON() ([]byte, error) {
+	if err := j.validate(); err != nil {
+		return nil, err
+	}
+	if j.All != nil {
+		return internal.MarshalJSONWithExtraProperty(j.All, "op", "all")
+	}
+	if j.Any != nil {
+		return internal.MarshalJSONWithExtraProperty(j.Any, "op", "any")
+	}
+	if j.Not != nil {
+		return internal.MarshalJSONWithExtraProperty(j.Not, "op", "not")
+	}
+	if j.Equals != nil {
+		return internal.MarshalJSONWithExtraProperty(j.Equals, "op", "equals")
+	}
+	if j.NotEquals != nil {
+		return internal.MarshalJSONWithExtraProperty(j.NotEquals, "op", "not_equals")
+	}
+	if j.Exists != nil {
+		return internal.MarshalJSONWithExtraProperty(j.Exists, "op", "exists")
+	}
+	if j.NotExists != nil {
+		return internal.MarshalJSONWithExtraProperty(j.NotExists, "op", "not_exists")
+	}
+	if j.Contains != nil {
+		return internal.MarshalJSONWithExtraProperty(j.Contains, "op", "contains")
+	}
+	if j.Matches != nil {
+		return internal.MarshalJSONWithExtraProperty(j.Matches, "op", "matches")
+	}
+	if j.GreaterThan != nil {
+		return internal.MarshalJSONWithExtraProperty(j.GreaterThan, "op", "greater_than")
+	}
+	if j.GreaterThanOrEqual != nil {
+		return internal.MarshalJSONWithExtraProperty(j.GreaterThanOrEqual, "op", "greater_than_or_equal")
+	}
+	if j.LessThan != nil {
+		return internal.MarshalJSONWithExtraProperty(j.LessThan, "op", "less_than")
+	}
+	if j.LessThanOrEqual != nil {
+		return internal.MarshalJSONWithExtraProperty(j.LessThanOrEqual, "op", "less_than_or_equal")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", j)
+}
+
+type JSONPathConditionVisitor interface {
+	VisitAll(*JSONPathConditionAll) error
+	VisitAny(*JSONPathConditionAny) error
+	VisitNot(*JSONPathConditionNot) error
+	VisitEquals(*JSONPathConditionEquals) error
+	VisitNotEquals(*JSONPathConditionNotEquals) error
+	VisitExists(*JSONPathConditionExists) error
+	VisitNotExists(*JSONPathConditionNotExists) error
+	VisitContains(*JSONPathConditionContains) error
+	VisitMatches(*JSONPathConditionMatches) error
+	VisitGreaterThan(*JSONPathConditionGreaterThan) error
+	VisitGreaterThanOrEqual(*JSONPathConditionGreaterThanOrEqual) error
+	VisitLessThan(*JSONPathConditionLessThan) error
+	VisitLessThanOrEqual(*JSONPathConditionLessThanOrEqual) error
+}
+
+func (j *JSONPathCondition) Accept(visitor JSONPathConditionVisitor) error {
+	if j.All != nil {
+		return visitor.VisitAll(j.All)
+	}
+	if j.Any != nil {
+		return visitor.VisitAny(j.Any)
+	}
+	if j.Not != nil {
+		return visitor.VisitNot(j.Not)
+	}
+	if j.Equals != nil {
+		return visitor.VisitEquals(j.Equals)
+	}
+	if j.NotEquals != nil {
+		return visitor.VisitNotEquals(j.NotEquals)
+	}
+	if j.Exists != nil {
+		return visitor.VisitExists(j.Exists)
+	}
+	if j.NotExists != nil {
+		return visitor.VisitNotExists(j.NotExists)
+	}
+	if j.Contains != nil {
+		return visitor.VisitContains(j.Contains)
+	}
+	if j.Matches != nil {
+		return visitor.VisitMatches(j.Matches)
+	}
+	if j.GreaterThan != nil {
+		return visitor.VisitGreaterThan(j.GreaterThan)
+	}
+	if j.GreaterThanOrEqual != nil {
+		return visitor.VisitGreaterThanOrEqual(j.GreaterThanOrEqual)
+	}
+	if j.LessThan != nil {
+		return visitor.VisitLessThan(j.LessThan)
+	}
+	if j.LessThanOrEqual != nil {
+		return visitor.VisitLessThanOrEqual(j.LessThanOrEqual)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", j)
+}
+
+func (j *JSONPathCondition) validate() error {
+	if j == nil {
+		return fmt.Errorf("type %T is nil", j)
+	}
+	var fields []string
+	if j.All != nil {
+		fields = append(fields, "all")
+	}
+	if j.Any != nil {
+		fields = append(fields, "any")
+	}
+	if j.Not != nil {
+		fields = append(fields, "not")
+	}
+	if j.Equals != nil {
+		fields = append(fields, "equals")
+	}
+	if j.NotEquals != nil {
+		fields = append(fields, "not_equals")
+	}
+	if j.Exists != nil {
+		fields = append(fields, "exists")
+	}
+	if j.NotExists != nil {
+		fields = append(fields, "not_exists")
+	}
+	if j.Contains != nil {
+		fields = append(fields, "contains")
+	}
+	if j.Matches != nil {
+		fields = append(fields, "matches")
+	}
+	if j.GreaterThan != nil {
+		fields = append(fields, "greater_than")
+	}
+	if j.GreaterThanOrEqual != nil {
+		fields = append(fields, "greater_than_or_equal")
+	}
+	if j.LessThan != nil {
+		fields = append(fields, "less_than")
+	}
+	if j.LessThanOrEqual != nil {
+		fields = append(fields, "less_than_or_equal")
+	}
+	if len(fields) == 0 {
+		if j.Op != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", j, j.Op)
+		}
+		return fmt.Errorf("type %T is empty", j)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", j, fields)
+	}
+	if j.Op != "" {
+		field := fields[0]
+		if j.Op != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				j,
+				j.Op,
+				j,
+			)
+		}
+	}
+	return nil
+}
+
+type JSONPathConditionAll struct {
+	Conditions []*IncomingWebhookCondition `json:"conditions" url:"conditions"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionAll) GetConditions() []*IncomingWebhookCondition {
+	if j == nil {
+		return nil
+	}
+	return j.Conditions
+}
+
+func (j *JSONPathConditionAll) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionAll) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionAll
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionAll(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionAll) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionAny struct {
+	Conditions []*IncomingWebhookCondition `json:"conditions" url:"conditions"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionAny) GetConditions() []*IncomingWebhookCondition {
+	if j == nil {
+		return nil
+	}
+	return j.Conditions
+}
+
+func (j *JSONPathConditionAny) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionAny) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionAny
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionAny(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionAny) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionContains struct {
+	JSONPath string      `json:"json_path" url:"json_path"`
+	Value    interface{} `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionContains) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionContains) GetValue() interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.Value
+}
+
+func (j *JSONPathConditionContains) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionContains) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionContains
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionContains(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionContains) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionEquals struct {
+	JSONPath string      `json:"json_path" url:"json_path"`
+	Value    interface{} `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionEquals) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionEquals) GetValue() interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.Value
+}
+
+func (j *JSONPathConditionEquals) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionEquals) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionEquals
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionEquals(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionEquals) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionExists struct {
+	JSONPath string `json:"json_path" url:"json_path"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionExists) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionExists) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionExists) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionExists
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionExists(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionExists) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionGreaterThan struct {
+	JSONPath string  `json:"json_path" url:"json_path"`
+	Value    float64 `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionGreaterThan) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionGreaterThan) GetValue() float64 {
+	if j == nil {
+		return 0
+	}
+	return j.Value
+}
+
+func (j *JSONPathConditionGreaterThan) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionGreaterThan) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionGreaterThan
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionGreaterThan(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionGreaterThan) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionGreaterThanOrEqual struct {
+	JSONPath string  `json:"json_path" url:"json_path"`
+	Value    float64 `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionGreaterThanOrEqual) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionGreaterThanOrEqual) GetValue() float64 {
+	if j == nil {
+		return 0
+	}
+	return j.Value
+}
+
+func (j *JSONPathConditionGreaterThanOrEqual) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionGreaterThanOrEqual) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionGreaterThanOrEqual
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionGreaterThanOrEqual(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionGreaterThanOrEqual) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionLessThan struct {
+	JSONPath string  `json:"json_path" url:"json_path"`
+	Value    float64 `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionLessThan) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionLessThan) GetValue() float64 {
+	if j == nil {
+		return 0
+	}
+	return j.Value
+}
+
+func (j *JSONPathConditionLessThan) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionLessThan) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionLessThan
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionLessThan(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionLessThan) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionLessThanOrEqual struct {
+	JSONPath string  `json:"json_path" url:"json_path"`
+	Value    float64 `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionLessThanOrEqual) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionLessThanOrEqual) GetValue() float64 {
+	if j == nil {
+		return 0
+	}
+	return j.Value
+}
+
+func (j *JSONPathConditionLessThanOrEqual) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionLessThanOrEqual) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionLessThanOrEqual
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionLessThanOrEqual(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionLessThanOrEqual) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionMatches struct {
+	JSONPath string `json:"json_path" url:"json_path"`
+	Pattern  string `json:"pattern" url:"pattern"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionMatches) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionMatches) GetPattern() string {
+	if j == nil {
+		return ""
+	}
+	return j.Pattern
+}
+
+func (j *JSONPathConditionMatches) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionMatches) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionMatches
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionMatches(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionMatches) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionNot struct {
+	Condition *IncomingWebhookCondition `json:"condition" url:"condition"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionNot) GetCondition() *IncomingWebhookCondition {
+	if j == nil {
+		return nil
+	}
+	return j.Condition
+}
+
+func (j *JSONPathConditionNot) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionNot) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionNot
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionNot(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionNot) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionNotEquals struct {
+	JSONPath string      `json:"json_path" url:"json_path"`
+	Value    interface{} `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionNotEquals) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionNotEquals) GetValue() interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.Value
+}
+
+func (j *JSONPathConditionNotEquals) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionNotEquals) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionNotEquals
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionNotEquals(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionNotEquals) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JSONPathConditionNotExists struct {
+	JSONPath string `json:"json_path" url:"json_path"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JSONPathConditionNotExists) GetJSONPath() string {
+	if j == nil {
+		return ""
+	}
+	return j.JSONPath
+}
+
+func (j *JSONPathConditionNotExists) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JSONPathConditionNotExists) UnmarshalJSON(data []byte) error {
+	type unmarshaler JSONPathConditionNotExists
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JSONPathConditionNotExists(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JSONPathConditionNotExists) String() string {
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -5554,6 +6767,215 @@ func NewLegacyInitCapabilityFromString(s string) (LegacyInitCapability, error) {
 
 func (l LegacyInitCapability) Ptr() *LegacyInitCapability {
 	return &l
+}
+
+type MappingPart struct {
+	Type    string
+	Literal *MappingPartLiteral
+	Source  *MappingPartSource
+}
+
+func (m *MappingPart) GetType() string {
+	if m == nil {
+		return ""
+	}
+	return m.Type
+}
+
+func (m *MappingPart) GetLiteral() *MappingPartLiteral {
+	if m == nil {
+		return nil
+	}
+	return m.Literal
+}
+
+func (m *MappingPart) GetSource() *MappingPartSource {
+	if m == nil {
+		return nil
+	}
+	return m.Source
+}
+
+func (m *MappingPart) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Type string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	m.Type = unmarshaler.Type
+	if unmarshaler.Type == "" {
+		return fmt.Errorf("%T did not include discriminant type", m)
+	}
+	switch unmarshaler.Type {
+	case "literal":
+		value := new(MappingPartLiteral)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		m.Literal = value
+	case "source":
+		value := new(MappingPartSource)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		m.Source = value
+	}
+	return nil
+}
+
+func (m MappingPart) MarshalJSON() ([]byte, error) {
+	if err := m.validate(); err != nil {
+		return nil, err
+	}
+	if m.Literal != nil {
+		return internal.MarshalJSONWithExtraProperty(m.Literal, "type", "literal")
+	}
+	if m.Source != nil {
+		return internal.MarshalJSONWithExtraProperty(m.Source, "type", "source")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", m)
+}
+
+type MappingPartVisitor interface {
+	VisitLiteral(*MappingPartLiteral) error
+	VisitSource(*MappingPartSource) error
+}
+
+func (m *MappingPart) Accept(visitor MappingPartVisitor) error {
+	if m.Literal != nil {
+		return visitor.VisitLiteral(m.Literal)
+	}
+	if m.Source != nil {
+		return visitor.VisitSource(m.Source)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", m)
+}
+
+func (m *MappingPart) validate() error {
+	if m == nil {
+		return fmt.Errorf("type %T is nil", m)
+	}
+	var fields []string
+	if m.Literal != nil {
+		fields = append(fields, "literal")
+	}
+	if m.Source != nil {
+		fields = append(fields, "source")
+	}
+	if len(fields) == 0 {
+		if m.Type != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", m, m.Type)
+		}
+		return fmt.Errorf("type %T is empty", m)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", m, fields)
+	}
+	if m.Type != "" {
+		field := fields[0]
+		if m.Type != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				m,
+				m.Type,
+				m,
+			)
+		}
+	}
+	return nil
+}
+
+type MappingPartLiteral struct {
+	Value string `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *MappingPartLiteral) GetValue() string {
+	if m == nil {
+		return ""
+	}
+	return m.Value
+}
+
+func (m *MappingPartLiteral) GetExtraProperties() map[string]interface{} {
+	return m.extraProperties
+}
+
+func (m *MappingPartLiteral) UnmarshalJSON(data []byte) error {
+	type unmarshaler MappingPartLiteral
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = MappingPartLiteral(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *MappingPartLiteral) String() string {
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
+type MappingPartSource struct {
+	Source *ValueSource `json:"source" url:"source"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *MappingPartSource) GetSource() *ValueSource {
+	if m == nil {
+		return nil
+	}
+	return m.Source
+}
+
+func (m *MappingPartSource) GetExtraProperties() map[string]interface{} {
+	return m.extraProperties
+}
+
+func (m *MappingPartSource) UnmarshalJSON(data []byte) error {
+	type unmarshaler MappingPartSource
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = MappingPartSource(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *MappingPartSource) String() string {
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
 }
 
 type PayloadMapping struct {
