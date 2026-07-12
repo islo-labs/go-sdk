@@ -1293,7 +1293,6 @@ type SandboxConfig struct {
 	MemoryMb        *int               `json:"memory_mb,omitempty" url:"memory_mb,omitempty"`
 	DiskGb          *int               `json:"disk_gb,omitempty" url:"disk_gb,omitempty"`
 	SnapshotName    *string            `json:"snapshot_name,omitempty" url:"snapshot_name,omitempty"`
-	SnapshotURL     *string            `json:"snapshot_url,omitempty" url:"snapshot_url,omitempty"`
 	GatewayProfile  *string            `json:"gateway_profile,omitempty" url:"gateway_profile,omitempty"`
 	Init            *SandboxConfigInit `json:"init,omitempty" url:"init,omitempty"`
 	InternetEnabled *bool              `json:"internet_enabled,omitempty" url:"internet_enabled,omitempty"`
@@ -1355,13 +1354,6 @@ func (s *SandboxConfig) GetSnapshotName() *string {
 		return nil
 	}
 	return s.SnapshotName
-}
-
-func (s *SandboxConfig) GetSnapshotURL() *string {
-	if s == nil {
-		return nil
-	}
-	return s.SnapshotURL
 }
 
 func (s *SandboxConfig) GetGatewayProfile() *string {

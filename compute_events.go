@@ -18,6 +18,8 @@ type ComputeEventDetailResponse struct {
 	Action       string                            `json:"action" url:"action"`
 	Success      bool                              `json:"success" url:"success"`
 	ErrorMessage *string                           `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorCode    *string                           `json:"error_code,omitempty" url:"error_code,omitempty"`
+	ErrorDetails map[string]interface{}            `json:"error_details,omitempty" url:"error_details,omitempty"`
 	StartedAt    *time.Time                        `json:"started_at,omitempty" url:"started_at,omitempty"`
 	CompletedAt  *time.Time                        `json:"completed_at,omitempty" url:"completed_at,omitempty"`
 	Result       *ComputeEventDetailResponseResult `json:"result" url:"result"`
@@ -52,6 +54,20 @@ func (c *ComputeEventDetailResponse) GetErrorMessage() *string {
 		return nil
 	}
 	return c.ErrorMessage
+}
+
+func (c *ComputeEventDetailResponse) GetErrorCode() *string {
+	if c == nil {
+		return nil
+	}
+	return c.ErrorCode
+}
+
+func (c *ComputeEventDetailResponse) GetErrorDetails() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.ErrorDetails
 }
 
 func (c *ComputeEventDetailResponse) GetStartedAt() *time.Time {
