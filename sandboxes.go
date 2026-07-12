@@ -22,7 +22,6 @@ type CreateSandboxRequest struct {
 	RequestID       *string            `json:"request_id,omitempty" url:"-"`
 	SetupScripts    []*SetupScript     `json:"setup_scripts,omitempty" url:"-"`
 	SnapshotName    *string            `json:"snapshot_name,omitempty" url:"-"`
-	SnapshotURL     *string            `json:"snapshot_url,omitempty" url:"-"`
 	Sources         []*GitSource       `json:"sources,omitempty" url:"-"`
 	Vcpus           *int               `json:"vcpus,omitempty" url:"-"`
 	Workdir         *string            `json:"workdir,omitempty" url:"-"`

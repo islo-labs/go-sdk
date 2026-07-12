@@ -4883,7 +4883,6 @@ type IncomingWebhookSandboxTemplate struct {
 	MemoryMb         int                              `json:"memory_mb" url:"memory_mb"`
 	SetupScripts     []*IncomingWebhookSetupScript    `json:"setup_scripts,omitempty" url:"setup_scripts,omitempty"`
 	SnapshotName     *string                          `json:"snapshot_name,omitempty" url:"snapshot_name,omitempty"`
-	SnapshotURL      *string                          `json:"snapshot_url,omitempty" url:"snapshot_url,omitempty"`
 	Sources          []*IncomingWebhookGitSource      `json:"sources,omitempty" url:"sources,omitempty"`
 	Vcpus            int                              `json:"vcpus" url:"vcpus"`
 	Workdir          *string                          `json:"workdir,omitempty" url:"workdir,omitempty"`
@@ -4967,13 +4966,6 @@ func (i *IncomingWebhookSandboxTemplate) GetSnapshotName() *string {
 		return nil
 	}
 	return i.SnapshotName
-}
-
-func (i *IncomingWebhookSandboxTemplate) GetSnapshotURL() *string {
-	if i == nil {
-		return nil
-	}
-	return i.SnapshotURL
 }
 
 func (i *IncomingWebhookSandboxTemplate) GetSources() []*IncomingWebhookGitSource {

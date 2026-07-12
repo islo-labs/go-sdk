@@ -417,6 +417,8 @@ type JobRunResponse struct {
 	StartedAt    *time.Time                 `json:"started_at,omitempty" url:"started_at,omitempty"`
 	CompletedAt  *time.Time                 `json:"completed_at,omitempty" url:"completed_at,omitempty"`
 	ErrorMessage *string                    `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorCode    *string                    `json:"error_code,omitempty" url:"error_code,omitempty"`
+	ErrorDetails map[string]interface{}     `json:"error_details,omitempty" url:"error_details,omitempty"`
 	CreatedAt    time.Time                  `json:"created_at" url:"created_at"`
 
 	extraProperties map[string]interface{}
@@ -500,6 +502,20 @@ func (j *JobRunResponse) GetErrorMessage() *string {
 	return j.ErrorMessage
 }
 
+func (j *JobRunResponse) GetErrorCode() *string {
+	if j == nil {
+		return nil
+	}
+	return j.ErrorCode
+}
+
+func (j *JobRunResponse) GetErrorDetails() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.ErrorDetails
+}
+
 func (j *JobRunResponse) GetCreatedAt() time.Time {
 	if j == nil {
 		return time.Time{}
@@ -566,14 +582,16 @@ func (j *JobRunResponse) String() string {
 }
 
 type JobRunStepTimelineEntry struct {
-	Name             string     `json:"name" url:"name"`
-	Action           string     `json:"action" url:"action"`
-	Status           string     `json:"status" url:"status"`
-	TaskName         string     `json:"task_name" url:"task_name"`
-	StartedAt        *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt      *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	ErrorMessage     *string    `json:"error_message,omitempty" url:"error_message,omitempty"`
-	ComputeCommandID *string    `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
+	Name             string                 `json:"name" url:"name"`
+	Action           string                 `json:"action" url:"action"`
+	Status           string                 `json:"status" url:"status"`
+	TaskName         string                 `json:"task_name" url:"task_name"`
+	StartedAt        *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt      *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ErrorMessage     *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorCode        *string                `json:"error_code,omitempty" url:"error_code,omitempty"`
+	ErrorDetails     map[string]interface{} `json:"error_details,omitempty" url:"error_details,omitempty"`
+	ComputeCommandID *string                `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -626,6 +644,20 @@ func (j *JobRunStepTimelineEntry) GetErrorMessage() *string {
 		return nil
 	}
 	return j.ErrorMessage
+}
+
+func (j *JobRunStepTimelineEntry) GetErrorCode() *string {
+	if j == nil {
+		return nil
+	}
+	return j.ErrorCode
+}
+
+func (j *JobRunStepTimelineEntry) GetErrorDetails() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.ErrorDetails
 }
 
 func (j *JobRunStepTimelineEntry) GetComputeCommandID() *string {
