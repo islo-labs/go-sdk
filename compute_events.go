@@ -20,7 +20,6 @@ type ComputeEventDetailResponse struct {
 	ErrorMessage *string                           `json:"error_message,omitempty" url:"error_message,omitempty"`
 	StartedAt    *time.Time                        `json:"started_at,omitempty" url:"started_at,omitempty"`
 	CompletedAt  *time.Time                        `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	AgentID      *string                           `json:"agent_id,omitempty" url:"agent_id,omitempty"`
 	Result       *ComputeEventDetailResponseResult `json:"result" url:"result"`
 
 	extraProperties map[string]interface{}
@@ -67,13 +66,6 @@ func (c *ComputeEventDetailResponse) GetCompletedAt() *time.Time {
 		return nil
 	}
 	return c.CompletedAt
-}
-
-func (c *ComputeEventDetailResponse) GetAgentID() *string {
-	if c == nil {
-		return nil
-	}
-	return c.AgentID
 }
 
 func (c *ComputeEventDetailResponse) GetResult() *ComputeEventDetailResponseResult {

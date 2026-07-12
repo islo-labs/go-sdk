@@ -87,7 +87,7 @@ func (c *Client) ListSandboxes(
 	return response, nil
 }
 
-// Create a new sandbox for the authenticated tenant.
+// Create a new sandbox VM with the requested resources.
 func (c *Client) CreateSandbox(
 	ctx context.Context,
 	request *gosdk.CreateSandboxRequest,
