@@ -6,6 +6,7 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	time "time"
 )
 
 type IncomingWebhookCreate struct {
@@ -25,6 +26,23 @@ type DeleteIncomingWebhookRequest struct {
 type GetIncomingWebhookRequest struct {
 	// Incoming webhook ID
 	WebhookID string `json:"-" url:"-"`
+}
+
+type GetWebhookDeliveryRequest struct {
+	// Incoming webhook ID
+	WebhookID string `json:"-" url:"-"`
+	// Delivery event ID
+	EventID string `json:"-" url:"-"`
+}
+
+type ListWebhookDeliveriesRequest struct {
+	// Incoming webhook ID
+	WebhookID string              `json:"-" url:"-"`
+	Limit     *int64              `json:"-" url:"limit,omitempty"`
+	Offset    *int64              `json:"-" url:"offset,omitempty"`
+	Status    *IngressEventStatus `json:"-" url:"status,omitempty"`
+	From      *time.Time          `json:"-" url:"from,omitempty"`
+	To        *time.Time          `json:"-" url:"to,omitempty"`
 }
 
 type AuthVerifier struct {
@@ -5430,6 +5448,62 @@ func (i *IncomingWebhookTargetSandboxNameFromEvent) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+type IngressActionStatus string
+
+const (
+	IngressActionStatusPending   IngressActionStatus = "pending"
+	IngressActionStatusCompleted IngressActionStatus = "completed"
+	IngressActionStatusFailed    IngressActionStatus = "failed"
+)
+
+func NewIngressActionStatusFromString(s string) (IngressActionStatus, error) {
+	switch s {
+	case "pending":
+		return IngressActionStatusPending, nil
+	case "completed":
+		return IngressActionStatusCompleted, nil
+	case "failed":
+		return IngressActionStatusFailed, nil
+	}
+	var t IngressActionStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i IngressActionStatus) Ptr() *IngressActionStatus {
+	return &i
+}
+
+type IngressEventStatus string
+
+const (
+	IngressEventStatusPending    IngressEventStatus = "pending"
+	IngressEventStatusProcessing IngressEventStatus = "processing"
+	IngressEventStatusDelivered  IngressEventStatus = "delivered"
+	IngressEventStatusFailed     IngressEventStatus = "failed"
+	IngressEventStatusExhausted  IngressEventStatus = "exhausted"
+)
+
+func NewIngressEventStatusFromString(s string) (IngressEventStatus, error) {
+	switch s {
+	case "pending":
+		return IngressEventStatusPending, nil
+	case "processing":
+		return IngressEventStatusProcessing, nil
+	case "delivered":
+		return IngressEventStatusDelivered, nil
+	case "failed":
+		return IngressEventStatusFailed, nil
+	case "exhausted":
+		return IngressEventStatusExhausted, nil
+	}
+	var t IngressEventStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i IngressEventStatus) Ptr() *IngressEventStatus {
+	return &i
+}
+
 type IPAllowlistVerifier struct {
 	Cidrs []string `json:"cidrs" url:"cidrs"`
 
@@ -8109,6 +8183,474 @@ func (v *ValueSourceRawBody) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", v)
+}
+
+type WebhookActionAttempt struct {
+	ActionIndex int                 `json:"action_index" url:"action_index"`
+	ActionKey   string              `json:"action_key" url:"action_key"`
+	CompletedAt *time.Time          `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	Error       *string             `json:"error,omitempty" url:"error,omitempty"`
+	StartedAt   time.Time           `json:"started_at" url:"started_at"`
+	Status      IngressActionStatus `json:"status" url:"status"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WebhookActionAttempt) GetActionIndex() int {
+	if w == nil {
+		return 0
+	}
+	return w.ActionIndex
+}
+
+func (w *WebhookActionAttempt) GetActionKey() string {
+	if w == nil {
+		return ""
+	}
+	return w.ActionKey
+}
+
+func (w *WebhookActionAttempt) GetCompletedAt() *time.Time {
+	if w == nil {
+		return nil
+	}
+	return w.CompletedAt
+}
+
+func (w *WebhookActionAttempt) GetError() *string {
+	if w == nil {
+		return nil
+	}
+	return w.Error
+}
+
+func (w *WebhookActionAttempt) GetStartedAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.StartedAt
+}
+
+func (w *WebhookActionAttempt) GetStatus() IngressActionStatus {
+	if w == nil {
+		return ""
+	}
+	return w.Status
+}
+
+func (w *WebhookActionAttempt) GetExtraProperties() map[string]interface{} {
+	return w.extraProperties
+}
+
+func (w *WebhookActionAttempt) UnmarshalJSON(data []byte) error {
+	type embed WebhookActionAttempt
+	var unmarshaler = struct {
+		embed
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+		StartedAt   *internal.DateTime `json:"started_at"`
+	}{
+		embed: embed(*w),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*w = WebhookActionAttempt(unmarshaler.embed)
+	w.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	w.StartedAt = unmarshaler.StartedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WebhookActionAttempt) MarshalJSON() ([]byte, error) {
+	type embed WebhookActionAttempt
+	var marshaler = struct {
+		embed
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+		StartedAt   *internal.DateTime `json:"started_at"`
+	}{
+		embed:       embed(*w),
+		CompletedAt: internal.NewOptionalDateTime(w.CompletedAt),
+		StartedAt:   internal.NewDateTime(w.StartedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (w *WebhookActionAttempt) String() string {
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+type WebhookDeliveryDetail struct {
+	ActionAttempts      []*WebhookActionAttempt `json:"action_attempts" url:"action_attempts"`
+	Attempts            int                     `json:"attempts" url:"attempts"`
+	BodyPreview         *string                 `json:"body_preview,omitempty" url:"body_preview,omitempty"`
+	BodyTruncated       bool                    `json:"body_truncated" url:"body_truncated"`
+	CompletedAt         *time.Time              `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	EventID             string                  `json:"event_id" url:"event_id"`
+	ExternalEventID     *string                 `json:"external_event_id,omitempty" url:"external_event_id,omitempty"`
+	IdempotencyKey      string                  `json:"idempotency_key" url:"idempotency_key"`
+	LastError           *string                 `json:"last_error,omitempty" url:"last_error,omitempty"`
+	Method              string                  `json:"method" url:"method"`
+	NextAttemptAt       time.Time               `json:"next_attempt_at" url:"next_attempt_at"`
+	Query               *string                 `json:"query,omitempty" url:"query,omitempty"`
+	ResolvedSandboxID   *string                 `json:"resolved_sandbox_id,omitempty" url:"resolved_sandbox_id,omitempty"`
+	ResolvedSandboxName string                  `json:"resolved_sandbox_name" url:"resolved_sandbox_name"`
+	SourceLabel         *string                 `json:"source_label,omitempty" url:"source_label,omitempty"`
+	Status              IngressEventStatus      `json:"status" url:"status"`
+	VerifiedAt          time.Time               `json:"verified_at" url:"verified_at"`
+	WebhookID           string                  `json:"webhook_id" url:"webhook_id"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WebhookDeliveryDetail) GetActionAttempts() []*WebhookActionAttempt {
+	if w == nil {
+		return nil
+	}
+	return w.ActionAttempts
+}
+
+func (w *WebhookDeliveryDetail) GetAttempts() int {
+	if w == nil {
+		return 0
+	}
+	return w.Attempts
+}
+
+func (w *WebhookDeliveryDetail) GetBodyPreview() *string {
+	if w == nil {
+		return nil
+	}
+	return w.BodyPreview
+}
+
+func (w *WebhookDeliveryDetail) GetBodyTruncated() bool {
+	if w == nil {
+		return false
+	}
+	return w.BodyTruncated
+}
+
+func (w *WebhookDeliveryDetail) GetCompletedAt() *time.Time {
+	if w == nil {
+		return nil
+	}
+	return w.CompletedAt
+}
+
+func (w *WebhookDeliveryDetail) GetEventID() string {
+	if w == nil {
+		return ""
+	}
+	return w.EventID
+}
+
+func (w *WebhookDeliveryDetail) GetExternalEventID() *string {
+	if w == nil {
+		return nil
+	}
+	return w.ExternalEventID
+}
+
+func (w *WebhookDeliveryDetail) GetIdempotencyKey() string {
+	if w == nil {
+		return ""
+	}
+	return w.IdempotencyKey
+}
+
+func (w *WebhookDeliveryDetail) GetLastError() *string {
+	if w == nil {
+		return nil
+	}
+	return w.LastError
+}
+
+func (w *WebhookDeliveryDetail) GetMethod() string {
+	if w == nil {
+		return ""
+	}
+	return w.Method
+}
+
+func (w *WebhookDeliveryDetail) GetNextAttemptAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.NextAttemptAt
+}
+
+func (w *WebhookDeliveryDetail) GetQuery() *string {
+	if w == nil {
+		return nil
+	}
+	return w.Query
+}
+
+func (w *WebhookDeliveryDetail) GetResolvedSandboxID() *string {
+	if w == nil {
+		return nil
+	}
+	return w.ResolvedSandboxID
+}
+
+func (w *WebhookDeliveryDetail) GetResolvedSandboxName() string {
+	if w == nil {
+		return ""
+	}
+	return w.ResolvedSandboxName
+}
+
+func (w *WebhookDeliveryDetail) GetSourceLabel() *string {
+	if w == nil {
+		return nil
+	}
+	return w.SourceLabel
+}
+
+func (w *WebhookDeliveryDetail) GetStatus() IngressEventStatus {
+	if w == nil {
+		return ""
+	}
+	return w.Status
+}
+
+func (w *WebhookDeliveryDetail) GetVerifiedAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.VerifiedAt
+}
+
+func (w *WebhookDeliveryDetail) GetWebhookID() string {
+	if w == nil {
+		return ""
+	}
+	return w.WebhookID
+}
+
+func (w *WebhookDeliveryDetail) GetExtraProperties() map[string]interface{} {
+	return w.extraProperties
+}
+
+func (w *WebhookDeliveryDetail) UnmarshalJSON(data []byte) error {
+	type embed WebhookDeliveryDetail
+	var unmarshaler = struct {
+		embed
+		CompletedAt   *internal.DateTime `json:"completed_at,omitempty"`
+		NextAttemptAt *internal.DateTime `json:"next_attempt_at"`
+		VerifiedAt    *internal.DateTime `json:"verified_at"`
+	}{
+		embed: embed(*w),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*w = WebhookDeliveryDetail(unmarshaler.embed)
+	w.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	w.NextAttemptAt = unmarshaler.NextAttemptAt.Time()
+	w.VerifiedAt = unmarshaler.VerifiedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WebhookDeliveryDetail) MarshalJSON() ([]byte, error) {
+	type embed WebhookDeliveryDetail
+	var marshaler = struct {
+		embed
+		CompletedAt   *internal.DateTime `json:"completed_at,omitempty"`
+		NextAttemptAt *internal.DateTime `json:"next_attempt_at"`
+		VerifiedAt    *internal.DateTime `json:"verified_at"`
+	}{
+		embed:         embed(*w),
+		CompletedAt:   internal.NewOptionalDateTime(w.CompletedAt),
+		NextAttemptAt: internal.NewDateTime(w.NextAttemptAt),
+		VerifiedAt:    internal.NewDateTime(w.VerifiedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (w *WebhookDeliveryDetail) String() string {
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+type WebhookDeliverySummary struct {
+	Attempts        int                `json:"attempts" url:"attempts"`
+	CompletedAt     *time.Time         `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	EventID         string             `json:"event_id" url:"event_id"`
+	ExternalEventID *string            `json:"external_event_id,omitempty" url:"external_event_id,omitempty"`
+	IdempotencyKey  string             `json:"idempotency_key" url:"idempotency_key"`
+	LastError       *string            `json:"last_error,omitempty" url:"last_error,omitempty"`
+	Method          string             `json:"method" url:"method"`
+	NextAttemptAt   time.Time          `json:"next_attempt_at" url:"next_attempt_at"`
+	Status          IngressEventStatus `json:"status" url:"status"`
+	VerifiedAt      time.Time          `json:"verified_at" url:"verified_at"`
+	WebhookID       string             `json:"webhook_id" url:"webhook_id"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WebhookDeliverySummary) GetAttempts() int {
+	if w == nil {
+		return 0
+	}
+	return w.Attempts
+}
+
+func (w *WebhookDeliverySummary) GetCompletedAt() *time.Time {
+	if w == nil {
+		return nil
+	}
+	return w.CompletedAt
+}
+
+func (w *WebhookDeliverySummary) GetEventID() string {
+	if w == nil {
+		return ""
+	}
+	return w.EventID
+}
+
+func (w *WebhookDeliverySummary) GetExternalEventID() *string {
+	if w == nil {
+		return nil
+	}
+	return w.ExternalEventID
+}
+
+func (w *WebhookDeliverySummary) GetIdempotencyKey() string {
+	if w == nil {
+		return ""
+	}
+	return w.IdempotencyKey
+}
+
+func (w *WebhookDeliverySummary) GetLastError() *string {
+	if w == nil {
+		return nil
+	}
+	return w.LastError
+}
+
+func (w *WebhookDeliverySummary) GetMethod() string {
+	if w == nil {
+		return ""
+	}
+	return w.Method
+}
+
+func (w *WebhookDeliverySummary) GetNextAttemptAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.NextAttemptAt
+}
+
+func (w *WebhookDeliverySummary) GetStatus() IngressEventStatus {
+	if w == nil {
+		return ""
+	}
+	return w.Status
+}
+
+func (w *WebhookDeliverySummary) GetVerifiedAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.VerifiedAt
+}
+
+func (w *WebhookDeliverySummary) GetWebhookID() string {
+	if w == nil {
+		return ""
+	}
+	return w.WebhookID
+}
+
+func (w *WebhookDeliverySummary) GetExtraProperties() map[string]interface{} {
+	return w.extraProperties
+}
+
+func (w *WebhookDeliverySummary) UnmarshalJSON(data []byte) error {
+	type embed WebhookDeliverySummary
+	var unmarshaler = struct {
+		embed
+		CompletedAt   *internal.DateTime `json:"completed_at,omitempty"`
+		NextAttemptAt *internal.DateTime `json:"next_attempt_at"`
+		VerifiedAt    *internal.DateTime `json:"verified_at"`
+	}{
+		embed: embed(*w),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*w = WebhookDeliverySummary(unmarshaler.embed)
+	w.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	w.NextAttemptAt = unmarshaler.NextAttemptAt.Time()
+	w.VerifiedAt = unmarshaler.VerifiedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WebhookDeliverySummary) MarshalJSON() ([]byte, error) {
+	type embed WebhookDeliverySummary
+	var marshaler = struct {
+		embed
+		CompletedAt   *internal.DateTime `json:"completed_at,omitempty"`
+		NextAttemptAt *internal.DateTime `json:"next_attempt_at"`
+		VerifiedAt    *internal.DateTime `json:"verified_at"`
+	}{
+		embed:         embed(*w),
+		CompletedAt:   internal.NewOptionalDateTime(w.CompletedAt),
+		NextAttemptAt: internal.NewDateTime(w.NextAttemptAt),
+		VerifiedAt:    internal.NewDateTime(w.VerifiedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (w *WebhookDeliverySummary) String() string {
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
 }
 
 type IncomingWebhookUpdate struct {
