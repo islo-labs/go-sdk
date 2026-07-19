@@ -3,11 +3,13 @@
 package sandboxes
 
 import (
+	bytes "bytes"
 	context "context"
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
+	io "io"
 	http "net/http"
 	os "os"
 )
@@ -306,10 +308,61 @@ func (c *Client) DeleteSandbox(
 	return nil
 }
 
+// Server-sent events for live sandbox creation progress.
+func (c *Client) SandboxCreationEvents(
+	ctx context.Context,
+	request *gosdk.SandboxCreationEventsRequest,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://ca.compute.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/sandboxes/%v/events",
+		request.SandboxName,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	errorCodes := internal.ErrorCodes{
+		401: func(apiError *core.APIError) error {
+			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		404: func(apiError *core.APIError) error {
+			return &gosdk.NotFoundError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Start a command in a sandbox and return an exec ID for polling results.
 func (c *Client) ExecInSandbox(
 	ctx context.Context,
-	request *gosdk.ExecRequest,
+	request *gosdk.ExecInSandboxRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.ExecResponse, error) {
 	options := core.NewRequestOptions(opts...)
@@ -364,6 +417,64 @@ func (c *Client) ExecInSandbox(
 		return nil, err
 	}
 	return response, nil
+}
+
+// Stream command stdout, stderr, and exit events as Server-Sent Events.
+func (c *Client) ExecInSandboxStream(
+	ctx context.Context,
+	request *gosdk.ExecInSandboxStreamRequest,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://ca.compute.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/sandboxes/%v/exec/stream",
+		request.SandboxName,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+	errorCodes := internal.ErrorCodes{
+		400: func(apiError *core.APIError) error {
+			return &gosdk.BadRequestError{
+				APIError: apiError,
+			}
+		},
+		401: func(apiError *core.APIError) error {
+			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		404: func(apiError *core.APIError) error {
+			return &gosdk.NotFoundError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Return the captured result for a previously started sandbox command.
@@ -430,7 +541,7 @@ func (c *Client) DownloadFile(
 	ctx context.Context,
 	request *gosdk.DownloadFileRequest,
 	opts ...option.RequestOption,
-) error {
+) (io.Reader, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -443,7 +554,7 @@ func (c *Client) DownloadFile(
 	)
 	queryParams, err := internal.QueryValues(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(queryParams) > 0 {
 		endpointURL += "?" + queryParams.Encode()
@@ -465,6 +576,7 @@ func (c *Client) DownloadFile(
 		},
 	}
 
+	response := bytes.NewBuffer(nil)
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -475,12 +587,13 @@ func (c *Client) DownloadFile(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        response,
 			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
 // Upload a file to a path inside a sandbox.
@@ -522,6 +635,14 @@ func (c *Client) UploadFile(
 			}
 		},
 	}
+	writer := internal.NewMultipartWriter()
+	if err := writer.WriteFile("file", request.File); err != nil {
+		return nil, err
+	}
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
+	headers.Set("Content-Type", writer.ContentType())
 
 	var response *gosdk.FileUploadStatusResponse
 	if err := c.caller.Call(
@@ -534,6 +655,7 @@ func (c *Client) UploadFile(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Request:         writer.Buffer(),
 			Response:        &response,
 			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
@@ -640,6 +762,14 @@ func (c *Client) UploadArchive(
 			}
 		},
 	}
+	writer := internal.NewMultipartWriter()
+	if err := writer.WriteFile("file", request.File); err != nil {
+		return nil, err
+	}
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
+	headers.Set("Content-Type", writer.ContentType())
 
 	var response *gosdk.FileUploadStatusResponse
 	if err := c.caller.Call(
@@ -652,6 +782,7 @@ func (c *Client) UploadArchive(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Request:         writer.Buffer(),
 			Response:        &response,
 			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},

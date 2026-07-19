@@ -6,6 +6,7 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	io "io"
 )
 
 type CreateSandboxRequest struct {
@@ -57,19 +58,42 @@ type DownloadFileRequest struct {
 	Path string `json:"-" url:"path"`
 }
 
-type ExecRequest struct {
+type ExecInSandboxRequest struct {
 	// Sandbox name
-	SandboxName string `json:"-" url:"-"`
-	// Command to execute.
-	Command []string `json:"command,omitempty" url:"-"`
-	// Environment variables to inject into this execution session.
-	Env map[string]*string `json:"env,omitempty" url:"-"`
-	// Optional client-side timeout hint. Currently accepted for API compatibility.
-	TimeoutSecs *int64 `json:"timeout_secs,omitempty" url:"-"`
-	// User to run the command as (e.g., "islo"). If not provided, uses image default.
-	User *string `json:"user,omitempty" url:"-"`
-	// Working directory for command execution inside the sandbox.
-	Workdir *string `json:"workdir,omitempty" url:"-"`
+	SandboxName string       `json:"-" url:"-"`
+	Body        *ExecRequest `json:"-" url:"-"`
+}
+
+func (e *ExecInSandboxRequest) UnmarshalJSON(data []byte) error {
+	body := new(ExecRequest)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	e.Body = body
+	return nil
+}
+
+func (e *ExecInSandboxRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.Body)
+}
+
+type ExecInSandboxStreamRequest struct {
+	// Sandbox name
+	SandboxName string       `json:"-" url:"-"`
+	Body        *ExecRequest `json:"-" url:"-"`
+}
+
+func (e *ExecInSandboxStreamRequest) UnmarshalJSON(data []byte) error {
+	body := new(ExecRequest)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	e.Body = body
+	return nil
+}
+
+func (e *ExecInSandboxStreamRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.Body)
 }
 
 type GetExecResultRequest struct {
@@ -120,6 +144,11 @@ type PauseSandboxRequest struct {
 }
 
 type ResumeSandboxRequest struct {
+	// Sandbox name
+	SandboxName string `json:"-" url:"-"`
+}
+
+type SandboxCreationEventsRequest struct {
 	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 }
@@ -181,6 +210,90 @@ func (c *CreateSessionResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+// Request to execute a command in a sandbox.
+type ExecRequest struct {
+	// Command to execute.
+	Command []string `json:"command" url:"command"`
+	// Environment variables to inject into this execution session.
+	Env map[string]*string `json:"env,omitempty" url:"env,omitempty"`
+	// Optional client-side timeout hint. Currently accepted for API compatibility.
+	TimeoutSecs *int64 `json:"timeout_secs,omitempty" url:"timeout_secs,omitempty"`
+	// User to run the command as (e.g., "islo"). If not provided, uses image default.
+	User *string `json:"user,omitempty" url:"user,omitempty"`
+	// Working directory for command execution inside the sandbox.
+	Workdir *string `json:"workdir,omitempty" url:"workdir,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *ExecRequest) GetCommand() []string {
+	if e == nil {
+		return nil
+	}
+	return e.Command
+}
+
+func (e *ExecRequest) GetEnv() map[string]*string {
+	if e == nil {
+		return nil
+	}
+	return e.Env
+}
+
+func (e *ExecRequest) GetTimeoutSecs() *int64 {
+	if e == nil {
+		return nil
+	}
+	return e.TimeoutSecs
+}
+
+func (e *ExecRequest) GetUser() *string {
+	if e == nil {
+		return nil
+	}
+	return e.User
+}
+
+func (e *ExecRequest) GetWorkdir() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Workdir
+}
+
+func (e *ExecRequest) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *ExecRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler ExecRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = ExecRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *ExecRequest) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
 }
 
 // Command execution started response.
@@ -860,12 +973,14 @@ type UploadArchiveRequest struct {
 	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 	// Destination directory inside the sandbox
-	Path string `json:"-" url:"path"`
+	Path string    `json:"-" url:"path"`
+	File io.Reader `json:"-" url:"-"`
 }
 
 type UploadFileRequest struct {
 	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 	// Destination path inside the sandbox
-	Path string `json:"-" url:"path"`
+	Path string    `json:"-" url:"path"`
+	File io.Reader `json:"-" url:"-"`
 }

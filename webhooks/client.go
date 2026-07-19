@@ -294,3 +294,117 @@ func (c *Client) UpdateIncomingWebhook(
 	}
 	return response, nil
 }
+
+// List delivery events for an incoming webhook, with optional status and date filters.
+func (c *Client) ListWebhookDeliveries(
+	ctx context.Context,
+	request *gosdk.ListWebhookDeliveriesRequest,
+	opts ...option.RequestOption,
+) ([]*gosdk.WebhookDeliverySummary, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://ca.compute.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/webhooks/incoming/%v/deliveries",
+		request.WebhookID,
+	)
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	errorCodes := internal.ErrorCodes{
+		401: func(apiError *core.APIError) error {
+			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		404: func(apiError *core.APIError) error {
+			return &gosdk.NotFoundError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	var response []*gosdk.WebhookDeliverySummary
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// Get full detail for a single webhook delivery event, including a truncated body preview and action attempts.
+func (c *Client) GetWebhookDelivery(
+	ctx context.Context,
+	request *gosdk.GetWebhookDeliveryRequest,
+	opts ...option.RequestOption,
+) (*gosdk.WebhookDeliveryDetail, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://ca.compute.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/webhooks/incoming/%v/deliveries/%v",
+		request.WebhookID,
+		request.EventID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	errorCodes := internal.ErrorCodes{
+		401: func(apiError *core.APIError) error {
+			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		404: func(apiError *core.APIError) error {
+			return &gosdk.NotFoundError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	var response *gosdk.WebhookDeliveryDetail
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}

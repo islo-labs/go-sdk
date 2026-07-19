@@ -791,6 +791,55 @@ func (l *LifecyclePolicy) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+// Multipart form body for sandbox file and archive uploads.
+//
+// Handlers read the `file` field; this struct exists for OpenAPI/SDK codegen only.
+type SandboxFileUploadForm struct {
+	File string `json:"file" url:"file"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SandboxFileUploadForm) GetFile() string {
+	if s == nil {
+		return ""
+	}
+	return s.File
+}
+
+func (s *SandboxFileUploadForm) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SandboxFileUploadForm) UnmarshalJSON(data []byte) error {
+	type unmarshaler SandboxFileUploadForm
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SandboxFileUploadForm(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SandboxFileUploadForm) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
 // Intent-based sandbox init selection.
 type SandboxInit struct {
 	Type    string
