@@ -10,22 +10,24 @@ import (
 )
 
 type CreateSandboxRequest struct {
-	CacheKey        *string            `json:"cache_key,omitempty" url:"-"`
-	DiskGb          *int               `json:"disk_gb,omitempty" url:"-"`
-	Env             map[string]*string `json:"env,omitempty" url:"-"`
-	GatewayProfile  *string            `json:"gateway_profile,omitempty" url:"-"`
-	Image           *string            `json:"image,omitempty" url:"-"`
-	Init            *SandboxInit       `json:"init,omitempty" url:"-"`
-	InternetEnabled *bool              `json:"internet_enabled,omitempty" url:"-"`
-	Lifecycle       *LifecyclePolicy   `json:"lifecycle,omitempty" url:"-"`
-	MemoryMb        *int               `json:"memory_mb,omitempty" url:"-"`
-	Name            *string            `json:"name,omitempty" url:"-"`
-	RequestID       *string            `json:"request_id,omitempty" url:"-"`
-	SetupScripts    []*SetupScript     `json:"setup_scripts,omitempty" url:"-"`
-	SnapshotName    *string            `json:"snapshot_name,omitempty" url:"-"`
-	Sources         []*GitSource       `json:"sources,omitempty" url:"-"`
-	Vcpus           *int               `json:"vcpus,omitempty" url:"-"`
-	Workdir         *string            `json:"workdir,omitempty" url:"-"`
+	CacheKey *string            `json:"cache_key,omitempty" url:"-"`
+	DiskGb   *int               `json:"disk_gb,omitempty" url:"-"`
+	Env      map[string]*string `json:"env,omitempty" url:"-"`
+	// Environment for sandbox env and environment-owned gateway injection.
+	Environment     *string          `json:"environment,omitempty" url:"-"`
+	GatewayProfile  *string          `json:"gateway_profile,omitempty" url:"-"`
+	Image           *string          `json:"image,omitempty" url:"-"`
+	Init            *SandboxInit     `json:"init,omitempty" url:"-"`
+	InternetEnabled *bool            `json:"internet_enabled,omitempty" url:"-"`
+	Lifecycle       *LifecyclePolicy `json:"lifecycle,omitempty" url:"-"`
+	MemoryMb        *int             `json:"memory_mb,omitempty" url:"-"`
+	Name            *string          `json:"name,omitempty" url:"-"`
+	RequestID       *string          `json:"request_id,omitempty" url:"-"`
+	SetupScripts    []*SetupScript   `json:"setup_scripts,omitempty" url:"-"`
+	SnapshotName    *string          `json:"snapshot_name,omitempty" url:"-"`
+	Sources         []*GitSource     `json:"sources,omitempty" url:"-"`
+	Vcpus           *int             `json:"vcpus,omitempty" url:"-"`
+	Workdir         *string          `json:"workdir,omitempty" url:"-"`
 }
 
 type CreateSessionRequest struct {

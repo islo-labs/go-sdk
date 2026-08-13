@@ -12,6 +12,7 @@ type ClientInferenceAPI string
 
 const (
 	ClientInferenceAPIOpenaiChatCompletions ClientInferenceAPI = "openai_chat_completions"
+	ClientInferenceAPIOpenaiResponses       ClientInferenceAPI = "openai_responses"
 	ClientInferenceAPIAnthropicMessages     ClientInferenceAPI = "anthropic_messages"
 )
 
@@ -19,6 +20,8 @@ func NewClientInferenceAPIFromString(s string) (ClientInferenceAPI, error) {
 	switch s {
 	case "openai_chat_completions":
 		return ClientInferenceAPIOpenaiChatCompletions, nil
+	case "openai_responses":
+		return ClientInferenceAPIOpenaiResponses, nil
 	case "anthropic_messages":
 		return ClientInferenceAPIAnthropicMessages, nil
 	}
@@ -31,16 +34,17 @@ func (c ClientInferenceAPI) Ptr() *ClientInferenceAPI {
 }
 
 type InferenceModelCatalogEntry struct {
-	ID                          string               `json:"id" url:"id"`
-	UpstreamProvider            *InferenceProvider   `json:"upstream_provider,omitempty" url:"upstream_provider,omitempty"`
-	UpstreamModelID             string               `json:"upstream_model_id" url:"upstream_model_id"`
-	DisplayName                 *string              `json:"display_name,omitempty" url:"display_name,omitempty"`
-	Aliases                     []string             `json:"aliases,omitempty" url:"aliases,omitempty"`
-	ClientAPIs                  []ClientInferenceAPI `json:"client_apis,omitempty" url:"client_apis,omitempty"`
-	Enabled                     *bool                `json:"enabled,omitempty" url:"enabled,omitempty"`
-	InputCentsPer1MTokens       *string              `json:"input_cents_per_1m_tokens,omitempty" url:"input_cents_per_1m_tokens,omitempty"`
-	CachedInputCentsPer1MTokens *string              `json:"cached_input_cents_per_1m_tokens,omitempty" url:"cached_input_cents_per_1m_tokens,omitempty"`
-	OutputCentsPer1MTokens      *string              `json:"output_cents_per_1m_tokens,omitempty" url:"output_cents_per_1m_tokens,omitempty"`
+	ID                              string               `json:"id" url:"id"`
+	UpstreamProvider                *InferenceProvider   `json:"upstream_provider,omitempty" url:"upstream_provider,omitempty"`
+	UpstreamModelID                 string               `json:"upstream_model_id" url:"upstream_model_id"`
+	DisplayName                     *string              `json:"display_name,omitempty" url:"display_name,omitempty"`
+	Aliases                         []string             `json:"aliases,omitempty" url:"aliases,omitempty"`
+	ClientAPIs                      []ClientInferenceAPI `json:"client_apis,omitempty" url:"client_apis,omitempty"`
+	Enabled                         *bool                `json:"enabled,omitempty" url:"enabled,omitempty"`
+	InputCentsPer1MTokens           *string              `json:"input_cents_per_1m_tokens,omitempty" url:"input_cents_per_1m_tokens,omitempty"`
+	CachedInputCentsPer1MTokens     *string              `json:"cached_input_cents_per_1m_tokens,omitempty" url:"cached_input_cents_per_1m_tokens,omitempty"`
+	CacheWriteInputCentsPer1MTokens *string              `json:"cache_write_input_cents_per_1m_tokens,omitempty" url:"cache_write_input_cents_per_1m_tokens,omitempty"`
+	OutputCentsPer1MTokens          *string              `json:"output_cents_per_1m_tokens,omitempty" url:"output_cents_per_1m_tokens,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -107,6 +111,13 @@ func (i *InferenceModelCatalogEntry) GetCachedInputCentsPer1MTokens() *string {
 		return nil
 	}
 	return i.CachedInputCentsPer1MTokens
+}
+
+func (i *InferenceModelCatalogEntry) GetCacheWriteInputCentsPer1MTokens() *string {
+	if i == nil {
+		return nil
+	}
+	return i.CacheWriteInputCentsPer1MTokens
 }
 
 func (i *InferenceModelCatalogEntry) GetOutputCentsPer1MTokens() *string {
@@ -197,13 +208,19 @@ func (i *InferenceModelsResponse) String() string {
 type InferenceProvider string
 
 const (
-	InferenceProviderFireworks InferenceProvider = "fireworks"
+	InferenceProviderFireworks  InferenceProvider = "fireworks"
+	InferenceProviderThesean    InferenceProvider = "thesean"
+	InferenceProviderDatabricks InferenceProvider = "databricks"
 )
 
 func NewInferenceProviderFromString(s string) (InferenceProvider, error) {
 	switch s {
 	case "fireworks":
 		return InferenceProviderFireworks, nil
+	case "thesean":
+		return InferenceProviderThesean, nil
+	case "databricks":
+		return InferenceProviderDatabricks, nil
 	}
 	var t InferenceProvider
 	return "", fmt.Errorf("%s is not a valid %T", s, t)

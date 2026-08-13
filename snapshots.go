@@ -100,14 +100,15 @@ func (p *PaginatedSnapshotResponse) String() string {
 }
 
 type SnapshotResponse struct {
-	ChecksumSha256 *string    `json:"checksum_sha256,omitempty" url:"checksum_sha256,omitempty"`
-	CreatedAt      *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
-	CreatedBy      *string    `json:"created_by,omitempty" url:"created_by,omitempty"`
-	ID             string     `json:"id" url:"id"`
-	Name           string     `json:"name" url:"name"`
-	SandboxID      *string    `json:"sandbox_id,omitempty" url:"sandbox_id,omitempty"`
-	SizeBytes      *int64     `json:"size_bytes,omitempty" url:"size_bytes,omitempty"`
-	Status         string     `json:"status" url:"status"`
+	ChecksumSha256  *string    `json:"checksum_sha256,omitempty" url:"checksum_sha256,omitempty"`
+	CreatedAt       *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
+	CreatedBy       *string    `json:"created_by,omitempty" url:"created_by,omitempty"`
+	CreatedByEntity *string    `json:"created_by_entity,omitempty" url:"created_by_entity,omitempty"`
+	ID              string     `json:"id" url:"id"`
+	Name            string     `json:"name" url:"name"`
+	SandboxID       *string    `json:"sandbox_id,omitempty" url:"sandbox_id,omitempty"`
+	SizeBytes       *int64     `json:"size_bytes,omitempty" url:"size_bytes,omitempty"`
+	Status          string     `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -132,6 +133,13 @@ func (s *SnapshotResponse) GetCreatedBy() *string {
 		return nil
 	}
 	return s.CreatedBy
+}
+
+func (s *SnapshotResponse) GetCreatedByEntity() *string {
+	if s == nil {
+		return nil
+	}
+	return s.CreatedByEntity
 }
 
 func (s *SnapshotResponse) GetID() string {

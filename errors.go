@@ -79,7 +79,7 @@ func (c *ConflictError) Unwrap() error {
 	return c.APIError
 }
 
-// Tenant suspended
+// Forbidden
 type ForbiddenError struct {
 	*core.APIError
 	Body *ErrorResponse

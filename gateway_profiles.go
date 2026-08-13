@@ -22,15 +22,15 @@ type GatewayProfileCreate struct {
 
 type GatewayRuleCreate struct {
 	ProfileID     string                          `json:"-" url:"-"`
-	Priority      *int                            `json:"priority,omitempty" url:"-"`
 	HostPattern   string                          `json:"host_pattern" url:"-"`
 	PathPattern   *string                         `json:"path_pattern,omitempty" url:"-"`
 	Methods       []string                        `json:"methods,omitempty" url:"-"`
-	Action        *GatewayAction                  `json:"action,omitempty" url:"-"`
 	RateLimitRpm  *int                            `json:"rate_limit_rpm,omitempty" url:"-"`
-	ProviderKey   *string                         `json:"provider_key,omitempty" url:"-"`
 	AuthStrategy  *AuthStrategySchema             `json:"auth_strategy,omitempty" url:"-"`
 	ContentFilter *GatewayRuleCreateContentFilter `json:"content_filter,omitempty" url:"-"`
+	Priority      *int                            `json:"priority,omitempty" url:"-"`
+	Action        *GatewayAction                  `json:"action,omitempty" url:"-"`
+	ProviderKey   *string                         `json:"provider_key,omitempty" url:"-"`
 }
 
 type DeleteGatewayProfileRequest struct {
@@ -86,101 +86,6 @@ func (a *AllIntegrationsPolicy) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
-}
-
-type AuthStrategySchema struct {
-	Mode     AuthStrategySchemaMode `json:"mode" url:"mode"`
-	Username *string                `json:"username,omitempty" url:"username,omitempty"`
-	Name     *string                `json:"name,omitempty" url:"name,omitempty"`
-	Format   *string                `json:"format,omitempty" url:"format,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AuthStrategySchema) GetMode() AuthStrategySchemaMode {
-	if a == nil {
-		return ""
-	}
-	return a.Mode
-}
-
-func (a *AuthStrategySchema) GetUsername() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Username
-}
-
-func (a *AuthStrategySchema) GetName() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Name
-}
-
-func (a *AuthStrategySchema) GetFormat() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Format
-}
-
-func (a *AuthStrategySchema) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AuthStrategySchema) UnmarshalJSON(data []byte) error {
-	type unmarshaler AuthStrategySchema
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AuthStrategySchema(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AuthStrategySchema) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AuthStrategySchemaMode string
-
-const (
-	AuthStrategySchemaModeBearer AuthStrategySchemaMode = "bearer"
-	AuthStrategySchemaModeBasic  AuthStrategySchemaMode = "basic"
-	AuthStrategySchemaModeHeader AuthStrategySchemaMode = "header"
-)
-
-func NewAuthStrategySchemaModeFromString(s string) (AuthStrategySchemaMode, error) {
-	switch s {
-	case "bearer":
-		return AuthStrategySchemaModeBearer, nil
-	case "basic":
-		return AuthStrategySchemaModeBasic, nil
-	case "header":
-		return AuthStrategySchemaModeHeader, nil
-	}
-	var t AuthStrategySchemaMode
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AuthStrategySchemaMode) Ptr() *AuthStrategySchemaMode {
-	return &a
 }
 
 type CloudRoleRef struct {

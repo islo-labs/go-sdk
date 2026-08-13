@@ -87,7 +87,7 @@ func (c *Client) ListSnapshots(
 	return response, nil
 }
 
-// Create a snapshot from a running sandbox.
+// Create a snapshot from a running sandbox. By default, waits for capture and returns a ready snapshot. Send `Prefer: respond-async` to return immediately with a saving snapshot.
 func (c *Client) CreateSnapshot(
 	ctx context.Context,
 	request *gosdk.SnapshotCreate,
@@ -230,6 +230,11 @@ func (c *Client) DeleteSnapshot(
 		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
+				APIError: apiError,
+			}
+		},
+		409: func(apiError *core.APIError) error {
+			return &gosdk.ConflictError{
 				APIError: apiError,
 			}
 		},
