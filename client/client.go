@@ -8,6 +8,7 @@ import (
 	containerregistries "github.com/islo-labs/go-sdk/containerregistries"
 	core "github.com/islo-labs/go-sdk/core"
 	credits "github.com/islo-labs/go-sdk/credits"
+	environments "github.com/islo-labs/go-sdk/environments"
 	gatewayprofiles "github.com/islo-labs/go-sdk/gatewayprofiles"
 	inference "github.com/islo-labs/go-sdk/inference"
 	integrations "github.com/islo-labs/go-sdk/integrations"
@@ -35,6 +36,7 @@ type Client struct {
 	Credits             *credits.Client
 	Integrations        *integrations.Client
 	GatewayProfiles     *gatewayprofiles.Client
+	Environments        *environments.Client
 	CloudRoles          *cloudroles.Client
 	Inference           *inference.Client
 	ContainerRegistries *containerregistries.Client
@@ -66,6 +68,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 		Credits:             credits.NewClient(opts...),
 		Integrations:        integrations.NewClient(opts...),
 		GatewayProfiles:     gatewayprofiles.NewClient(opts...),
+		Environments:        environments.NewClient(opts...),
 		CloudRoles:          cloudroles.NewClient(opts...),
 		Inference:           inference.NewClient(opts...),
 		ContainerRegistries: containerregistries.NewClient(opts...),

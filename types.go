@@ -9,6 +9,101 @@ import (
 	time "time"
 )
 
+type AuthStrategySchema struct {
+	Mode     AuthStrategySchemaMode `json:"mode" url:"mode"`
+	Username *string                `json:"username,omitempty" url:"username,omitempty"`
+	Name     *string                `json:"name,omitempty" url:"name,omitempty"`
+	Format   *string                `json:"format,omitempty" url:"format,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AuthStrategySchema) GetMode() AuthStrategySchemaMode {
+	if a == nil {
+		return ""
+	}
+	return a.Mode
+}
+
+func (a *AuthStrategySchema) GetUsername() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Username
+}
+
+func (a *AuthStrategySchema) GetName() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Name
+}
+
+func (a *AuthStrategySchema) GetFormat() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Format
+}
+
+func (a *AuthStrategySchema) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AuthStrategySchema) UnmarshalJSON(data []byte) error {
+	type unmarshaler AuthStrategySchema
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AuthStrategySchema(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AuthStrategySchema) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AuthStrategySchemaMode string
+
+const (
+	AuthStrategySchemaModeBearer AuthStrategySchemaMode = "bearer"
+	AuthStrategySchemaModeBasic  AuthStrategySchemaMode = "basic"
+	AuthStrategySchemaModeHeader AuthStrategySchemaMode = "header"
+)
+
+func NewAuthStrategySchemaModeFromString(s string) (AuthStrategySchemaMode, error) {
+	switch s {
+	case "bearer":
+		return AuthStrategySchemaModeBearer, nil
+	case "basic":
+		return AuthStrategySchemaModeBasic, nil
+	case "header":
+		return AuthStrategySchemaModeHeader, nil
+	}
+	var t AuthStrategySchemaMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthStrategySchemaMode) Ptr() *AuthStrategySchemaMode {
+	return &a
+}
+
 type AutoResumePolicy string
 
 const (
@@ -34,28 +129,29 @@ func (a AutoResumePolicy) Ptr() *AutoResumePolicy {
 type ErrorCode string
 
 const (
-	ErrorCodeAuthRequired         ErrorCode = "AUTH_REQUIRED"
-	ErrorCodeInvalidRequest       ErrorCode = "INVALID_REQUEST"
-	ErrorCodeNotFound             ErrorCode = "NOT_FOUND"
-	ErrorCodeValidationError      ErrorCode = "VALIDATION_ERROR"
-	ErrorCodeSandboxNotFound      ErrorCode = "SANDBOX_NOT_FOUND"
-	ErrorCodeSandboxAlreadyExists ErrorCode = "SANDBOX_ALREADY_EXISTS"
-	ErrorCodeSandboxInvalidState  ErrorCode = "SANDBOX_INVALID_STATE"
-	ErrorCodeResourceNotFound     ErrorCode = "RESOURCE_NOT_FOUND"
-	ErrorCodeFileNotFound         ErrorCode = "FILE_NOT_FOUND"
-	ErrorCodeCommandNotFound      ErrorCode = "COMMAND_NOT_FOUND"
-	ErrorCodeExecFailed           ErrorCode = "EXEC_FAILED"
-	ErrorCodeFileOperationError   ErrorCode = "FILE_OPERATION_ERROR"
-	ErrorCodeResourceUnavailable  ErrorCode = "RESOURCE_UNAVAILABLE"
-	ErrorCodeAccessDenied         ErrorCode = "ACCESS_DENIED"
-	ErrorCodeCacheConflict        ErrorCode = "CACHE_CONFLICT"
-	ErrorCodeBillingNotAllowed    ErrorCode = "BILLING_NOT_ALLOWED"
-	ErrorCodeTenantSuspended      ErrorCode = "TENANT_SUSPENDED"
-	ErrorCodeRateLimited          ErrorCode = "RATE_LIMITED"
-	ErrorCodeTimeout              ErrorCode = "TIMEOUT"
-	ErrorCodeGone                 ErrorCode = "GONE"
-	ErrorCodeBadGateway           ErrorCode = "BAD_GATEWAY"
-	ErrorCodeInternalError        ErrorCode = "INTERNAL_ERROR"
+	ErrorCodeAuthRequired              ErrorCode = "AUTH_REQUIRED"
+	ErrorCodeInvalidRequest            ErrorCode = "INVALID_REQUEST"
+	ErrorCodeNotFound                  ErrorCode = "NOT_FOUND"
+	ErrorCodeValidationError           ErrorCode = "VALIDATION_ERROR"
+	ErrorCodeSandboxNotFound           ErrorCode = "SANDBOX_NOT_FOUND"
+	ErrorCodeSandboxAlreadyExists      ErrorCode = "SANDBOX_ALREADY_EXISTS"
+	ErrorCodeSandboxInvalidState       ErrorCode = "SANDBOX_INVALID_STATE"
+	ErrorCodeSandboxProvisioningFailed ErrorCode = "SANDBOX_PROVISIONING_FAILED"
+	ErrorCodeResourceNotFound          ErrorCode = "RESOURCE_NOT_FOUND"
+	ErrorCodeFileNotFound              ErrorCode = "FILE_NOT_FOUND"
+	ErrorCodeCommandNotFound           ErrorCode = "COMMAND_NOT_FOUND"
+	ErrorCodeExecFailed                ErrorCode = "EXEC_FAILED"
+	ErrorCodeFileOperationError        ErrorCode = "FILE_OPERATION_ERROR"
+	ErrorCodeResourceUnavailable       ErrorCode = "RESOURCE_UNAVAILABLE"
+	ErrorCodeAccessDenied              ErrorCode = "ACCESS_DENIED"
+	ErrorCodeCacheConflict             ErrorCode = "CACHE_CONFLICT"
+	ErrorCodeBillingNotAllowed         ErrorCode = "BILLING_NOT_ALLOWED"
+	ErrorCodeTenantSuspended           ErrorCode = "TENANT_SUSPENDED"
+	ErrorCodeRateLimited               ErrorCode = "RATE_LIMITED"
+	ErrorCodeTimeout                   ErrorCode = "TIMEOUT"
+	ErrorCodeGone                      ErrorCode = "GONE"
+	ErrorCodeBadGateway                ErrorCode = "BAD_GATEWAY"
+	ErrorCodeInternalError             ErrorCode = "INTERNAL_ERROR"
 )
 
 func NewErrorCodeFromString(s string) (ErrorCode, error) {
@@ -74,6 +170,8 @@ func NewErrorCodeFromString(s string) (ErrorCode, error) {
 		return ErrorCodeSandboxAlreadyExists, nil
 	case "SANDBOX_INVALID_STATE":
 		return ErrorCodeSandboxInvalidState, nil
+	case "SANDBOX_PROVISIONING_FAILED":
+		return ErrorCodeSandboxProvisioningFailed, nil
 	case "RESOURCE_NOT_FOUND":
 		return ErrorCodeResourceNotFound, nil
 	case "FILE_NOT_FOUND":
@@ -406,20 +504,21 @@ func (i IsloErrorCode) Ptr() *IsloErrorCode {
 }
 
 type JobRunResponse struct {
-	ID           string                     `json:"id" url:"id"`
-	JobName      string                     `json:"job_name" url:"job_name"`
-	JobVersionID string                     `json:"job_version_id" url:"job_version_id"`
-	Status       string                     `json:"status" url:"status"`
-	Region       *string                    `json:"region,omitempty" url:"region,omitempty"`
-	RunParams    map[string]interface{}     `json:"run_params" url:"run_params"`
-	StepTimeline []*JobRunStepTimelineEntry `json:"step_timeline" url:"step_timeline"`
-	ArtifactRefs []map[string]interface{}   `json:"artifact_refs" url:"artifact_refs"`
-	StartedAt    *time.Time                 `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt  *time.Time                 `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	ErrorMessage *string                    `json:"error_message,omitempty" url:"error_message,omitempty"`
-	ErrorCode    *string                    `json:"error_code,omitempty" url:"error_code,omitempty"`
-	ErrorDetails map[string]interface{}     `json:"error_details,omitempty" url:"error_details,omitempty"`
-	CreatedAt    time.Time                  `json:"created_at" url:"created_at"`
+	ID            string                     `json:"id" url:"id"`
+	JobName       string                     `json:"job_name" url:"job_name"`
+	JobVersionID  string                     `json:"job_version_id" url:"job_version_id"`
+	Status        string                     `json:"status" url:"status"`
+	Region        *string                    `json:"region,omitempty" url:"region,omitempty"`
+	RunParams     map[string]interface{}     `json:"run_params" url:"run_params"`
+	ResultPayload map[string]interface{}     `json:"result_payload,omitempty" url:"result_payload,omitempty"`
+	StepTimeline  []*JobRunStepTimelineEntry `json:"step_timeline" url:"step_timeline"`
+	ArtifactRefs  []map[string]interface{}   `json:"artifact_refs" url:"artifact_refs"`
+	StartedAt     *time.Time                 `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt   *time.Time                 `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ErrorMessage  *string                    `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorCode     *string                    `json:"error_code,omitempty" url:"error_code,omitempty"`
+	ErrorDetails  map[string]interface{}     `json:"error_details,omitempty" url:"error_details,omitempty"`
+	CreatedAt     time.Time                  `json:"created_at" url:"created_at"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -465,6 +564,13 @@ func (j *JobRunResponse) GetRunParams() map[string]interface{} {
 		return nil
 	}
 	return j.RunParams
+}
+
+func (j *JobRunResponse) GetResultPayload() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.ResultPayload
 }
 
 func (j *JobRunResponse) GetStepTimeline() []*JobRunStepTimelineEntry {
@@ -586,6 +692,8 @@ type JobRunStepTimelineEntry struct {
 	Action           string                 `json:"action" url:"action"`
 	Status           string                 `json:"status" url:"status"`
 	TaskName         string                 `json:"task_name" url:"task_name"`
+	SandboxName      *string                `json:"sandbox_name,omitempty" url:"sandbox_name,omitempty"`
+	AgentSessionID   *string                `json:"agent_session_id,omitempty" url:"agent_session_id,omitempty"`
 	StartedAt        *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
 	CompletedAt      *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
 	ErrorMessage     *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
@@ -623,6 +731,20 @@ func (j *JobRunStepTimelineEntry) GetTaskName() string {
 		return ""
 	}
 	return j.TaskName
+}
+
+func (j *JobRunStepTimelineEntry) GetSandboxName() *string {
+	if j == nil {
+		return nil
+	}
+	return j.SandboxName
+}
+
+func (j *JobRunStepTimelineEntry) GetAgentSessionID() *string {
+	if j == nil {
+		return nil
+	}
+	return j.AgentSessionID
 }
 
 func (j *JobRunStepTimelineEntry) GetStartedAt() *time.Time {

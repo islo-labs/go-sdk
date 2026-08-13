@@ -106,6 +106,11 @@ func (c *Client) CreateGatewayProfile(
 				APIError: apiError,
 			}
 		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
+				APIError: apiError,
+			}
+		},
 		409: func(apiError *core.APIError) error {
 			return &gosdk.ConflictError{
 				APIError: apiError,
@@ -221,6 +226,11 @@ func (c *Client) DeleteGatewayProfile(
 				APIError: apiError,
 			}
 		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
+				APIError: apiError,
+			}
+		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
 				APIError: apiError,
@@ -279,6 +289,11 @@ func (c *Client) UpdateGatewayProfile(
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
 			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
 				APIError: apiError,
 			}
 		},
@@ -346,6 +361,11 @@ func (c *Client) CreateGatewayRule(
 				APIError: apiError,
 			}
 		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
+				APIError: apiError,
+			}
+		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
 				APIError: apiError,
@@ -402,6 +422,11 @@ func (c *Client) DeleteGatewayRule(
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
 			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
 				APIError: apiError,
 			}
 		},
@@ -462,6 +487,11 @@ func (c *Client) UpdateGatewayRule(
 				APIError: apiError,
 			}
 		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
+				APIError: apiError,
+			}
+		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
 				APIError: apiError,
@@ -518,6 +548,11 @@ func (c *Client) ReorderGatewayRules(
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
 			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
 				APIError: apiError,
 			}
 		},

@@ -2,21 +2,1066 @@
 
 package api
 
-// Environments defines all of the API environments.
-// These values can be used with the WithBaseURL
-// RequestOption to override the client's default environment,
-// if any.
-var Environments = struct {
-	Production struct {
-		Compute string
-		Control string
+import (
+	json "encoding/json"
+	fmt "fmt"
+	internal "github.com/islo-labs/go-sdk/internal"
+	time "time"
+)
+
+type EnvironmentCreate struct {
+	Name      string                          `json:"name" url:"-"`
+	IsDefault *bool                           `json:"is_default,omitempty" url:"-"`
+	Entries   []*EnvironmentCreateEntriesItem `json:"entries,omitempty" url:"-"`
+}
+
+type DeleteEnvironmentRequest struct {
+	EnvironmentRef string `json:"-" url:"-"`
+}
+
+type GetEnvironmentRequest struct {
+	EnvironmentRef string `json:"-" url:"-"`
+}
+
+type ListEnvironmentsRequest struct {
+	Limit  *int `json:"-" url:"limit,omitempty"`
+	Offset *int `json:"-" url:"offset,omitempty"`
+}
+
+type SetDefaultEnvironmentRequest struct {
+	EnvironmentRef string `json:"-" url:"-"`
+}
+
+type EnvironmentEntryKind string
+
+const (
+	EnvironmentEntryKindVariable EnvironmentEntryKind = "variable"
+	EnvironmentEntryKindSecret   EnvironmentEntryKind = "secret"
+)
+
+func NewEnvironmentEntryKindFromString(s string) (EnvironmentEntryKind, error) {
+	switch s {
+	case "variable":
+		return EnvironmentEntryKindVariable, nil
+	case "secret":
+		return EnvironmentEntryKindSecret, nil
 	}
-}{
-	Production: struct {
-		Compute string
-		Control string
+	var t EnvironmentEntryKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e EnvironmentEntryKind) Ptr() *EnvironmentEntryKind {
+	return &e
+}
+
+type EnvironmentEntryPlacement string
+
+const (
+	EnvironmentEntryPlacementSandboxEnv      EnvironmentEntryPlacement = "sandbox_env"
+	EnvironmentEntryPlacementGatewayInjected EnvironmentEntryPlacement = "gateway_injected"
+)
+
+func NewEnvironmentEntryPlacementFromString(s string) (EnvironmentEntryPlacement, error) {
+	switch s {
+	case "sandbox_env":
+		return EnvironmentEntryPlacementSandboxEnv, nil
+	case "gateway_injected":
+		return EnvironmentEntryPlacementGatewayInjected, nil
+	}
+	var t EnvironmentEntryPlacement
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e EnvironmentEntryPlacement) Ptr() *EnvironmentEntryPlacement {
+	return &e
+}
+
+type EnvironmentEntryResponse struct {
+	ID        string                          `json:"id" url:"id"`
+	Key       string                          `json:"key" url:"key"`
+	Kind      EnvironmentEntryKind            `json:"kind" url:"kind"`
+	Placement EnvironmentEntryPlacement       `json:"placement" url:"placement"`
+	Value     *string                         `json:"value,omitempty" url:"value,omitempty"`
+	HasValue  *bool                           `json:"has_value,omitempty" url:"has_value,omitempty"`
+	Rule      *EnvironmentGatewayRuleResponse `json:"rule,omitempty" url:"rule,omitempty"`
+	CreatedAt time.Time                       `json:"created_at" url:"created_at"`
+	UpdatedAt time.Time                       `json:"updated_at" url:"updated_at"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EnvironmentEntryResponse) GetID() string {
+	if e == nil {
+		return ""
+	}
+	return e.ID
+}
+
+func (e *EnvironmentEntryResponse) GetKey() string {
+	if e == nil {
+		return ""
+	}
+	return e.Key
+}
+
+func (e *EnvironmentEntryResponse) GetKind() EnvironmentEntryKind {
+	if e == nil {
+		return ""
+	}
+	return e.Kind
+}
+
+func (e *EnvironmentEntryResponse) GetPlacement() EnvironmentEntryPlacement {
+	if e == nil {
+		return ""
+	}
+	return e.Placement
+}
+
+func (e *EnvironmentEntryResponse) GetValue() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Value
+}
+
+func (e *EnvironmentEntryResponse) GetHasValue() *bool {
+	if e == nil {
+		return nil
+	}
+	return e.HasValue
+}
+
+func (e *EnvironmentEntryResponse) GetRule() *EnvironmentGatewayRuleResponse {
+	if e == nil {
+		return nil
+	}
+	return e.Rule
+}
+
+func (e *EnvironmentEntryResponse) GetCreatedAt() time.Time {
+	if e == nil {
+		return time.Time{}
+	}
+	return e.CreatedAt
+}
+
+func (e *EnvironmentEntryResponse) GetUpdatedAt() time.Time {
+	if e == nil {
+		return time.Time{}
+	}
+	return e.UpdatedAt
+}
+
+func (e *EnvironmentEntryResponse) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EnvironmentEntryResponse) UnmarshalJSON(data []byte) error {
+	type embed EnvironmentEntryResponse
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+		UpdatedAt *internal.DateTime `json:"updated_at"`
 	}{
-		Compute: "https://ca.compute.islo.dev",
-		Control: "https://api.islo.dev",
-	},
+		embed: embed(*e),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*e = EnvironmentEntryResponse(unmarshaler.embed)
+	e.CreatedAt = unmarshaler.CreatedAt.Time()
+	e.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EnvironmentEntryResponse) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentEntryResponse
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+		UpdatedAt *internal.DateTime `json:"updated_at"`
+	}{
+		embed:     embed(*e),
+		CreatedAt: internal.NewDateTime(e.CreatedAt),
+		UpdatedAt: internal.NewDateTime(e.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (e *EnvironmentEntryResponse) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EnvironmentGatewayRuleInput struct {
+	HostPattern   string              `json:"host_pattern" url:"host_pattern"`
+	PathPattern   *string             `json:"path_pattern,omitempty" url:"path_pattern,omitempty"`
+	Methods       []string            `json:"methods,omitempty" url:"methods,omitempty"`
+	RateLimitRpm  *int                `json:"rate_limit_rpm,omitempty" url:"rate_limit_rpm,omitempty"`
+	AuthStrategy  *AuthStrategySchema `json:"auth_strategy,omitempty" url:"auth_strategy,omitempty"`
+	ContentFilter interface{}         `json:"content_filter,omitempty" url:"content_filter,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EnvironmentGatewayRuleInput) GetHostPattern() string {
+	if e == nil {
+		return ""
+	}
+	return e.HostPattern
+}
+
+func (e *EnvironmentGatewayRuleInput) GetPathPattern() *string {
+	if e == nil {
+		return nil
+	}
+	return e.PathPattern
+}
+
+func (e *EnvironmentGatewayRuleInput) GetMethods() []string {
+	if e == nil {
+		return nil
+	}
+	return e.Methods
+}
+
+func (e *EnvironmentGatewayRuleInput) GetRateLimitRpm() *int {
+	if e == nil {
+		return nil
+	}
+	return e.RateLimitRpm
+}
+
+func (e *EnvironmentGatewayRuleInput) GetAuthStrategy() *AuthStrategySchema {
+	if e == nil {
+		return nil
+	}
+	return e.AuthStrategy
+}
+
+func (e *EnvironmentGatewayRuleInput) GetContentFilter() interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.ContentFilter
+}
+
+func (e *EnvironmentGatewayRuleInput) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EnvironmentGatewayRuleInput) UnmarshalJSON(data []byte) error {
+	type unmarshaler EnvironmentGatewayRuleInput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EnvironmentGatewayRuleInput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EnvironmentGatewayRuleInput) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EnvironmentGatewayRuleResponse struct {
+	ID           string                 `json:"id" url:"id"`
+	HostPattern  string                 `json:"host_pattern" url:"host_pattern"`
+	PathPattern  *string                `json:"path_pattern,omitempty" url:"path_pattern,omitempty"`
+	Methods      []string               `json:"methods,omitempty" url:"methods,omitempty"`
+	RateLimitRpm *int                   `json:"rate_limit_rpm,omitempty" url:"rate_limit_rpm,omitempty"`
+	AuthStrategy map[string]interface{} `json:"auth_strategy,omitempty" url:"auth_strategy,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EnvironmentGatewayRuleResponse) GetID() string {
+	if e == nil {
+		return ""
+	}
+	return e.ID
+}
+
+func (e *EnvironmentGatewayRuleResponse) GetHostPattern() string {
+	if e == nil {
+		return ""
+	}
+	return e.HostPattern
+}
+
+func (e *EnvironmentGatewayRuleResponse) GetPathPattern() *string {
+	if e == nil {
+		return nil
+	}
+	return e.PathPattern
+}
+
+func (e *EnvironmentGatewayRuleResponse) GetMethods() []string {
+	if e == nil {
+		return nil
+	}
+	return e.Methods
+}
+
+func (e *EnvironmentGatewayRuleResponse) GetRateLimitRpm() *int {
+	if e == nil {
+		return nil
+	}
+	return e.RateLimitRpm
+}
+
+func (e *EnvironmentGatewayRuleResponse) GetAuthStrategy() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.AuthStrategy
+}
+
+func (e *EnvironmentGatewayRuleResponse) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EnvironmentGatewayRuleResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler EnvironmentGatewayRuleResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EnvironmentGatewayRuleResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EnvironmentGatewayRuleResponse) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EnvironmentListItem struct {
+	ID            string    `json:"id" url:"id"`
+	Name          string    `json:"name" url:"name"`
+	IsDefault     bool      `json:"is_default" url:"is_default"`
+	VariableCount *int      `json:"variable_count,omitempty" url:"variable_count,omitempty"`
+	SecretCount   *int      `json:"secret_count,omitempty" url:"secret_count,omitempty"`
+	CreatedAt     time.Time `json:"created_at" url:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at" url:"updated_at"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EnvironmentListItem) GetID() string {
+	if e == nil {
+		return ""
+	}
+	return e.ID
+}
+
+func (e *EnvironmentListItem) GetName() string {
+	if e == nil {
+		return ""
+	}
+	return e.Name
+}
+
+func (e *EnvironmentListItem) GetIsDefault() bool {
+	if e == nil {
+		return false
+	}
+	return e.IsDefault
+}
+
+func (e *EnvironmentListItem) GetVariableCount() *int {
+	if e == nil {
+		return nil
+	}
+	return e.VariableCount
+}
+
+func (e *EnvironmentListItem) GetSecretCount() *int {
+	if e == nil {
+		return nil
+	}
+	return e.SecretCount
+}
+
+func (e *EnvironmentListItem) GetCreatedAt() time.Time {
+	if e == nil {
+		return time.Time{}
+	}
+	return e.CreatedAt
+}
+
+func (e *EnvironmentListItem) GetUpdatedAt() time.Time {
+	if e == nil {
+		return time.Time{}
+	}
+	return e.UpdatedAt
+}
+
+func (e *EnvironmentListItem) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EnvironmentListItem) UnmarshalJSON(data []byte) error {
+	type embed EnvironmentListItem
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+		UpdatedAt *internal.DateTime `json:"updated_at"`
+	}{
+		embed: embed(*e),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*e = EnvironmentListItem(unmarshaler.embed)
+	e.CreatedAt = unmarshaler.CreatedAt.Time()
+	e.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EnvironmentListItem) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentListItem
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+		UpdatedAt *internal.DateTime `json:"updated_at"`
+	}{
+		embed:     embed(*e),
+		CreatedAt: internal.NewDateTime(e.CreatedAt),
+		UpdatedAt: internal.NewDateTime(e.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (e *EnvironmentListItem) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EnvironmentResponse struct {
+	ID        string                      `json:"id" url:"id"`
+	Name      string                      `json:"name" url:"name"`
+	IsDefault bool                        `json:"is_default" url:"is_default"`
+	Entries   []*EnvironmentEntryResponse `json:"entries" url:"entries"`
+	CreatedAt time.Time                   `json:"created_at" url:"created_at"`
+	UpdatedAt time.Time                   `json:"updated_at" url:"updated_at"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EnvironmentResponse) GetID() string {
+	if e == nil {
+		return ""
+	}
+	return e.ID
+}
+
+func (e *EnvironmentResponse) GetName() string {
+	if e == nil {
+		return ""
+	}
+	return e.Name
+}
+
+func (e *EnvironmentResponse) GetIsDefault() bool {
+	if e == nil {
+		return false
+	}
+	return e.IsDefault
+}
+
+func (e *EnvironmentResponse) GetEntries() []*EnvironmentEntryResponse {
+	if e == nil {
+		return nil
+	}
+	return e.Entries
+}
+
+func (e *EnvironmentResponse) GetCreatedAt() time.Time {
+	if e == nil {
+		return time.Time{}
+	}
+	return e.CreatedAt
+}
+
+func (e *EnvironmentResponse) GetUpdatedAt() time.Time {
+	if e == nil {
+		return time.Time{}
+	}
+	return e.UpdatedAt
+}
+
+func (e *EnvironmentResponse) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EnvironmentResponse) UnmarshalJSON(data []byte) error {
+	type embed EnvironmentResponse
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+		UpdatedAt *internal.DateTime `json:"updated_at"`
+	}{
+		embed: embed(*e),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*e = EnvironmentResponse(unmarshaler.embed)
+	e.CreatedAt = unmarshaler.CreatedAt.Time()
+	e.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EnvironmentResponse) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentResponse
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+		UpdatedAt *internal.DateTime `json:"updated_at"`
+	}{
+		embed:     embed(*e),
+		CreatedAt: internal.NewDateTime(e.CreatedAt),
+		UpdatedAt: internal.NewDateTime(e.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (e *EnvironmentResponse) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EnvironmentSecretInput struct {
+	Key       string                       `json:"key" url:"key"`
+	Placement EnvironmentEntryPlacement    `json:"placement" url:"placement"`
+	Rule      *EnvironmentGatewayRuleInput `json:"rule,omitempty" url:"rule,omitempty"`
+	Value     string                       `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EnvironmentSecretInput) GetKey() string {
+	if e == nil {
+		return ""
+	}
+	return e.Key
+}
+
+func (e *EnvironmentSecretInput) GetPlacement() EnvironmentEntryPlacement {
+	if e == nil {
+		return ""
+	}
+	return e.Placement
+}
+
+func (e *EnvironmentSecretInput) GetRule() *EnvironmentGatewayRuleInput {
+	if e == nil {
+		return nil
+	}
+	return e.Rule
+}
+
+func (e *EnvironmentSecretInput) GetValue() string {
+	if e == nil {
+		return ""
+	}
+	return e.Value
+}
+
+func (e *EnvironmentSecretInput) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EnvironmentSecretInput) UnmarshalJSON(data []byte) error {
+	type unmarshaler EnvironmentSecretInput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EnvironmentSecretInput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EnvironmentSecretInput) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EnvironmentSecretUpdateInput struct {
+	Key       string                       `json:"key" url:"key"`
+	Placement EnvironmentEntryPlacement    `json:"placement" url:"placement"`
+	Rule      *EnvironmentGatewayRuleInput `json:"rule,omitempty" url:"rule,omitempty"`
+	Value     *string                      `json:"value,omitempty" url:"value,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EnvironmentSecretUpdateInput) GetKey() string {
+	if e == nil {
+		return ""
+	}
+	return e.Key
+}
+
+func (e *EnvironmentSecretUpdateInput) GetPlacement() EnvironmentEntryPlacement {
+	if e == nil {
+		return ""
+	}
+	return e.Placement
+}
+
+func (e *EnvironmentSecretUpdateInput) GetRule() *EnvironmentGatewayRuleInput {
+	if e == nil {
+		return nil
+	}
+	return e.Rule
+}
+
+func (e *EnvironmentSecretUpdateInput) GetValue() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Value
+}
+
+func (e *EnvironmentSecretUpdateInput) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EnvironmentSecretUpdateInput) UnmarshalJSON(data []byte) error {
+	type unmarshaler EnvironmentSecretUpdateInput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EnvironmentSecretUpdateInput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EnvironmentSecretUpdateInput) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EnvironmentVariableInput struct {
+	Key       string                             `json:"key" url:"key"`
+	Placement *EnvironmentVariableInputPlacement `json:"placement,omitempty" url:"placement,omitempty"`
+	Value     *string                            `json:"value,omitempty" url:"value,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EnvironmentVariableInput) GetKey() string {
+	if e == nil {
+		return ""
+	}
+	return e.Key
+}
+
+func (e *EnvironmentVariableInput) GetPlacement() *EnvironmentVariableInputPlacement {
+	if e == nil {
+		return nil
+	}
+	return e.Placement
+}
+
+func (e *EnvironmentVariableInput) GetValue() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Value
+}
+
+func (e *EnvironmentVariableInput) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EnvironmentVariableInput) UnmarshalJSON(data []byte) error {
+	type unmarshaler EnvironmentVariableInput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EnvironmentVariableInput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EnvironmentVariableInput) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EnvironmentVariableInputPlacement string
+
+const (
+	EnvironmentVariableInputPlacementSandboxEnv EnvironmentVariableInputPlacement = "sandbox_env"
+)
+
+func NewEnvironmentVariableInputPlacementFromString(s string) (EnvironmentVariableInputPlacement, error) {
+	switch s {
+	case "sandbox_env":
+		return EnvironmentVariableInputPlacementSandboxEnv, nil
+	}
+	var t EnvironmentVariableInputPlacement
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e EnvironmentVariableInputPlacement) Ptr() *EnvironmentVariableInputPlacement {
+	return &e
+}
+
+type EnvironmentCreateEntriesItem struct {
+	Kind     string
+	Secret   *EnvironmentSecretInput
+	Variable *EnvironmentVariableInput
+}
+
+func (e *EnvironmentCreateEntriesItem) GetKind() string {
+	if e == nil {
+		return ""
+	}
+	return e.Kind
+}
+
+func (e *EnvironmentCreateEntriesItem) GetSecret() *EnvironmentSecretInput {
+	if e == nil {
+		return nil
+	}
+	return e.Secret
+}
+
+func (e *EnvironmentCreateEntriesItem) GetVariable() *EnvironmentVariableInput {
+	if e == nil {
+		return nil
+	}
+	return e.Variable
+}
+
+func (e *EnvironmentCreateEntriesItem) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Kind string `json:"kind"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	e.Kind = unmarshaler.Kind
+	if unmarshaler.Kind == "" {
+		return fmt.Errorf("%T did not include discriminant kind", e)
+	}
+	switch unmarshaler.Kind {
+	case "secret":
+		value := new(EnvironmentSecretInput)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		e.Secret = value
+	case "variable":
+		value := new(EnvironmentVariableInput)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		e.Variable = value
+	}
+	return nil
+}
+
+func (e EnvironmentCreateEntriesItem) MarshalJSON() ([]byte, error) {
+	if err := e.validate(); err != nil {
+		return nil, err
+	}
+	if e.Secret != nil {
+		return internal.MarshalJSONWithExtraProperty(e.Secret, "kind", "secret")
+	}
+	if e.Variable != nil {
+		return internal.MarshalJSONWithExtraProperty(e.Variable, "kind", "variable")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", e)
+}
+
+type EnvironmentCreateEntriesItemVisitor interface {
+	VisitSecret(*EnvironmentSecretInput) error
+	VisitVariable(*EnvironmentVariableInput) error
+}
+
+func (e *EnvironmentCreateEntriesItem) Accept(visitor EnvironmentCreateEntriesItemVisitor) error {
+	if e.Secret != nil {
+		return visitor.VisitSecret(e.Secret)
+	}
+	if e.Variable != nil {
+		return visitor.VisitVariable(e.Variable)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", e)
+}
+
+func (e *EnvironmentCreateEntriesItem) validate() error {
+	if e == nil {
+		return fmt.Errorf("type %T is nil", e)
+	}
+	var fields []string
+	if e.Secret != nil {
+		fields = append(fields, "secret")
+	}
+	if e.Variable != nil {
+		fields = append(fields, "variable")
+	}
+	if len(fields) == 0 {
+		if e.Kind != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", e, e.Kind)
+		}
+		return fmt.Errorf("type %T is empty", e)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", e, fields)
+	}
+	if e.Kind != "" {
+		field := fields[0]
+		if e.Kind != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				e,
+				e.Kind,
+				e,
+			)
+		}
+	}
+	return nil
+}
+
+type EnvironmentUpdateEntriesItem struct {
+	Kind     string
+	Secret   *EnvironmentSecretUpdateInput
+	Variable *EnvironmentVariableInput
+}
+
+func (e *EnvironmentUpdateEntriesItem) GetKind() string {
+	if e == nil {
+		return ""
+	}
+	return e.Kind
+}
+
+func (e *EnvironmentUpdateEntriesItem) GetSecret() *EnvironmentSecretUpdateInput {
+	if e == nil {
+		return nil
+	}
+	return e.Secret
+}
+
+func (e *EnvironmentUpdateEntriesItem) GetVariable() *EnvironmentVariableInput {
+	if e == nil {
+		return nil
+	}
+	return e.Variable
+}
+
+func (e *EnvironmentUpdateEntriesItem) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Kind string `json:"kind"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	e.Kind = unmarshaler.Kind
+	if unmarshaler.Kind == "" {
+		return fmt.Errorf("%T did not include discriminant kind", e)
+	}
+	switch unmarshaler.Kind {
+	case "secret":
+		value := new(EnvironmentSecretUpdateInput)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		e.Secret = value
+	case "variable":
+		value := new(EnvironmentVariableInput)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		e.Variable = value
+	}
+	return nil
+}
+
+func (e EnvironmentUpdateEntriesItem) MarshalJSON() ([]byte, error) {
+	if err := e.validate(); err != nil {
+		return nil, err
+	}
+	if e.Secret != nil {
+		return internal.MarshalJSONWithExtraProperty(e.Secret, "kind", "secret")
+	}
+	if e.Variable != nil {
+		return internal.MarshalJSONWithExtraProperty(e.Variable, "kind", "variable")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", e)
+}
+
+type EnvironmentUpdateEntriesItemVisitor interface {
+	VisitSecret(*EnvironmentSecretUpdateInput) error
+	VisitVariable(*EnvironmentVariableInput) error
+}
+
+func (e *EnvironmentUpdateEntriesItem) Accept(visitor EnvironmentUpdateEntriesItemVisitor) error {
+	if e.Secret != nil {
+		return visitor.VisitSecret(e.Secret)
+	}
+	if e.Variable != nil {
+		return visitor.VisitVariable(e.Variable)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", e)
+}
+
+func (e *EnvironmentUpdateEntriesItem) validate() error {
+	if e == nil {
+		return fmt.Errorf("type %T is nil", e)
+	}
+	var fields []string
+	if e.Secret != nil {
+		fields = append(fields, "secret")
+	}
+	if e.Variable != nil {
+		fields = append(fields, "variable")
+	}
+	if len(fields) == 0 {
+		if e.Kind != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", e, e.Kind)
+		}
+		return fmt.Errorf("type %T is empty", e)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", e, fields)
+	}
+	if e.Kind != "" {
+		field := fields[0]
+		if e.Kind != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				e,
+				e.Kind,
+				e,
+			)
+		}
+	}
+	return nil
+}
+
+type EnvironmentUpdate struct {
+	EnvironmentRef string                          `json:"-" url:"-"`
+	Name           *string                         `json:"name,omitempty" url:"-"`
+	IsDefault      *bool                           `json:"is_default,omitempty" url:"-"`
+	Entries        []*EnvironmentUpdateEntriesItem `json:"entries,omitempty" url:"-"`
 }

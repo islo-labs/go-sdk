@@ -71,6 +71,89 @@ func (c *Client) ListIntegrationProviders(
 	return response, nil
 }
 
+func (c *Client) ListIntegrationTriggers(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*gosdk.TriggerCatalogListResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.islo.dev",
+	)
+	endpointURL := baseURL + "/integrations/triggers"
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *gosdk.TriggerCatalogListResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) GetIntegrationTrigger(
+	ctx context.Context,
+	request *gosdk.GetIntegrationTriggerRequest,
+	opts ...option.RequestOption,
+) (*gosdk.TriggerCatalogItem, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/integrations/triggers/%v/%v",
+		request.Provider,
+		request.TriggerName,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	errorCodes := internal.ErrorCodes{
+		422: func(apiError *core.APIError) error {
+			return &gosdk.UnprocessableEntityError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	var response *gosdk.TriggerCatalogItem
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
 // List the integrations the user/tenant has connected.
 //
 // Includes preset providers (from the PROVIDERS registry) and tenant-scoped
@@ -98,6 +181,11 @@ func (c *Client) ListIntegrations(
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
 			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
 				APIError: apiError,
 			}
 		},
@@ -153,6 +241,11 @@ func (c *Client) ListCustomServices(
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
 			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
 				APIError: apiError,
 			}
 		},
@@ -214,6 +307,11 @@ func (c *Client) CreateCustomService(
 		},
 		401: func(apiError *core.APIError) error {
 			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
 				APIError: apiError,
 			}
 		},
@@ -289,6 +387,11 @@ func (c *Client) DisconnectCustomIntegration(
 				APIError: apiError,
 			}
 		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
+				APIError: apiError,
+			}
+		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
 				APIError: apiError,
@@ -346,6 +449,11 @@ func (c *Client) GetIntegrationStatus(
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
 			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
 				APIError: apiError,
 			}
 		},
@@ -425,6 +533,11 @@ func (c *Client) DisconnectIntegration(
 				APIError: apiError,
 			}
 		},
+		403: func(apiError *core.APIError) error {
+			return &gosdk.ForbiddenError{
+				APIError: apiError,
+			}
+		},
 		404: func(apiError *core.APIError) error {
 			return &gosdk.NotFoundError{
 				APIError: apiError,
@@ -443,6 +556,49 @@ func (c *Client) DisconnectIntegration(
 		&internal.CallParams{
 			URL:             endpointURL,
 			Method:          http.MethodDelete,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) ListConnectedIntegrationTriggers(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*gosdk.TriggerCatalogListResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.islo.dev",
+	)
+	endpointURL := baseURL + "/integrations/triggers/connected"
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	errorCodes := internal.ErrorCodes{
+		422: func(apiError *core.APIError) error {
+			return &gosdk.UnprocessableEntityError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	var response *gosdk.TriggerCatalogListResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
 			Headers:         headers,
 			MaxAttempts:     options.MaxAttempts,
 			BodyProperties:  options.BodyProperties,

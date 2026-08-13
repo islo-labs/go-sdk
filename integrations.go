@@ -31,6 +31,11 @@ type GetIntegrationStatusRequest struct {
 	Provider string `json:"-" url:"-"`
 }
 
+type GetIntegrationTriggerRequest struct {
+	Provider    string `json:"-" url:"-"`
+	TriggerName string `json:"-" url:"-"`
+}
+
 // Authentication method supported by an integration.
 type AuthMethod string
 
@@ -833,4 +838,168 @@ func (p *ProviderApp) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", p)
+}
+
+type TriggerCatalogItem struct {
+	Provider          string                 `json:"provider" url:"provider"`
+	Name              string                 `json:"name" url:"name"`
+	Kind              string                 `json:"kind" url:"kind"`
+	Title             string                 `json:"title" url:"title"`
+	Description       string                 `json:"description" url:"description"`
+	SelectorSchema    map[string]interface{} `json:"selector_schema" url:"selector_schema"`
+	FilterOperators   []string               `json:"filter_operators" url:"filter_operators"`
+	RawPayloadExample map[string]interface{} `json:"raw_payload_example" url:"raw_payload_example"`
+	DocsURL           *string                `json:"docs_url,omitempty" url:"docs_url,omitempty"`
+	Connected         *bool                  `json:"connected,omitempty" url:"connected,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TriggerCatalogItem) GetProvider() string {
+	if t == nil {
+		return ""
+	}
+	return t.Provider
+}
+
+func (t *TriggerCatalogItem) GetName() string {
+	if t == nil {
+		return ""
+	}
+	return t.Name
+}
+
+func (t *TriggerCatalogItem) GetKind() string {
+	if t == nil {
+		return ""
+	}
+	return t.Kind
+}
+
+func (t *TriggerCatalogItem) GetTitle() string {
+	if t == nil {
+		return ""
+	}
+	return t.Title
+}
+
+func (t *TriggerCatalogItem) GetDescription() string {
+	if t == nil {
+		return ""
+	}
+	return t.Description
+}
+
+func (t *TriggerCatalogItem) GetSelectorSchema() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.SelectorSchema
+}
+
+func (t *TriggerCatalogItem) GetFilterOperators() []string {
+	if t == nil {
+		return nil
+	}
+	return t.FilterOperators
+}
+
+func (t *TriggerCatalogItem) GetRawPayloadExample() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.RawPayloadExample
+}
+
+func (t *TriggerCatalogItem) GetDocsURL() *string {
+	if t == nil {
+		return nil
+	}
+	return t.DocsURL
+}
+
+func (t *TriggerCatalogItem) GetConnected() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Connected
+}
+
+func (t *TriggerCatalogItem) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TriggerCatalogItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler TriggerCatalogItem
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TriggerCatalogItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TriggerCatalogItem) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+type TriggerCatalogListResponse struct {
+	Triggers []*TriggerCatalogItem `json:"triggers" url:"triggers"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TriggerCatalogListResponse) GetTriggers() []*TriggerCatalogItem {
+	if t == nil {
+		return nil
+	}
+	return t.Triggers
+}
+
+func (t *TriggerCatalogListResponse) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TriggerCatalogListResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler TriggerCatalogListResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TriggerCatalogListResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TriggerCatalogListResponse) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
 }
