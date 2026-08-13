@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	api "github.com/islo-labs/go-sdk"
 	"github.com/islo-labs/go-sdk/core"
 	"github.com/islo-labs/go-sdk/customauth"
 	"github.com/islo-labs/go-sdk/option"
@@ -22,6 +21,8 @@ const (
 	envIsloAPIKey     = "ISLO_API_KEY"
 	envIsloBaseURL    = "ISLO_BASE_URL"
 	envIsloComputeURL = "ISLO_COMPUTE_URL"
+	defaultControlURL = "https://api.islo.dev"
+	defaultComputeURL = "https://ca.compute.islo.dev"
 )
 
 // NewIslo behaves like NewClient, but treats the value passed to
@@ -47,12 +48,12 @@ func NewIslo(opts ...option.RequestOption) *Client {
 		baseURL = os.Getenv(envIsloBaseURL)
 	}
 	if baseURL == "" {
-		baseURL = api.Environments.Production.Control
+		baseURL = defaultControlURL
 	}
 
 	computeURL := os.Getenv(envIsloComputeURL)
 	if computeURL == "" {
-		computeURL = api.Environments.Production.Compute
+		computeURL = defaultComputeURL
 	}
 
 	// If the caller supplied an *http.Client, preserve its Transport so
@@ -102,11 +103,11 @@ func newEnvironmentRewriteTransport(base http.RoundTripper, controlURL string, c
 	}
 	control, err := url.Parse(controlURL)
 	if err != nil {
-		control = mustParseURL(api.Environments.Production.Control)
+		control = mustParseURL(defaultControlURL)
 	}
 	compute, err := url.Parse(computeURL)
 	if err != nil {
-		compute = mustParseURL(api.Environments.Production.Compute)
+		compute = mustParseURL(defaultComputeURL)
 	}
 	return &environmentRewriteTransport{
 		base:       base,
@@ -128,9 +129,9 @@ func (t *environmentRewriteTransport) RoundTrip(req *http.Request) (*http.Respon
 
 func (t *environmentRewriteTransport) targetURL(requestURL *url.URL) *url.URL {
 	switch requestURL.Host {
-	case mustParseURL(api.Environments.Production.Control).Host:
+	case mustParseURL(defaultControlURL).Host:
 		return t.controlURL
-	case mustParseURL(api.Environments.Production.Compute).Host:
+	case mustParseURL(defaultComputeURL).Host:
 		return t.computeURL
 	default:
 		return nil
