@@ -70,6 +70,12 @@ type ListJobsRequest struct {
 	Offset *int `json:"-" url:"offset,omitempty"`
 }
 
+type JobRunStopRequest struct {
+	Name   string  `json:"-" url:"-"`
+	RunID  string  `json:"-" url:"-"`
+	Reason *string `json:"reason,omitempty" url:"-"`
+}
+
 type JobRunCreate struct {
 	Name string `json:"-" url:"-"`
 	// Deployed version to run; defaults to latest
@@ -374,11 +380,12 @@ func (j *JobManifestOutput) String() string {
 }
 
 type JobOutputSpec struct {
-	Type        JobOutputSpecType   `json:"type" url:"type"`
-	Items       *JobOutputSpecItems `json:"items,omitempty" url:"items,omitempty"`
-	Required    *bool               `json:"required,omitempty" url:"required,omitempty"`
-	Description *string             `json:"description,omitempty" url:"description,omitempty"`
-	Enum        []interface{}       `json:"enum,omitempty" url:"enum,omitempty"`
+	Type        JobOutputSpecType    `json:"type" url:"type"`
+	Items       *JobOutputSpecItems  `json:"items,omitempty" url:"items,omitempty"`
+	Required    *bool                `json:"required,omitempty" url:"required,omitempty"`
+	Description *string              `json:"description,omitempty" url:"description,omitempty"`
+	Enum        []interface{}        `json:"enum,omitempty" url:"enum,omitempty"`
+	Reduce      *JobOutputSpecReduce `json:"reduce,omitempty" url:"reduce,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -417,6 +424,13 @@ func (j *JobOutputSpec) GetEnum() []interface{} {
 		return nil
 	}
 	return j.Enum
+}
+
+func (j *JobOutputSpec) GetReduce() *JobOutputSpecReduce {
+	if j == nil {
+		return nil
+	}
+	return j.Reduce
 }
 
 func (j *JobOutputSpec) GetExtraProperties() map[string]interface{} {
@@ -479,6 +493,34 @@ func (j JobOutputSpecItems) Ptr() *JobOutputSpecItems {
 	return &j
 }
 
+type JobOutputSpecReduce string
+
+const (
+	JobOutputSpecReduceOne     JobOutputSpecReduce = "one"
+	JobOutputSpecReduceLast    JobOutputSpecReduce = "last"
+	JobOutputSpecReduceCollect JobOutputSpecReduce = "collect"
+	JobOutputSpecReduceGather  JobOutputSpecReduce = "gather"
+)
+
+func NewJobOutputSpecReduceFromString(s string) (JobOutputSpecReduce, error) {
+	switch s {
+	case "one":
+		return JobOutputSpecReduceOne, nil
+	case "last":
+		return JobOutputSpecReduceLast, nil
+	case "collect":
+		return JobOutputSpecReduceCollect, nil
+	case "gather":
+		return JobOutputSpecReduceGather, nil
+	}
+	var t JobOutputSpecReduce
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JobOutputSpecReduce) Ptr() *JobOutputSpecReduce {
+	return &j
+}
+
 type JobOutputSpecType string
 
 const (
@@ -486,7 +528,6 @@ const (
 	JobOutputSpecTypeInteger JobOutputSpecType = "integer"
 	JobOutputSpecTypeNumber  JobOutputSpecType = "number"
 	JobOutputSpecTypeBoolean JobOutputSpecType = "boolean"
-	JobOutputSpecTypeObject  JobOutputSpecType = "object"
 	JobOutputSpecTypeArray   JobOutputSpecType = "array"
 )
 
@@ -500,8 +541,6 @@ func NewJobOutputSpecTypeFromString(s string) (JobOutputSpecType, error) {
 		return JobOutputSpecTypeNumber, nil
 	case "boolean":
 		return JobOutputSpecTypeBoolean, nil
-	case "object":
-		return JobOutputSpecTypeObject, nil
 	case "array":
 		return JobOutputSpecTypeArray, nil
 	}
@@ -2319,6 +2358,7 @@ type SandboxConfig struct {
 	DiskGb          *int               `json:"disk_gb,omitempty" url:"disk_gb,omitempty"`
 	SnapshotName    *string            `json:"snapshot_name,omitempty" url:"snapshot_name,omitempty"`
 	GatewayProfile  *string            `json:"gateway_profile,omitempty" url:"gateway_profile,omitempty"`
+	Environment     *string            `json:"environment,omitempty" url:"environment,omitempty"`
 	Init            *SandboxConfigInit `json:"init,omitempty" url:"init,omitempty"`
 	InternetEnabled *bool              `json:"internet_enabled,omitempty" url:"internet_enabled,omitempty"`
 	Workdir         *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
@@ -2386,6 +2426,13 @@ func (s *SandboxConfig) GetGatewayProfile() *string {
 		return nil
 	}
 	return s.GatewayProfile
+}
+
+func (s *SandboxConfig) GetEnvironment() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Environment
 }
 
 func (s *SandboxConfig) GetInit() *SandboxConfigInit {
@@ -2750,6 +2797,60 @@ func (s *SnapshotStepAction) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
+type StepOutputClaim struct {
+	From     *string `json:"from,omitempty" url:"from,omitempty"`
+	Required *bool   `json:"required,omitempty" url:"required,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *StepOutputClaim) GetFrom() *string {
+	if s == nil {
+		return nil
+	}
+	return s.From
+}
+
+func (s *StepOutputClaim) GetRequired() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Required
+}
+
+func (s *StepOutputClaim) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *StepOutputClaim) UnmarshalJSON(data []byte) error {
+	type unmarshaler StepOutputClaim
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = StepOutputClaim(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *StepOutputClaim) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
 type TaskInput struct {
 	Name    string           `json:"name" url:"name"`
 	Sandbox *SandboxConfig   `json:"sandbox,omitempty" url:"sandbox,omitempty"`
@@ -2888,6 +2989,7 @@ type TaskStepInput struct {
 	Delete   *bool                  `json:"delete,omitempty" url:"delete,omitempty"`
 	Upload   *string                `json:"upload,omitempty" url:"upload,omitempty"`
 	Download *string                `json:"download,omitempty" url:"download,omitempty"`
+	Outputs  *TaskStepInputOutputs  `json:"outputs,omitempty" url:"outputs,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2975,6 +3077,13 @@ func (t *TaskStepInput) GetDownload() *string {
 		return nil
 	}
 	return t.Download
+}
+
+func (t *TaskStepInput) GetOutputs() *TaskStepInputOutputs {
+	if t == nil {
+		return nil
+	}
+	return t.Outputs
 }
 
 func (t *TaskStepInput) GetExtraProperties() map[string]interface{} {
@@ -3067,6 +3176,68 @@ func (t *TaskStepInputExec) Accept(visitor TaskStepInputExecVisitor) error {
 	}
 	if t.typ == "String" || t.String != "" {
 		return visitor.VisitString(t.String)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", t)
+}
+
+type TaskStepInputOutputs struct {
+	StringList               []string
+	StringStepOutputClaimMap map[string]*StepOutputClaim
+
+	typ string
+}
+
+func (t *TaskStepInputOutputs) GetStringList() []string {
+	if t == nil {
+		return nil
+	}
+	return t.StringList
+}
+
+func (t *TaskStepInputOutputs) GetStringStepOutputClaimMap() map[string]*StepOutputClaim {
+	if t == nil {
+		return nil
+	}
+	return t.StringStepOutputClaimMap
+}
+
+func (t *TaskStepInputOutputs) UnmarshalJSON(data []byte) error {
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		t.typ = "StringList"
+		t.StringList = valueStringList
+		return nil
+	}
+	var valueStringStepOutputClaimMap map[string]*StepOutputClaim
+	if err := json.Unmarshal(data, &valueStringStepOutputClaimMap); err == nil {
+		t.typ = "StringStepOutputClaimMap"
+		t.StringStepOutputClaimMap = valueStringStepOutputClaimMap
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, t)
+}
+
+func (t TaskStepInputOutputs) MarshalJSON() ([]byte, error) {
+	if t.typ == "StringList" || t.StringList != nil {
+		return json.Marshal(t.StringList)
+	}
+	if t.typ == "StringStepOutputClaimMap" || t.StringStepOutputClaimMap != nil {
+		return json.Marshal(t.StringStepOutputClaimMap)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", t)
+}
+
+type TaskStepInputOutputsVisitor interface {
+	VisitStringList([]string) error
+	VisitStringStepOutputClaimMap(map[string]*StepOutputClaim) error
+}
+
+func (t *TaskStepInputOutputs) Accept(visitor TaskStepInputOutputsVisitor) error {
+	if t.typ == "StringList" || t.StringList != nil {
+		return visitor.VisitStringList(t.StringList)
+	}
+	if t.typ == "StringStepOutputClaimMap" || t.StringStepOutputClaimMap != nil {
+		return visitor.VisitStringStepOutputClaimMap(t.StringStepOutputClaimMap)
 	}
 	return fmt.Errorf("type %T does not include a non-empty union type", t)
 }
@@ -3202,6 +3373,7 @@ type TaskStepOutput struct {
 	Delete   *bool                   `json:"delete,omitempty" url:"delete,omitempty"`
 	Upload   *string                 `json:"upload,omitempty" url:"upload,omitempty"`
 	Download *string                 `json:"download,omitempty" url:"download,omitempty"`
+	Outputs  *TaskStepOutputOutputs  `json:"outputs,omitempty" url:"outputs,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3289,6 +3461,13 @@ func (t *TaskStepOutput) GetDownload() *string {
 		return nil
 	}
 	return t.Download
+}
+
+func (t *TaskStepOutput) GetOutputs() *TaskStepOutputOutputs {
+	if t == nil {
+		return nil
+	}
+	return t.Outputs
 }
 
 func (t *TaskStepOutput) GetExtraProperties() map[string]interface{} {
@@ -3381,6 +3560,68 @@ func (t *TaskStepOutputExec) Accept(visitor TaskStepOutputExecVisitor) error {
 	}
 	if t.typ == "String" || t.String != "" {
 		return visitor.VisitString(t.String)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", t)
+}
+
+type TaskStepOutputOutputs struct {
+	StringList               []string
+	StringStepOutputClaimMap map[string]*StepOutputClaim
+
+	typ string
+}
+
+func (t *TaskStepOutputOutputs) GetStringList() []string {
+	if t == nil {
+		return nil
+	}
+	return t.StringList
+}
+
+func (t *TaskStepOutputOutputs) GetStringStepOutputClaimMap() map[string]*StepOutputClaim {
+	if t == nil {
+		return nil
+	}
+	return t.StringStepOutputClaimMap
+}
+
+func (t *TaskStepOutputOutputs) UnmarshalJSON(data []byte) error {
+	var valueStringList []string
+	if err := json.Unmarshal(data, &valueStringList); err == nil {
+		t.typ = "StringList"
+		t.StringList = valueStringList
+		return nil
+	}
+	var valueStringStepOutputClaimMap map[string]*StepOutputClaim
+	if err := json.Unmarshal(data, &valueStringStepOutputClaimMap); err == nil {
+		t.typ = "StringStepOutputClaimMap"
+		t.StringStepOutputClaimMap = valueStringStepOutputClaimMap
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, t)
+}
+
+func (t TaskStepOutputOutputs) MarshalJSON() ([]byte, error) {
+	if t.typ == "StringList" || t.StringList != nil {
+		return json.Marshal(t.StringList)
+	}
+	if t.typ == "StringStepOutputClaimMap" || t.StringStepOutputClaimMap != nil {
+		return json.Marshal(t.StringStepOutputClaimMap)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", t)
+}
+
+type TaskStepOutputOutputsVisitor interface {
+	VisitStringList([]string) error
+	VisitStringStepOutputClaimMap(map[string]*StepOutputClaim) error
+}
+
+func (t *TaskStepOutputOutputs) Accept(visitor TaskStepOutputOutputsVisitor) error {
+	if t.typ == "StringList" || t.StringList != nil {
+		return visitor.VisitStringList(t.StringList)
+	}
+	if t.typ == "StringStepOutputClaimMap" || t.StringStepOutputClaimMap != nil {
+		return visitor.VisitStringStepOutputClaimMap(t.StringStepOutputClaimMap)
 	}
 	return fmt.Errorf("type %T does not include a non-empty union type", t)
 }
