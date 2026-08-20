@@ -13,6 +13,106 @@ type GetComputeEventRequest struct {
 	CommandID string `json:"-" url:"-"`
 }
 
+// What an agent step produced, which is a step's output as much as stdout.
+//
+// The runner records the turn in full — assistant text, the structured output
+// validated against the step's `[outputs]` contract, the session it ran in.
+// None of it reached a reader before, so an agent step was the one step in a
+// job whose row could only ever say whether it passed.
+type AgentResult struct {
+	Mode           *string               `json:"mode,omitempty" url:"mode,omitempty"`
+	Harness        *string               `json:"harness,omitempty" url:"harness,omitempty"`
+	Status         *string               `json:"status,omitempty" url:"status,omitempty"`
+	Outcome        *string               `json:"outcome,omitempty" url:"outcome,omitempty"`
+	AgentSessionID *string               `json:"agent_session_id,omitempty" url:"agent_session_id,omitempty"`
+	OutputText     *string               `json:"output_text,omitempty" url:"output_text,omitempty"`
+	Outputs        map[string]*JSONValue `json:"outputs,omitempty" url:"outputs,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AgentResult) GetMode() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Mode
+}
+
+func (a *AgentResult) GetHarness() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Harness
+}
+
+func (a *AgentResult) GetStatus() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Status
+}
+
+func (a *AgentResult) GetOutcome() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Outcome
+}
+
+func (a *AgentResult) GetAgentSessionID() *string {
+	if a == nil {
+		return nil
+	}
+	return a.AgentSessionID
+}
+
+func (a *AgentResult) GetOutputText() *string {
+	if a == nil {
+		return nil
+	}
+	return a.OutputText
+}
+
+func (a *AgentResult) GetOutputs() map[string]*JSONValue {
+	if a == nil {
+		return nil
+	}
+	return a.Outputs
+}
+
+func (a *AgentResult) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AgentResult) UnmarshalJSON(data []byte) error {
+	type unmarshaler AgentResult
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AgentResult(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AgentResult) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
 type ComputeEventDetailResponse struct {
 	CommandID    string                            `json:"command_id" url:"command_id"`
 	Action       string                            `json:"action" url:"action"`
@@ -147,6 +247,7 @@ func (c *ComputeEventDetailResponse) String() string {
 
 type ComputeEventDetailResponseResult struct {
 	Type     string
+	Agent    *AgentResult
 	Empty    *EmptyResult
 	Exec     *ExecResult
 	Sandbox  *SandboxResult
@@ -158,6 +259,13 @@ func (c *ComputeEventDetailResponseResult) GetType() string {
 		return ""
 	}
 	return c.Type
+}
+
+func (c *ComputeEventDetailResponseResult) GetAgent() *AgentResult {
+	if c == nil {
+		return nil
+	}
+	return c.Agent
 }
 
 func (c *ComputeEventDetailResponseResult) GetEmpty() *EmptyResult {
@@ -200,6 +308,12 @@ func (c *ComputeEventDetailResponseResult) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("%T did not include discriminant type", c)
 	}
 	switch unmarshaler.Type {
+	case "agent":
+		value := new(AgentResult)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		c.Agent = value
 	case "empty":
 		value := new(EmptyResult)
 		if err := json.Unmarshal(data, &value); err != nil {
@@ -232,6 +346,9 @@ func (c ComputeEventDetailResponseResult) MarshalJSON() ([]byte, error) {
 	if err := c.validate(); err != nil {
 		return nil, err
 	}
+	if c.Agent != nil {
+		return internal.MarshalJSONWithExtraProperty(c.Agent, "type", "agent")
+	}
 	if c.Empty != nil {
 		return internal.MarshalJSONWithExtraProperty(c.Empty, "type", "empty")
 	}
@@ -248,6 +365,7 @@ func (c ComputeEventDetailResponseResult) MarshalJSON() ([]byte, error) {
 }
 
 type ComputeEventDetailResponseResultVisitor interface {
+	VisitAgent(*AgentResult) error
 	VisitEmpty(*EmptyResult) error
 	VisitExec(*ExecResult) error
 	VisitSandbox(*SandboxResult) error
@@ -255,6 +373,9 @@ type ComputeEventDetailResponseResultVisitor interface {
 }
 
 func (c *ComputeEventDetailResponseResult) Accept(visitor ComputeEventDetailResponseResultVisitor) error {
+	if c.Agent != nil {
+		return visitor.VisitAgent(c.Agent)
+	}
 	if c.Empty != nil {
 		return visitor.VisitEmpty(c.Empty)
 	}
@@ -275,6 +396,9 @@ func (c *ComputeEventDetailResponseResult) validate() error {
 		return fmt.Errorf("type %T is nil", c)
 	}
 	var fields []string
+	if c.Agent != nil {
+		fields = append(fields, "agent")
+	}
 	if c.Empty != nil {
 		fields = append(fields, "empty")
 	}
@@ -433,6 +557,8 @@ func (e *ExecResult) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+type JSONValue = interface{}
+
 type SandboxResult struct {
 	ID     *string `json:"id,omitempty" url:"id,omitempty"`
 	Name   *string `json:"name,omitempty" url:"name,omitempty"`
@@ -496,8 +622,9 @@ func (s *SandboxResult) String() string {
 }
 
 type SnapshotResult struct {
-	ID   *string `json:"id,omitempty" url:"id,omitempty"`
-	Name *string `json:"name,omitempty" url:"name,omitempty"`
+	ID     *string `json:"id,omitempty" url:"id,omitempty"`
+	Name   *string `json:"name,omitempty" url:"name,omitempty"`
+	Status *string `json:"status,omitempty" url:"status,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -515,6 +642,13 @@ func (s *SnapshotResult) GetName() *string {
 		return nil
 	}
 	return s.Name
+}
+
+func (s *SnapshotResult) GetStatus() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Status
 }
 
 func (s *SnapshotResult) GetExtraProperties() map[string]interface{} {

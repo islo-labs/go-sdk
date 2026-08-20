@@ -303,6 +303,7 @@ const (
 	KnowledgeLevelEpisodic    KnowledgeLevel = "episodic"
 	KnowledgeLevelProcedural  KnowledgeLevel = "procedural"
 	KnowledgeLevelDeclarative KnowledgeLevel = "declarative"
+	KnowledgeLevelPrompt      KnowledgeLevel = "prompt"
 )
 
 func NewKnowledgeLevelFromString(s string) (KnowledgeLevel, error) {
@@ -313,6 +314,8 @@ func NewKnowledgeLevelFromString(s string) (KnowledgeLevel, error) {
 		return KnowledgeLevelProcedural, nil
 	case "declarative":
 		return KnowledgeLevelDeclarative, nil
+	case "prompt":
+		return KnowledgeLevelPrompt, nil
 	}
 	var t KnowledgeLevel
 	return "", fmt.Errorf("%s is not a valid %T", s, t)

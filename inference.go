@@ -45,6 +45,7 @@ type InferenceModelCatalogEntry struct {
 	CachedInputCentsPer1MTokens     *string              `json:"cached_input_cents_per_1m_tokens,omitempty" url:"cached_input_cents_per_1m_tokens,omitempty"`
 	CacheWriteInputCentsPer1MTokens *string              `json:"cache_write_input_cents_per_1m_tokens,omitempty" url:"cache_write_input_cents_per_1m_tokens,omitempty"`
 	OutputCentsPer1MTokens          *string              `json:"output_cents_per_1m_tokens,omitempty" url:"output_cents_per_1m_tokens,omitempty"`
+	PricingTiers                    []*PricingTier       `json:"pricing_tiers,omitempty" url:"pricing_tiers,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -125,6 +126,13 @@ func (i *InferenceModelCatalogEntry) GetOutputCentsPer1MTokens() *string {
 		return nil
 	}
 	return i.OutputCentsPer1MTokens
+}
+
+func (i *InferenceModelCatalogEntry) GetPricingTiers() []*PricingTier {
+	if i == nil {
+		return nil
+	}
+	return i.PricingTiers
 }
 
 func (i *InferenceModelCatalogEntry) GetExtraProperties() map[string]interface{} {
@@ -211,6 +219,7 @@ const (
 	InferenceProviderFireworks  InferenceProvider = "fireworks"
 	InferenceProviderThesean    InferenceProvider = "thesean"
 	InferenceProviderDatabricks InferenceProvider = "databricks"
+	InferenceProviderAlien      InferenceProvider = "alien"
 )
 
 func NewInferenceProviderFromString(s string) (InferenceProvider, error) {
@@ -221,6 +230,8 @@ func NewInferenceProviderFromString(s string) (InferenceProvider, error) {
 		return InferenceProviderThesean, nil
 	case "databricks":
 		return InferenceProviderDatabricks, nil
+	case "alien":
+		return InferenceProviderAlien, nil
 	}
 	var t InferenceProvider
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -228,4 +239,90 @@ func NewInferenceProviderFromString(s string) (InferenceProvider, error) {
 
 func (i InferenceProvider) Ptr() *InferenceProvider {
 	return &i
+}
+
+type PricingTier struct {
+	MinInputTokens                  *int    `json:"min_input_tokens,omitempty" url:"min_input_tokens,omitempty"`
+	MaxInputTokens                  *int    `json:"max_input_tokens,omitempty" url:"max_input_tokens,omitempty"`
+	InputCentsPer1MTokens           string  `json:"input_cents_per_1m_tokens" url:"input_cents_per_1m_tokens"`
+	CachedInputCentsPer1MTokens     string  `json:"cached_input_cents_per_1m_tokens" url:"cached_input_cents_per_1m_tokens"`
+	CacheWriteInputCentsPer1MTokens *string `json:"cache_write_input_cents_per_1m_tokens,omitempty" url:"cache_write_input_cents_per_1m_tokens,omitempty"`
+	OutputCentsPer1MTokens          string  `json:"output_cents_per_1m_tokens" url:"output_cents_per_1m_tokens"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PricingTier) GetMinInputTokens() *int {
+	if p == nil {
+		return nil
+	}
+	return p.MinInputTokens
+}
+
+func (p *PricingTier) GetMaxInputTokens() *int {
+	if p == nil {
+		return nil
+	}
+	return p.MaxInputTokens
+}
+
+func (p *PricingTier) GetInputCentsPer1MTokens() string {
+	if p == nil {
+		return ""
+	}
+	return p.InputCentsPer1MTokens
+}
+
+func (p *PricingTier) GetCachedInputCentsPer1MTokens() string {
+	if p == nil {
+		return ""
+	}
+	return p.CachedInputCentsPer1MTokens
+}
+
+func (p *PricingTier) GetCacheWriteInputCentsPer1MTokens() *string {
+	if p == nil {
+		return nil
+	}
+	return p.CacheWriteInputCentsPer1MTokens
+}
+
+func (p *PricingTier) GetOutputCentsPer1MTokens() string {
+	if p == nil {
+		return ""
+	}
+	return p.OutputCentsPer1MTokens
+}
+
+func (p *PricingTier) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *PricingTier) UnmarshalJSON(data []byte) error {
+	type unmarshaler PricingTier
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PricingTier(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PricingTier) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
 }

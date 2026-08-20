@@ -9,6 +9,305 @@ import (
 	time "time"
 )
 
+// Durable external resource created or materially changed by a job step.
+type ArtifactRef struct {
+	// Resource type, normally external_ref.kind
+	Type string `json:"type" url:"type"`
+	// Must match external_ref.provider
+	Provider string `json:"provider" url:"provider"`
+	// What the step did, such as created, updated, or published
+	Operation *string `json:"operation,omitempty" url:"operation,omitempty"`
+	// Stable provider-specific identity
+	ExternalRef *ArtifactRefExternalRef `json:"external_ref" url:"external_ref"`
+	// Canonical resource URL
+	URL    *string `json:"url,omitempty" url:"url,omitempty"`
+	Title  *string `json:"title,omitempty" url:"title,omitempty"`
+	Status *string `json:"status,omitempty" url:"status,omitempty"`
+	// Provider-specific details that are not identity
+	Metadata map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *ArtifactRef) GetType() string {
+	if a == nil {
+		return ""
+	}
+	return a.Type
+}
+
+func (a *ArtifactRef) GetProvider() string {
+	if a == nil {
+		return ""
+	}
+	return a.Provider
+}
+
+func (a *ArtifactRef) GetOperation() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Operation
+}
+
+func (a *ArtifactRef) GetExternalRef() *ArtifactRefExternalRef {
+	if a == nil {
+		return nil
+	}
+	return a.ExternalRef
+}
+
+func (a *ArtifactRef) GetURL() *string {
+	if a == nil {
+		return nil
+	}
+	return a.URL
+}
+
+func (a *ArtifactRef) GetTitle() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Title
+}
+
+func (a *ArtifactRef) GetStatus() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Status
+}
+
+func (a *ArtifactRef) GetMetadata() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.Metadata
+}
+
+func (a *ArtifactRef) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *ArtifactRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler ArtifactRef
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = ArtifactRef(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *ArtifactRef) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// Stable provider-specific identity
+type ArtifactRefExternalRef struct {
+	Provider string
+	Github   *GitHubExternalRef
+	Islo     *IsloKnowledgeItemExternalRef
+	Linear   *LinearExternalRef
+	Slack    *SlackMessageExternalRef
+	URL      *URLExternalRef
+}
+
+func (a *ArtifactRefExternalRef) GetProvider() string {
+	if a == nil {
+		return ""
+	}
+	return a.Provider
+}
+
+func (a *ArtifactRefExternalRef) GetGithub() *GitHubExternalRef {
+	if a == nil {
+		return nil
+	}
+	return a.Github
+}
+
+func (a *ArtifactRefExternalRef) GetIslo() *IsloKnowledgeItemExternalRef {
+	if a == nil {
+		return nil
+	}
+	return a.Islo
+}
+
+func (a *ArtifactRefExternalRef) GetLinear() *LinearExternalRef {
+	if a == nil {
+		return nil
+	}
+	return a.Linear
+}
+
+func (a *ArtifactRefExternalRef) GetSlack() *SlackMessageExternalRef {
+	if a == nil {
+		return nil
+	}
+	return a.Slack
+}
+
+func (a *ArtifactRefExternalRef) GetURL() *URLExternalRef {
+	if a == nil {
+		return nil
+	}
+	return a.URL
+}
+
+func (a *ArtifactRefExternalRef) UnmarshalJSON(data []byte) error {
+	var unmarshaler struct {
+		Provider string `json:"provider"`
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	a.Provider = unmarshaler.Provider
+	if unmarshaler.Provider == "" {
+		return fmt.Errorf("%T did not include discriminant provider", a)
+	}
+	switch unmarshaler.Provider {
+	case "github":
+		value := new(GitHubExternalRef)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		a.Github = value
+	case "islo":
+		value := new(IsloKnowledgeItemExternalRef)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		a.Islo = value
+	case "linear":
+		value := new(LinearExternalRef)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		a.Linear = value
+	case "slack":
+		value := new(SlackMessageExternalRef)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		a.Slack = value
+	case "url":
+		value := new(URLExternalRef)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		a.URL = value
+	}
+	return nil
+}
+
+func (a ArtifactRefExternalRef) MarshalJSON() ([]byte, error) {
+	if err := a.validate(); err != nil {
+		return nil, err
+	}
+	if a.Github != nil {
+		return internal.MarshalJSONWithExtraProperty(a.Github, "provider", "github")
+	}
+	if a.Islo != nil {
+		return internal.MarshalJSONWithExtraProperty(a.Islo, "provider", "islo")
+	}
+	if a.Linear != nil {
+		return internal.MarshalJSONWithExtraProperty(a.Linear, "provider", "linear")
+	}
+	if a.Slack != nil {
+		return internal.MarshalJSONWithExtraProperty(a.Slack, "provider", "slack")
+	}
+	if a.URL != nil {
+		return internal.MarshalJSONWithExtraProperty(a.URL, "provider", "url")
+	}
+	return nil, fmt.Errorf("type %T does not define a non-empty union type", a)
+}
+
+type ArtifactRefExternalRefVisitor interface {
+	VisitGithub(*GitHubExternalRef) error
+	VisitIslo(*IsloKnowledgeItemExternalRef) error
+	VisitLinear(*LinearExternalRef) error
+	VisitSlack(*SlackMessageExternalRef) error
+	VisitURL(*URLExternalRef) error
+}
+
+func (a *ArtifactRefExternalRef) Accept(visitor ArtifactRefExternalRefVisitor) error {
+	if a.Github != nil {
+		return visitor.VisitGithub(a.Github)
+	}
+	if a.Islo != nil {
+		return visitor.VisitIslo(a.Islo)
+	}
+	if a.Linear != nil {
+		return visitor.VisitLinear(a.Linear)
+	}
+	if a.Slack != nil {
+		return visitor.VisitSlack(a.Slack)
+	}
+	if a.URL != nil {
+		return visitor.VisitURL(a.URL)
+	}
+	return fmt.Errorf("type %T does not define a non-empty union type", a)
+}
+
+func (a *ArtifactRefExternalRef) validate() error {
+	if a == nil {
+		return fmt.Errorf("type %T is nil", a)
+	}
+	var fields []string
+	if a.Github != nil {
+		fields = append(fields, "github")
+	}
+	if a.Islo != nil {
+		fields = append(fields, "islo")
+	}
+	if a.Linear != nil {
+		fields = append(fields, "linear")
+	}
+	if a.Slack != nil {
+		fields = append(fields, "slack")
+	}
+	if a.URL != nil {
+		fields = append(fields, "url")
+	}
+	if len(fields) == 0 {
+		if a.Provider != "" {
+			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", a, a.Provider)
+		}
+		return fmt.Errorf("type %T is empty", a)
+	}
+	if len(fields) > 1 {
+		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", a, fields)
+	}
+	if a.Provider != "" {
+		field := fields[0]
+		if a.Provider != field {
+			return fmt.Errorf(
+				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
+				a,
+				a.Provider,
+				a,
+			)
+		}
+	}
+	return nil
+}
+
 type AuthStrategySchema struct {
 	Mode     AuthStrategySchemaMode `json:"mode" url:"mode"`
 	Username *string                `json:"username,omitempty" url:"username,omitempty"`
@@ -308,6 +607,93 @@ func (e *ErrorResponse) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+// GitHub identity: PRs/issues use owner, repo, and number; comments use id.
+type GitHubExternalRef struct {
+	Kind   string  `json:"kind" url:"kind"`
+	Owner  *string `json:"owner,omitempty" url:"owner,omitempty"`
+	Repo   *string `json:"repo,omitempty" url:"repo,omitempty"`
+	Number *int    `json:"number,omitempty" url:"number,omitempty"`
+	NodeID *string `json:"node_id,omitempty" url:"node_id,omitempty"`
+	ID     *string `json:"id,omitempty" url:"id,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (g *GitHubExternalRef) GetKind() string {
+	if g == nil {
+		return ""
+	}
+	return g.Kind
+}
+
+func (g *GitHubExternalRef) GetOwner() *string {
+	if g == nil {
+		return nil
+	}
+	return g.Owner
+}
+
+func (g *GitHubExternalRef) GetRepo() *string {
+	if g == nil {
+		return nil
+	}
+	return g.Repo
+}
+
+func (g *GitHubExternalRef) GetNumber() *int {
+	if g == nil {
+		return nil
+	}
+	return g.Number
+}
+
+func (g *GitHubExternalRef) GetNodeID() *string {
+	if g == nil {
+		return nil
+	}
+	return g.NodeID
+}
+
+func (g *GitHubExternalRef) GetID() *string {
+	if g == nil {
+		return nil
+	}
+	return g.ID
+}
+
+func (g *GitHubExternalRef) GetExtraProperties() map[string]interface{} {
+	return g.extraProperties
+}
+
+func (g *GitHubExternalRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler GitHubExternalRef
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*g = GitHubExternalRef(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *g)
+	if err != nil {
+		return err
+	}
+	g.extraProperties = extraProperties
+	g.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (g *GitHubExternalRef) String() string {
+	if len(g.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(g); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", g)
+}
+
 // A git source to clone into /workspace.
 type GitSource struct {
 	Branch     *string `json:"branch,omitempty" url:"branch,omitempty"`
@@ -503,6 +889,224 @@ func (i IsloErrorCode) Ptr() *IsloErrorCode {
 	return &i
 }
 
+// Islo knowledge-item identity.
+type IsloKnowledgeItemExternalRef struct {
+	Kind *IsloKnowledgeItemExternalRefKind `json:"kind,omitempty" url:"kind,omitempty"`
+	Slug string                            `json:"slug" url:"slug"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *IsloKnowledgeItemExternalRef) GetKind() *IsloKnowledgeItemExternalRefKind {
+	if i == nil {
+		return nil
+	}
+	return i.Kind
+}
+
+func (i *IsloKnowledgeItemExternalRef) GetSlug() string {
+	if i == nil {
+		return ""
+	}
+	return i.Slug
+}
+
+func (i *IsloKnowledgeItemExternalRef) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *IsloKnowledgeItemExternalRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler IsloKnowledgeItemExternalRef
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = IsloKnowledgeItemExternalRef(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *IsloKnowledgeItemExternalRef) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type IsloKnowledgeItemExternalRefKind string
+
+const (
+	IsloKnowledgeItemExternalRefKindKnowledgeItem IsloKnowledgeItemExternalRefKind = "knowledge_item"
+)
+
+func NewIsloKnowledgeItemExternalRefKindFromString(s string) (IsloKnowledgeItemExternalRefKind, error) {
+	switch s {
+	case "knowledge_item":
+		return IsloKnowledgeItemExternalRefKindKnowledgeItem, nil
+	}
+	var t IsloKnowledgeItemExternalRefKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i IsloKnowledgeItemExternalRefKind) Ptr() *IsloKnowledgeItemExternalRefKind {
+	return &i
+}
+
+type JobRunListItem struct {
+	ID           string     `json:"id" url:"id"`
+	JobName      string     `json:"job_name" url:"job_name"`
+	JobVersionID string     `json:"job_version_id" url:"job_version_id"`
+	Status       string     `json:"status" url:"status"`
+	Region       *string    `json:"region,omitempty" url:"region,omitempty"`
+	StepCount    int        `json:"step_count" url:"step_count"`
+	StartedAt    *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt  *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	CreatedAt    time.Time  `json:"created_at" url:"created_at"`
+	ErrorMessage *string    `json:"error_message,omitempty" url:"error_message,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobRunListItem) GetID() string {
+	if j == nil {
+		return ""
+	}
+	return j.ID
+}
+
+func (j *JobRunListItem) GetJobName() string {
+	if j == nil {
+		return ""
+	}
+	return j.JobName
+}
+
+func (j *JobRunListItem) GetJobVersionID() string {
+	if j == nil {
+		return ""
+	}
+	return j.JobVersionID
+}
+
+func (j *JobRunListItem) GetStatus() string {
+	if j == nil {
+		return ""
+	}
+	return j.Status
+}
+
+func (j *JobRunListItem) GetRegion() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Region
+}
+
+func (j *JobRunListItem) GetStepCount() int {
+	if j == nil {
+		return 0
+	}
+	return j.StepCount
+}
+
+func (j *JobRunListItem) GetStartedAt() *time.Time {
+	if j == nil {
+		return nil
+	}
+	return j.StartedAt
+}
+
+func (j *JobRunListItem) GetCompletedAt() *time.Time {
+	if j == nil {
+		return nil
+	}
+	return j.CompletedAt
+}
+
+func (j *JobRunListItem) GetCreatedAt() time.Time {
+	if j == nil {
+		return time.Time{}
+	}
+	return j.CreatedAt
+}
+
+func (j *JobRunListItem) GetErrorMessage() *string {
+	if j == nil {
+		return nil
+	}
+	return j.ErrorMessage
+}
+
+func (j *JobRunListItem) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobRunListItem) UnmarshalJSON(data []byte) error {
+	type embed JobRunListItem
+	var unmarshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+		CreatedAt   *internal.DateTime `json:"created_at"`
+	}{
+		embed: embed(*j),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*j = JobRunListItem(unmarshaler.embed)
+	j.StartedAt = unmarshaler.StartedAt.TimePtr()
+	j.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	j.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobRunListItem) MarshalJSON() ([]byte, error) {
+	type embed JobRunListItem
+	var marshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+		CreatedAt   *internal.DateTime `json:"created_at"`
+	}{
+		embed:       embed(*j),
+		StartedAt:   internal.NewOptionalDateTime(j.StartedAt),
+		CompletedAt: internal.NewOptionalDateTime(j.CompletedAt),
+		CreatedAt:   internal.NewDateTime(j.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (j *JobRunListItem) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
 type JobRunResponse struct {
 	ID            string                     `json:"id" url:"id"`
 	JobName       string                     `json:"job_name" url:"job_name"`
@@ -512,7 +1116,7 @@ type JobRunResponse struct {
 	RunParams     map[string]interface{}     `json:"run_params" url:"run_params"`
 	ResultPayload map[string]interface{}     `json:"result_payload,omitempty" url:"result_payload,omitempty"`
 	StepTimeline  []*JobRunStepTimelineEntry `json:"step_timeline" url:"step_timeline"`
-	ArtifactRefs  []map[string]interface{}   `json:"artifact_refs" url:"artifact_refs"`
+	ArtifactRefs  []*ArtifactRef             `json:"artifact_refs" url:"artifact_refs"`
 	StartedAt     *time.Time                 `json:"started_at,omitempty" url:"started_at,omitempty"`
 	CompletedAt   *time.Time                 `json:"completed_at,omitempty" url:"completed_at,omitempty"`
 	ErrorMessage  *string                    `json:"error_message,omitempty" url:"error_message,omitempty"`
@@ -580,7 +1184,7 @@ func (j *JobRunResponse) GetStepTimeline() []*JobRunStepTimelineEntry {
 	return j.StepTimeline
 }
 
-func (j *JobRunResponse) GetArtifactRefs() []map[string]interface{} {
+func (j *JobRunResponse) GetArtifactRefs() []*ArtifactRef {
 	if j == nil {
 		return nil
 	}
@@ -902,6 +1506,85 @@ func (l *LifecyclePolicy) UnmarshalJSON(data []byte) error {
 }
 
 func (l *LifecyclePolicy) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+// Linear identity: issues use id or identifier; comments use id.
+type LinearExternalRef struct {
+	Kind       *string `json:"kind,omitempty" url:"kind,omitempty"`
+	ID         *string `json:"id,omitempty" url:"id,omitempty"`
+	Identifier *string `json:"identifier,omitempty" url:"identifier,omitempty"`
+	Team       *string `json:"team,omitempty" url:"team,omitempty"`
+	IssueID    *string `json:"issue_id,omitempty" url:"issue_id,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LinearExternalRef) GetKind() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Kind
+}
+
+func (l *LinearExternalRef) GetID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ID
+}
+
+func (l *LinearExternalRef) GetIdentifier() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Identifier
+}
+
+func (l *LinearExternalRef) GetTeam() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Team
+}
+
+func (l *LinearExternalRef) GetIssueID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.IssueID
+}
+
+func (l *LinearExternalRef) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LinearExternalRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler LinearExternalRef
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LinearExternalRef(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LinearExternalRef) String() string {
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -1309,6 +1992,163 @@ func (s *SetupScript) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", s)
+}
+
+// Slack message identity within a channel.
+type SlackMessageExternalRef struct {
+	Kind    *SlackMessageExternalRefKind `json:"kind,omitempty" url:"kind,omitempty"`
+	Channel string                       `json:"channel" url:"channel"`
+	Ts      string                       `json:"ts" url:"ts"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SlackMessageExternalRef) GetKind() *SlackMessageExternalRefKind {
+	if s == nil {
+		return nil
+	}
+	return s.Kind
+}
+
+func (s *SlackMessageExternalRef) GetChannel() string {
+	if s == nil {
+		return ""
+	}
+	return s.Channel
+}
+
+func (s *SlackMessageExternalRef) GetTs() string {
+	if s == nil {
+		return ""
+	}
+	return s.Ts
+}
+
+func (s *SlackMessageExternalRef) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SlackMessageExternalRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler SlackMessageExternalRef
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SlackMessageExternalRef(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SlackMessageExternalRef) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SlackMessageExternalRefKind string
+
+const (
+	SlackMessageExternalRefKindMessage SlackMessageExternalRefKind = "message"
+)
+
+func NewSlackMessageExternalRefKindFromString(s string) (SlackMessageExternalRefKind, error) {
+	switch s {
+	case "message":
+		return SlackMessageExternalRefKindMessage, nil
+	}
+	var t SlackMessageExternalRefKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SlackMessageExternalRefKind) Ptr() *SlackMessageExternalRefKind {
+	return &s
+}
+
+// Fallback identity for an artifact represented by a public URL.
+type URLExternalRef struct {
+	Kind *URLExternalRefKind `json:"kind,omitempty" url:"kind,omitempty"`
+	// Public HTTP(S) URL
+	URL string `json:"url" url:"url"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *URLExternalRef) GetKind() *URLExternalRefKind {
+	if u == nil {
+		return nil
+	}
+	return u.Kind
+}
+
+func (u *URLExternalRef) GetURL() string {
+	if u == nil {
+		return ""
+	}
+	return u.URL
+}
+
+func (u *URLExternalRef) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
+}
+
+func (u *URLExternalRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler URLExternalRef
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*u = URLExternalRef(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *URLExternalRef) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+type URLExternalRefKind string
+
+const (
+	URLExternalRefKindURL URLExternalRefKind = "url"
+)
+
+func NewURLExternalRefKindFromString(s string) (URLExternalRefKind, error) {
+	switch s {
+	case "url":
+		return URLExternalRefKindURL, nil
+	}
+	var t URLExternalRefKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u URLExternalRefKind) Ptr() *URLExternalRefKind {
+	return &u
 }
 
 type ValidationError struct {

@@ -39,7 +39,7 @@ func (c *Client) ListAllJobRuns(
 	ctx context.Context,
 	request *gosdk.ListAllJobRunsRequest,
 	opts ...option.RequestOption,
-) ([]*gosdk.JobRunResponse, error) {
+) ([]*gosdk.JobRunListItem, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -66,7 +66,7 @@ func (c *Client) ListAllJobRuns(
 		},
 	}
 
-	var response []*gosdk.JobRunResponse
+	var response []*gosdk.JobRunListItem
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

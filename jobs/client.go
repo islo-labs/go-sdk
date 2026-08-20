@@ -400,7 +400,7 @@ func (c *Client) ListJobRuns(
 	ctx context.Context,
 	request *gosdk.ListJobRunsRequest,
 	opts ...option.RequestOption,
-) ([]*gosdk.JobRunResponse, error) {
+) ([]*gosdk.JobRunListItem, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -430,7 +430,7 @@ func (c *Client) ListJobRuns(
 		},
 	}
 
-	var response []*gosdk.JobRunResponse
+	var response []*gosdk.JobRunListItem
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -538,6 +538,56 @@ func (c *Client) GetJobRun(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) StopJobRun(
+	ctx context.Context,
+	request *gosdk.JobRunStopRequest,
+	opts ...option.RequestOption,
+) (*gosdk.JobRunResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/jobs/%v/runs/%v/stop",
+		request.Name,
+		request.RunID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+	errorCodes := internal.ErrorCodes{
+		422: func(apiError *core.APIError) error {
+			return &gosdk.UnprocessableEntityError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	var response *gosdk.JobRunResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
 			Response:        &response,
 			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
