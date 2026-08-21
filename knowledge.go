@@ -29,6 +29,12 @@ type GetKnowledgeRequest struct {
 	Identifier string `json:"-" url:"-"`
 }
 
+type GetKnowledgeVersionRequest struct {
+	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
+	Identifier    string `json:"-" url:"-"`
+	VersionNumber int    `json:"-" url:"-"`
+}
+
 type ListKnowledgeRequest struct {
 	Level      *KnowledgeLevel `json:"-" url:"level,omitempty"`
 	Tag        *string         `json:"-" url:"tag,omitempty"`
@@ -39,15 +45,29 @@ type ListKnowledgeRequest struct {
 	Limit  *int    `json:"-" url:"limit,omitempty"`
 }
 
+type ListKnowledgeVersionsRequest struct {
+	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
+	Identifier string  `json:"-" url:"-"`
+	Cursor     *string `json:"-" url:"cursor,omitempty"`
+	Limit      *int    `json:"-" url:"limit,omitempty"`
+}
+
+type KnowledgeRestoreRequest struct {
+	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
+	Identifier    string `json:"-" url:"-"`
+	VersionNumber int    `json:"version_number" url:"-"`
+}
+
 type KnowledgeItemListResponse struct {
 	ID string `json:"id" url:"id"`
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
-	Slug      string                   `json:"slug" url:"slug"`
-	Level     KnowledgeLevel           `json:"level" url:"level"`
-	Status    KnowledgeStatus          `json:"status" url:"status"`
-	Links     []*KnowledgeLinkResponse `json:"links" url:"links"`
-	CreatedAt time.Time                `json:"created_at" url:"created_at"`
-	UpdatedAt time.Time                `json:"updated_at" url:"updated_at"`
+	Slug          string                   `json:"slug" url:"slug"`
+	Level         KnowledgeLevel           `json:"level" url:"level"`
+	Status        KnowledgeStatus          `json:"status" url:"status"`
+	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
+	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
+	UpdatedAt     time.Time                `json:"updated_at" url:"updated_at"`
+	VersionNumber *int                     `json:"version_number,omitempty" url:"version_number,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -100,6 +120,13 @@ func (k *KnowledgeItemListResponse) GetUpdatedAt() time.Time {
 		return time.Time{}
 	}
 	return k.UpdatedAt
+}
+
+func (k *KnowledgeItemListResponse) GetVersionNumber() *int {
+	if k == nil {
+		return nil
+	}
+	return k.VersionNumber
 }
 
 func (k *KnowledgeItemListResponse) GetExtraProperties() map[string]interface{} {
@@ -159,15 +186,17 @@ func (k *KnowledgeItemListResponse) String() string {
 type KnowledgeItemResponse struct {
 	ID string `json:"id" url:"id"`
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
-	Slug      string                   `json:"slug" url:"slug"`
-	Level     KnowledgeLevel           `json:"level" url:"level"`
-	Format    string                   `json:"format" url:"format"`
-	Body      string                   `json:"body" url:"body"`
-	Metadata  map[string]interface{}   `json:"metadata" url:"metadata"`
-	Status    KnowledgeStatus          `json:"status" url:"status"`
-	Links     []*KnowledgeLinkResponse `json:"links" url:"links"`
-	CreatedAt time.Time                `json:"created_at" url:"created_at"`
-	UpdatedAt time.Time                `json:"updated_at" url:"updated_at"`
+	Slug          string                   `json:"slug" url:"slug"`
+	Level         KnowledgeLevel           `json:"level" url:"level"`
+	Format        string                   `json:"format" url:"format"`
+	Body          string                   `json:"body" url:"body"`
+	Metadata      map[string]interface{}   `json:"metadata" url:"metadata"`
+	Status        KnowledgeStatus          `json:"status" url:"status"`
+	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
+	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
+	UpdatedAt     time.Time                `json:"updated_at" url:"updated_at"`
+	VersionID     *string                  `json:"version_id,omitempty" url:"version_id,omitempty"`
+	VersionNumber *int                     `json:"version_number,omitempty" url:"version_number,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -241,6 +270,20 @@ func (k *KnowledgeItemResponse) GetUpdatedAt() time.Time {
 		return time.Time{}
 	}
 	return k.UpdatedAt
+}
+
+func (k *KnowledgeItemResponse) GetVersionID() *string {
+	if k == nil {
+		return nil
+	}
+	return k.VersionID
+}
+
+func (k *KnowledgeItemResponse) GetVersionNumber() *int {
+	if k == nil {
+		return nil
+	}
+	return k.VersionNumber
 }
 
 func (k *KnowledgeItemResponse) GetExtraProperties() map[string]interface{} {
@@ -477,6 +520,214 @@ func (k KnowledgeStatus) Ptr() *KnowledgeStatus {
 	return &k
 }
 
+type KnowledgeVersionListResponse struct {
+	ID            string    `json:"id" url:"id"`
+	VersionNumber int       `json:"version_number" url:"version_number"`
+	CreatedAt     time.Time `json:"created_at" url:"created_at"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KnowledgeVersionListResponse) GetID() string {
+	if k == nil {
+		return ""
+	}
+	return k.ID
+}
+
+func (k *KnowledgeVersionListResponse) GetVersionNumber() int {
+	if k == nil {
+		return 0
+	}
+	return k.VersionNumber
+}
+
+func (k *KnowledgeVersionListResponse) GetCreatedAt() time.Time {
+	if k == nil {
+		return time.Time{}
+	}
+	return k.CreatedAt
+}
+
+func (k *KnowledgeVersionListResponse) GetExtraProperties() map[string]interface{} {
+	return k.extraProperties
+}
+
+func (k *KnowledgeVersionListResponse) UnmarshalJSON(data []byte) error {
+	type embed KnowledgeVersionListResponse
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+	}{
+		embed: embed(*k),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*k = KnowledgeVersionListResponse(unmarshaler.embed)
+	k.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KnowledgeVersionListResponse) MarshalJSON() ([]byte, error) {
+	type embed KnowledgeVersionListResponse
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+	}{
+		embed:     embed(*k),
+		CreatedAt: internal.NewDateTime(k.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (k *KnowledgeVersionListResponse) String() string {
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
+}
+
+type KnowledgeVersionResponse struct {
+	ID            string                   `json:"id" url:"id"`
+	VersionNumber int                      `json:"version_number" url:"version_number"`
+	Level         KnowledgeLevel           `json:"level" url:"level"`
+	Format        string                   `json:"format" url:"format"`
+	Body          string                   `json:"body" url:"body"`
+	Metadata      map[string]interface{}   `json:"metadata" url:"metadata"`
+	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
+	ContentHash   string                   `json:"content_hash" url:"content_hash"`
+	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KnowledgeVersionResponse) GetID() string {
+	if k == nil {
+		return ""
+	}
+	return k.ID
+}
+
+func (k *KnowledgeVersionResponse) GetVersionNumber() int {
+	if k == nil {
+		return 0
+	}
+	return k.VersionNumber
+}
+
+func (k *KnowledgeVersionResponse) GetLevel() KnowledgeLevel {
+	if k == nil {
+		return ""
+	}
+	return k.Level
+}
+
+func (k *KnowledgeVersionResponse) GetFormat() string {
+	if k == nil {
+		return ""
+	}
+	return k.Format
+}
+
+func (k *KnowledgeVersionResponse) GetBody() string {
+	if k == nil {
+		return ""
+	}
+	return k.Body
+}
+
+func (k *KnowledgeVersionResponse) GetMetadata() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
+	return k.Metadata
+}
+
+func (k *KnowledgeVersionResponse) GetLinks() []*KnowledgeLinkResponse {
+	if k == nil {
+		return nil
+	}
+	return k.Links
+}
+
+func (k *KnowledgeVersionResponse) GetContentHash() string {
+	if k == nil {
+		return ""
+	}
+	return k.ContentHash
+}
+
+func (k *KnowledgeVersionResponse) GetCreatedAt() time.Time {
+	if k == nil {
+		return time.Time{}
+	}
+	return k.CreatedAt
+}
+
+func (k *KnowledgeVersionResponse) GetExtraProperties() map[string]interface{} {
+	return k.extraProperties
+}
+
+func (k *KnowledgeVersionResponse) UnmarshalJSON(data []byte) error {
+	type embed KnowledgeVersionResponse
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+	}{
+		embed: embed(*k),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*k = KnowledgeVersionResponse(unmarshaler.embed)
+	k.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KnowledgeVersionResponse) MarshalJSON() ([]byte, error) {
+	type embed KnowledgeVersionResponse
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+	}{
+		embed:     embed(*k),
+		CreatedAt: internal.NewDateTime(k.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (k *KnowledgeVersionResponse) String() string {
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
+}
+
 type PaginatedKnowledgeResponse struct {
 	Items      []*KnowledgeItemListResponse `json:"items" url:"items"`
 	NextCursor *string                      `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
@@ -520,6 +771,60 @@ func (p *PaginatedKnowledgeResponse) UnmarshalJSON(data []byte) error {
 }
 
 func (p *PaginatedKnowledgeResponse) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PaginatedKnowledgeVersionResponse struct {
+	Items      []*KnowledgeVersionListResponse `json:"items" url:"items"`
+	NextCursor *string                         `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PaginatedKnowledgeVersionResponse) GetItems() []*KnowledgeVersionListResponse {
+	if p == nil {
+		return nil
+	}
+	return p.Items
+}
+
+func (p *PaginatedKnowledgeVersionResponse) GetNextCursor() *string {
+	if p == nil {
+		return nil
+	}
+	return p.NextCursor
+}
+
+func (p *PaginatedKnowledgeVersionResponse) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *PaginatedKnowledgeVersionResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler PaginatedKnowledgeVersionResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PaginatedKnowledgeVersionResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PaginatedKnowledgeVersionResponse) String() string {
 	if len(p.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
 			return value
