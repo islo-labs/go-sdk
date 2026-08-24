@@ -963,6 +963,175 @@ func (i IsloKnowledgeItemExternalRefKind) Ptr() *IsloKnowledgeItemExternalRefKin
 	return &i
 }
 
+type JobParamDefinition struct {
+	Name        string                   `json:"name" url:"name"`
+	Type        JobParamDefinitionType   `json:"type" url:"type"`
+	Items       *JobParamDefinitionItems `json:"items,omitempty" url:"items,omitempty"`
+	Required    *bool                    `json:"required,omitempty" url:"required,omitempty"`
+	Default     interface{}              `json:"default,omitempty" url:"default,omitempty"`
+	Description *string                  `json:"description,omitempty" url:"description,omitempty"`
+	Pattern     *string                  `json:"pattern,omitempty" url:"pattern,omitempty"`
+	Prefix      *string                  `json:"prefix,omitempty" url:"prefix,omitempty"`
+	Enum        []interface{}            `json:"enum,omitempty" url:"enum,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JobParamDefinition) GetName() string {
+	if j == nil {
+		return ""
+	}
+	return j.Name
+}
+
+func (j *JobParamDefinition) GetType() JobParamDefinitionType {
+	if j == nil {
+		return ""
+	}
+	return j.Type
+}
+
+func (j *JobParamDefinition) GetItems() *JobParamDefinitionItems {
+	if j == nil {
+		return nil
+	}
+	return j.Items
+}
+
+func (j *JobParamDefinition) GetRequired() *bool {
+	if j == nil {
+		return nil
+	}
+	return j.Required
+}
+
+func (j *JobParamDefinition) GetDefault() interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.Default
+}
+
+func (j *JobParamDefinition) GetDescription() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Description
+}
+
+func (j *JobParamDefinition) GetPattern() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Pattern
+}
+
+func (j *JobParamDefinition) GetPrefix() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Prefix
+}
+
+func (j *JobParamDefinition) GetEnum() []interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.Enum
+}
+
+func (j *JobParamDefinition) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JobParamDefinition) UnmarshalJSON(data []byte) error {
+	type unmarshaler JobParamDefinition
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JobParamDefinition(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JobParamDefinition) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JobParamDefinitionItems string
+
+const (
+	JobParamDefinitionItemsString  JobParamDefinitionItems = "string"
+	JobParamDefinitionItemsInteger JobParamDefinitionItems = "integer"
+	JobParamDefinitionItemsNumber  JobParamDefinitionItems = "number"
+	JobParamDefinitionItemsBoolean JobParamDefinitionItems = "boolean"
+)
+
+func NewJobParamDefinitionItemsFromString(s string) (JobParamDefinitionItems, error) {
+	switch s {
+	case "string":
+		return JobParamDefinitionItemsString, nil
+	case "integer":
+		return JobParamDefinitionItemsInteger, nil
+	case "number":
+		return JobParamDefinitionItemsNumber, nil
+	case "boolean":
+		return JobParamDefinitionItemsBoolean, nil
+	}
+	var t JobParamDefinitionItems
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JobParamDefinitionItems) Ptr() *JobParamDefinitionItems {
+	return &j
+}
+
+type JobParamDefinitionType string
+
+const (
+	JobParamDefinitionTypeString  JobParamDefinitionType = "string"
+	JobParamDefinitionTypeInteger JobParamDefinitionType = "integer"
+	JobParamDefinitionTypeNumber  JobParamDefinitionType = "number"
+	JobParamDefinitionTypeBoolean JobParamDefinitionType = "boolean"
+	JobParamDefinitionTypeArray   JobParamDefinitionType = "array"
+)
+
+func NewJobParamDefinitionTypeFromString(s string) (JobParamDefinitionType, error) {
+	switch s {
+	case "string":
+		return JobParamDefinitionTypeString, nil
+	case "integer":
+		return JobParamDefinitionTypeInteger, nil
+	case "number":
+		return JobParamDefinitionTypeNumber, nil
+	case "boolean":
+		return JobParamDefinitionTypeBoolean, nil
+	case "array":
+		return JobParamDefinitionTypeArray, nil
+	}
+	var t JobParamDefinitionType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JobParamDefinitionType) Ptr() *JobParamDefinitionType {
+	return &j
+}
+
 type JobRunListItem struct {
 	ID           string     `json:"id" url:"id"`
 	JobName      string     `json:"job_name" url:"job_name"`
@@ -1447,6 +1616,79 @@ func (j *JobRunStepTimelineEntry) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+type KnowledgeBinding struct {
+	Type KnowledgeBindingType `json:"type" url:"type"`
+	Slug string               `json:"slug" url:"slug"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KnowledgeBinding) GetType() KnowledgeBindingType {
+	if k == nil {
+		return ""
+	}
+	return k.Type
+}
+
+func (k *KnowledgeBinding) GetSlug() string {
+	if k == nil {
+		return ""
+	}
+	return k.Slug
+}
+
+func (k *KnowledgeBinding) GetExtraProperties() map[string]interface{} {
+	return k.extraProperties
+}
+
+func (k *KnowledgeBinding) UnmarshalJSON(data []byte) error {
+	type unmarshaler KnowledgeBinding
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*k = KnowledgeBinding(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KnowledgeBinding) String() string {
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
+}
+
+type KnowledgeBindingType string
+
+const (
+	KnowledgeBindingTypeKnowledge KnowledgeBindingType = "knowledge"
+)
+
+func NewKnowledgeBindingTypeFromString(s string) (KnowledgeBindingType, error) {
+	switch s {
+	case "knowledge":
+		return KnowledgeBindingTypeKnowledge, nil
+	}
+	var t KnowledgeBindingType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (k KnowledgeBindingType) Ptr() *KnowledgeBindingType {
+	return &k
+}
+
 type LifecyclePolicy struct {
 	AutoResume     *AutoResumePolicy `json:"auto_resume,omitempty" url:"auto_resume,omitempty"`
 	DeleteAfter    *int64            `json:"delete_after,omitempty" url:"delete_after,omitempty"`
@@ -1585,6 +1827,52 @@ func (l *LinearExternalRef) UnmarshalJSON(data []byte) error {
 }
 
 func (l *LinearExternalRef) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LiteralBinding struct {
+	Value interface{} `json:"value" url:"value"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LiteralBinding) GetValue() interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.Value
+}
+
+func (l *LiteralBinding) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LiteralBinding) UnmarshalJSON(data []byte) error {
+	type unmarshaler LiteralBinding
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LiteralBinding(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LiteralBinding) String() string {
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value

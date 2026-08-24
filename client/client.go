@@ -9,6 +9,7 @@ import (
 	core "github.com/islo-labs/go-sdk/core"
 	credits "github.com/islo-labs/go-sdk/credits"
 	environments "github.com/islo-labs/go-sdk/environments"
+	factory "github.com/islo-labs/go-sdk/factory"
 	gatewayprofiles "github.com/islo-labs/go-sdk/gatewayprofiles"
 	inference "github.com/islo-labs/go-sdk/inference"
 	integrations "github.com/islo-labs/go-sdk/integrations"
@@ -42,6 +43,7 @@ type Client struct {
 	ContainerRegistries *containerregistries.Client
 	Jobs                *jobs.Client
 	JobRuns             *jobruns.Client
+	Factory             *factory.Client
 	ComputeEvents       *computeevents.Client
 	Sandboxes           *sandboxes.Client
 	Shares              *shares.Client
@@ -74,6 +76,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 		ContainerRegistries: containerregistries.NewClient(opts...),
 		Jobs:                jobs.NewClient(opts...),
 		JobRuns:             jobruns.NewClient(opts...),
+		Factory:             factory.NewClient(opts...),
 		ComputeEvents:       computeevents.NewClient(opts...),
 		Sandboxes:           sandboxes.NewClient(opts...),
 		Shares:              shares.NewClient(opts...),
