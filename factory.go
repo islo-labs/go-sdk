@@ -39,6 +39,10 @@ type GetFactoryLineRunRequest struct {
 	RunID string `json:"-" url:"-"`
 }
 
+type GetFactoryLineRunDebugRequest struct {
+	RunID string `json:"-" url:"-"`
+}
+
 type GetFactoryLineScheduleRequest struct {
 	Name string `json:"-" url:"-"`
 }
@@ -706,6 +710,85 @@ func (a *AlwaysCondition) UnmarshalJSON(data []byte) error {
 }
 
 func (a *AlwaysCondition) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// Identity-only view of an artifact, without provider-specific metadata.
+type ArtifactSummary struct {
+	Type        *string                `json:"type,omitempty" url:"type,omitempty"`
+	Provider    *string                `json:"provider,omitempty" url:"provider,omitempty"`
+	URL         *string                `json:"url,omitempty" url:"url,omitempty"`
+	Title       *string                `json:"title,omitempty" url:"title,omitempty"`
+	ExternalRef map[string]interface{} `json:"external_ref,omitempty" url:"external_ref,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *ArtifactSummary) GetType() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Type
+}
+
+func (a *ArtifactSummary) GetProvider() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Provider
+}
+
+func (a *ArtifactSummary) GetURL() *string {
+	if a == nil {
+		return nil
+	}
+	return a.URL
+}
+
+func (a *ArtifactSummary) GetTitle() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Title
+}
+
+func (a *ArtifactSummary) GetExternalRef() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.ExternalRef
+}
+
+func (a *ArtifactSummary) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *ArtifactSummary) UnmarshalJSON(data []byte) error {
+	type unmarshaler ArtifactSummary
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = ArtifactSummary(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *ArtifactSummary) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1550,6 +1633,142 @@ func (c *ConditionalTransitionOutputParamsValue) validate() error {
 		}
 	}
 	return nil
+}
+
+// What specifically went wrong, one level below the domain.
+type FactoryFailureCode string
+
+const (
+	FactoryFailureCodeManifestNoStages            FactoryFailureCode = "manifest_no_stages"
+	FactoryFailureCodeManifestTriggerInvalid      FactoryFailureCode = "manifest_trigger_invalid"
+	FactoryFailureCodeUnknownStage                FactoryFailureCode = "unknown_stage"
+	FactoryFailureCodeNoRoute                     FactoryFailureCode = "no_route"
+	FactoryFailureCodeAmbiguousTransition         FactoryFailureCode = "ambiguous_transition"
+	FactoryFailureCodeAmbiguousAgenticTransition  FactoryFailureCode = "ambiguous_agentic_transition"
+	FactoryFailureCodeAgenticTransitionNoOptions  FactoryFailureCode = "agentic_transition_no_options"
+	FactoryFailureCodeWaitWithoutResume           FactoryFailureCode = "wait_without_resume"
+	FactoryFailureCodeTransitionParamsInvalid     FactoryFailureCode = "transition_params_invalid"
+	FactoryFailureCodeMaxIterationsExhausted      FactoryFailureCode = "max_iterations_exhausted"
+	FactoryFailureCodeJobResultInvalid            FactoryFailureCode = "job_result_invalid"
+	FactoryFailureCodeJobOutputsInvalid           FactoryFailureCode = "job_outputs_invalid"
+	FactoryFailureCodeStageParamsInvalid          FactoryFailureCode = "stage_params_invalid"
+	FactoryFailureCodeLineStateInvalid            FactoryFailureCode = "line_state_invalid"
+	FactoryFailureCodeDispatchFailed              FactoryFailureCode = "dispatch_failed"
+	FactoryFailureCodeDecisionPayloadInvalid      FactoryFailureCode = "decision_payload_invalid"
+	FactoryFailureCodeControlPayloadInvalid       FactoryFailureCode = "control_payload_invalid"
+	FactoryFailureCodeControlTargetInvalid        FactoryFailureCode = "control_target_invalid"
+	FactoryFailureCodeControlMissingID            FactoryFailureCode = "control_missing_id"
+	FactoryFailureCodeControlWaitExpired          FactoryFailureCode = "control_wait_expired"
+	FactoryFailureCodeControlWaitUnknownSelection FactoryFailureCode = "control_wait_unknown_selection"
+	FactoryFailureCodeRetrySnapshotInvalid        FactoryFailureCode = "retry_snapshot_invalid"
+	FactoryFailureCodeDecisionOptionNotAllowed    FactoryFailureCode = "decision_option_not_allowed"
+	FactoryFailureCodeDecisionStopInvalid         FactoryFailureCode = "decision_stop_invalid"
+	FactoryFailureCodeStageFailed                 FactoryFailureCode = "stage_failed"
+	FactoryFailureCodeUserCancelled               FactoryFailureCode = "user_cancelled"
+	FactoryFailureCodeUnknown                     FactoryFailureCode = "unknown"
+)
+
+func NewFactoryFailureCodeFromString(s string) (FactoryFailureCode, error) {
+	switch s {
+	case "manifest_no_stages":
+		return FactoryFailureCodeManifestNoStages, nil
+	case "manifest_trigger_invalid":
+		return FactoryFailureCodeManifestTriggerInvalid, nil
+	case "unknown_stage":
+		return FactoryFailureCodeUnknownStage, nil
+	case "no_route":
+		return FactoryFailureCodeNoRoute, nil
+	case "ambiguous_transition":
+		return FactoryFailureCodeAmbiguousTransition, nil
+	case "ambiguous_agentic_transition":
+		return FactoryFailureCodeAmbiguousAgenticTransition, nil
+	case "agentic_transition_no_options":
+		return FactoryFailureCodeAgenticTransitionNoOptions, nil
+	case "wait_without_resume":
+		return FactoryFailureCodeWaitWithoutResume, nil
+	case "transition_params_invalid":
+		return FactoryFailureCodeTransitionParamsInvalid, nil
+	case "max_iterations_exhausted":
+		return FactoryFailureCodeMaxIterationsExhausted, nil
+	case "job_result_invalid":
+		return FactoryFailureCodeJobResultInvalid, nil
+	case "job_outputs_invalid":
+		return FactoryFailureCodeJobOutputsInvalid, nil
+	case "stage_params_invalid":
+		return FactoryFailureCodeStageParamsInvalid, nil
+	case "line_state_invalid":
+		return FactoryFailureCodeLineStateInvalid, nil
+	case "dispatch_failed":
+		return FactoryFailureCodeDispatchFailed, nil
+	case "decision_payload_invalid":
+		return FactoryFailureCodeDecisionPayloadInvalid, nil
+	case "control_payload_invalid":
+		return FactoryFailureCodeControlPayloadInvalid, nil
+	case "control_target_invalid":
+		return FactoryFailureCodeControlTargetInvalid, nil
+	case "control_missing_id":
+		return FactoryFailureCodeControlMissingID, nil
+	case "control_wait_expired":
+		return FactoryFailureCodeControlWaitExpired, nil
+	case "control_wait_unknown_selection":
+		return FactoryFailureCodeControlWaitUnknownSelection, nil
+	case "retry_snapshot_invalid":
+		return FactoryFailureCodeRetrySnapshotInvalid, nil
+	case "decision_option_not_allowed":
+		return FactoryFailureCodeDecisionOptionNotAllowed, nil
+	case "decision_stop_invalid":
+		return FactoryFailureCodeDecisionStopInvalid, nil
+	case "stage_failed":
+		return FactoryFailureCodeStageFailed, nil
+	case "user_cancelled":
+		return FactoryFailureCodeUserCancelled, nil
+	case "unknown":
+		return FactoryFailureCodeUnknown, nil
+	}
+	var t FactoryFailureCode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (f FactoryFailureCode) Ptr() *FactoryFailureCode {
+	return &f
+}
+
+// Who owns the fix for a failed line run.
+type FactoryFailureDomain string
+
+const (
+	FactoryFailureDomainPlatform FactoryFailureDomain = "platform"
+	FactoryFailureDomainConfig   FactoryFailureDomain = "config"
+	FactoryFailureDomainContract FactoryFailureDomain = "contract"
+	FactoryFailureDomainInfra    FactoryFailureDomain = "infra"
+	FactoryFailureDomainAgent    FactoryFailureDomain = "agent"
+	FactoryFailureDomainUser     FactoryFailureDomain = "user"
+	FactoryFailureDomainUnknown  FactoryFailureDomain = "unknown"
+)
+
+func NewFactoryFailureDomainFromString(s string) (FactoryFailureDomain, error) {
+	switch s {
+	case "platform":
+		return FactoryFailureDomainPlatform, nil
+	case "config":
+		return FactoryFailureDomainConfig, nil
+	case "contract":
+		return FactoryFailureDomainContract, nil
+	case "infra":
+		return FactoryFailureDomainInfra, nil
+	case "agent":
+		return FactoryFailureDomainAgent, nil
+	case "user":
+		return FactoryFailureDomainUser, nil
+	case "unknown":
+		return FactoryFailureDomainUnknown, nil
+	}
+	var t FactoryFailureDomain
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (f FactoryFailureDomain) Ptr() *FactoryFailureDomain {
+	return &f
 }
 
 type GitHubRepositorySelector struct {
@@ -3041,238 +3260,6 @@ func (l *LineDeployRequest) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
-type LineEventResponse struct {
-	ID                   string                 `json:"id" url:"id"`
-	EventType            string                 `json:"event_type" url:"event_type"`
-	Sequence             int                    `json:"sequence" url:"sequence"`
-	StageName            *string                `json:"stage_name,omitempty" url:"stage_name,omitempty"`
-	StageOrder           *int                   `json:"stage_order,omitempty" url:"stage_order,omitempty"`
-	Iteration            *int                   `json:"iteration,omitempty" url:"iteration,omitempty"`
-	Status               *string                `json:"status,omitempty" url:"status,omitempty"`
-	TriggeredBy          *string                `json:"triggered_by,omitempty" url:"triggered_by,omitempty"`
-	JobVersionID         *string                `json:"job_version_id,omitempty" url:"job_version_id,omitempty"`
-	JobRunID             *string                `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
-	ManagerName          *string                `json:"manager_name,omitempty" url:"manager_name,omitempty"`
-	ManagerSessionID     *string                `json:"manager_session_id,omitempty" url:"manager_session_id,omitempty"`
-	InputPayload         map[string]interface{} `json:"input_payload" url:"input_payload"`
-	ResultPayload        map[string]interface{} `json:"result_payload,omitempty" url:"result_payload,omitempty"`
-	Outcome              *string                `json:"outcome,omitempty" url:"outcome,omitempty"`
-	SelectedTransitionID *string                `json:"selected_transition_id,omitempty" url:"selected_transition_id,omitempty"`
-	DecisionMetadata     map[string]interface{} `json:"decision_metadata" url:"decision_metadata"`
-	Reason               *string                `json:"reason,omitempty" url:"reason,omitempty"`
-	StartedAt            *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt          *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	CreatedAt            time.Time              `json:"created_at" url:"created_at"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (l *LineEventResponse) GetID() string {
-	if l == nil {
-		return ""
-	}
-	return l.ID
-}
-
-func (l *LineEventResponse) GetEventType() string {
-	if l == nil {
-		return ""
-	}
-	return l.EventType
-}
-
-func (l *LineEventResponse) GetSequence() int {
-	if l == nil {
-		return 0
-	}
-	return l.Sequence
-}
-
-func (l *LineEventResponse) GetStageName() *string {
-	if l == nil {
-		return nil
-	}
-	return l.StageName
-}
-
-func (l *LineEventResponse) GetStageOrder() *int {
-	if l == nil {
-		return nil
-	}
-	return l.StageOrder
-}
-
-func (l *LineEventResponse) GetIteration() *int {
-	if l == nil {
-		return nil
-	}
-	return l.Iteration
-}
-
-func (l *LineEventResponse) GetStatus() *string {
-	if l == nil {
-		return nil
-	}
-	return l.Status
-}
-
-func (l *LineEventResponse) GetTriggeredBy() *string {
-	if l == nil {
-		return nil
-	}
-	return l.TriggeredBy
-}
-
-func (l *LineEventResponse) GetJobVersionID() *string {
-	if l == nil {
-		return nil
-	}
-	return l.JobVersionID
-}
-
-func (l *LineEventResponse) GetJobRunID() *string {
-	if l == nil {
-		return nil
-	}
-	return l.JobRunID
-}
-
-func (l *LineEventResponse) GetManagerName() *string {
-	if l == nil {
-		return nil
-	}
-	return l.ManagerName
-}
-
-func (l *LineEventResponse) GetManagerSessionID() *string {
-	if l == nil {
-		return nil
-	}
-	return l.ManagerSessionID
-}
-
-func (l *LineEventResponse) GetInputPayload() map[string]interface{} {
-	if l == nil {
-		return nil
-	}
-	return l.InputPayload
-}
-
-func (l *LineEventResponse) GetResultPayload() map[string]interface{} {
-	if l == nil {
-		return nil
-	}
-	return l.ResultPayload
-}
-
-func (l *LineEventResponse) GetOutcome() *string {
-	if l == nil {
-		return nil
-	}
-	return l.Outcome
-}
-
-func (l *LineEventResponse) GetSelectedTransitionID() *string {
-	if l == nil {
-		return nil
-	}
-	return l.SelectedTransitionID
-}
-
-func (l *LineEventResponse) GetDecisionMetadata() map[string]interface{} {
-	if l == nil {
-		return nil
-	}
-	return l.DecisionMetadata
-}
-
-func (l *LineEventResponse) GetReason() *string {
-	if l == nil {
-		return nil
-	}
-	return l.Reason
-}
-
-func (l *LineEventResponse) GetStartedAt() *time.Time {
-	if l == nil {
-		return nil
-	}
-	return l.StartedAt
-}
-
-func (l *LineEventResponse) GetCompletedAt() *time.Time {
-	if l == nil {
-		return nil
-	}
-	return l.CompletedAt
-}
-
-func (l *LineEventResponse) GetCreatedAt() time.Time {
-	if l == nil {
-		return time.Time{}
-	}
-	return l.CreatedAt
-}
-
-func (l *LineEventResponse) GetExtraProperties() map[string]interface{} {
-	return l.extraProperties
-}
-
-func (l *LineEventResponse) UnmarshalJSON(data []byte) error {
-	type embed LineEventResponse
-	var unmarshaler = struct {
-		embed
-		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
-		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
-		CreatedAt   *internal.DateTime `json:"created_at"`
-	}{
-		embed: embed(*l),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*l = LineEventResponse(unmarshaler.embed)
-	l.StartedAt = unmarshaler.StartedAt.TimePtr()
-	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
-	l.CreatedAt = unmarshaler.CreatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *l)
-	if err != nil {
-		return err
-	}
-	l.extraProperties = extraProperties
-	l.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (l *LineEventResponse) MarshalJSON() ([]byte, error) {
-	type embed LineEventResponse
-	var marshaler = struct {
-		embed
-		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
-		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
-		CreatedAt   *internal.DateTime `json:"created_at"`
-	}{
-		embed:       embed(*l),
-		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
-		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
-		CreatedAt:   internal.NewDateTime(l.CreatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (l *LineEventResponse) String() string {
-	if len(l.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(l); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", l)
-}
-
 type LineLimitsInput struct {
 	MaxIterations *int                      `json:"max_iterations,omitempty" url:"max_iterations,omitempty"`
 	BudgetUsd     *LineLimitsInputBudgetUsd `json:"budget_usd,omitempty" url:"budget_usd,omitempty"`
@@ -4341,121 +4328,55 @@ func (l *LineResponse) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
-type LineRunListItem struct {
-	ID             string                   `json:"id" url:"id"`
-	LineName       string                   `json:"line_name" url:"line_name"`
-	Status         string                   `json:"status" url:"status"`
-	TriggeredBy    string                   `json:"triggered_by" url:"triggered_by"`
-	TriggerPayload map[string]interface{}   `json:"trigger_payload,omitempty" url:"trigger_payload,omitempty"`
-	StartedAt      *time.Time               `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt    *time.Time               `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	CreatedAt      time.Time                `json:"created_at" url:"created_at"`
-	ErrorMessage   *string                  `json:"error_message,omitempty" url:"error_message,omitempty"`
-	StageHistory   []map[string]interface{} `json:"stage_history,omitempty" url:"stage_history,omitempty"`
-	Events         []*LineEventResponse     `json:"events,omitempty" url:"events,omitempty"`
+type LineRunDebugEnvironment struct {
+	SandboxName    *string `json:"sandbox_name,omitempty" url:"sandbox_name,omitempty"`
+	Region         *string `json:"region,omitempty" url:"region,omitempty"`
+	SnapshotName   *string `json:"snapshot_name,omitempty" url:"snapshot_name,omitempty"`
+	GatewayProfile *string `json:"gateway_profile,omitempty" url:"gateway_profile,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (l *LineRunListItem) GetID() string {
-	if l == nil {
-		return ""
-	}
-	return l.ID
-}
-
-func (l *LineRunListItem) GetLineName() string {
-	if l == nil {
-		return ""
-	}
-	return l.LineName
-}
-
-func (l *LineRunListItem) GetStatus() string {
-	if l == nil {
-		return ""
-	}
-	return l.Status
-}
-
-func (l *LineRunListItem) GetTriggeredBy() string {
-	if l == nil {
-		return ""
-	}
-	return l.TriggeredBy
-}
-
-func (l *LineRunListItem) GetTriggerPayload() map[string]interface{} {
+func (l *LineRunDebugEnvironment) GetSandboxName() *string {
 	if l == nil {
 		return nil
 	}
-	return l.TriggerPayload
+	return l.SandboxName
 }
 
-func (l *LineRunListItem) GetStartedAt() *time.Time {
+func (l *LineRunDebugEnvironment) GetRegion() *string {
 	if l == nil {
 		return nil
 	}
-	return l.StartedAt
+	return l.Region
 }
 
-func (l *LineRunListItem) GetCompletedAt() *time.Time {
+func (l *LineRunDebugEnvironment) GetSnapshotName() *string {
 	if l == nil {
 		return nil
 	}
-	return l.CompletedAt
+	return l.SnapshotName
 }
 
-func (l *LineRunListItem) GetCreatedAt() time.Time {
-	if l == nil {
-		return time.Time{}
-	}
-	return l.CreatedAt
-}
-
-func (l *LineRunListItem) GetErrorMessage() *string {
+func (l *LineRunDebugEnvironment) GetGatewayProfile() *string {
 	if l == nil {
 		return nil
 	}
-	return l.ErrorMessage
+	return l.GatewayProfile
 }
 
-func (l *LineRunListItem) GetStageHistory() []map[string]interface{} {
-	if l == nil {
-		return nil
-	}
-	return l.StageHistory
-}
-
-func (l *LineRunListItem) GetEvents() []*LineEventResponse {
-	if l == nil {
-		return nil
-	}
-	return l.Events
-}
-
-func (l *LineRunListItem) GetExtraProperties() map[string]interface{} {
+func (l *LineRunDebugEnvironment) GetExtraProperties() map[string]interface{} {
 	return l.extraProperties
 }
 
-func (l *LineRunListItem) UnmarshalJSON(data []byte) error {
-	type embed LineRunListItem
-	var unmarshaler = struct {
-		embed
-		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
-		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
-		CreatedAt   *internal.DateTime `json:"created_at"`
-	}{
-		embed: embed(*l),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+func (l *LineRunDebugEnvironment) UnmarshalJSON(data []byte) error {
+	type unmarshaler LineRunDebugEnvironment
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*l = LineRunListItem(unmarshaler.embed)
-	l.StartedAt = unmarshaler.StartedAt.TimePtr()
-	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
-	l.CreatedAt = unmarshaler.CreatedAt.Time()
+	*l = LineRunDebugEnvironment(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *l)
 	if err != nil {
 		return err
@@ -4465,23 +4386,7 @@ func (l *LineRunListItem) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (l *LineRunListItem) MarshalJSON() ([]byte, error) {
-	type embed LineRunListItem
-	var marshaler = struct {
-		embed
-		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
-		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
-		CreatedAt   *internal.DateTime `json:"created_at"`
-	}{
-		embed:       embed(*l),
-		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
-		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
-		CreatedAt:   internal.NewDateTime(l.CreatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (l *LineRunListItem) String() string {
+func (l *LineRunDebugEnvironment) String() string {
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -4493,22 +4398,476 @@ func (l *LineRunListItem) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
-type LineRunResponse struct {
+type LineRunDebugResponse struct {
+	ID             string                 `json:"id" url:"id"`
+	LineName       string                 `json:"line_name" url:"line_name"`
+	LineVersionID  *string                `json:"line_version_id,omitempty" url:"line_version_id,omitempty"`
+	Status         string                 `json:"status" url:"status"`
+	TriggeredBy    string                 `json:"triggered_by" url:"triggered_by"`
+	Region         *string                `json:"region,omitempty" url:"region,omitempty"`
+	StartedAt      *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt    *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ErrorMessage   *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	FailureSummary *LineRunFailureSummary `json:"failure_summary,omitempty" url:"failure_summary,omitempty"`
+	Stages         []*LineRunDebugStage   `json:"stages,omitempty" url:"stages,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LineRunDebugResponse) GetID() string {
+	if l == nil {
+		return ""
+	}
+	return l.ID
+}
+
+func (l *LineRunDebugResponse) GetLineName() string {
+	if l == nil {
+		return ""
+	}
+	return l.LineName
+}
+
+func (l *LineRunDebugResponse) GetLineVersionID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.LineVersionID
+}
+
+func (l *LineRunDebugResponse) GetStatus() string {
+	if l == nil {
+		return ""
+	}
+	return l.Status
+}
+
+func (l *LineRunDebugResponse) GetTriggeredBy() string {
+	if l == nil {
+		return ""
+	}
+	return l.TriggeredBy
+}
+
+func (l *LineRunDebugResponse) GetRegion() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Region
+}
+
+func (l *LineRunDebugResponse) GetStartedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.StartedAt
+}
+
+func (l *LineRunDebugResponse) GetCompletedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CompletedAt
+}
+
+func (l *LineRunDebugResponse) GetErrorMessage() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorMessage
+}
+
+func (l *LineRunDebugResponse) GetFailureSummary() *LineRunFailureSummary {
+	if l == nil {
+		return nil
+	}
+	return l.FailureSummary
+}
+
+func (l *LineRunDebugResponse) GetStages() []*LineRunDebugStage {
+	if l == nil {
+		return nil
+	}
+	return l.Stages
+}
+
+func (l *LineRunDebugResponse) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LineRunDebugResponse) UnmarshalJSON(data []byte) error {
+	type embed LineRunDebugResponse
+	var unmarshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed: embed(*l),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*l = LineRunDebugResponse(unmarshaler.embed)
+	l.StartedAt = unmarshaler.StartedAt.TimePtr()
+	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LineRunDebugResponse) MarshalJSON() ([]byte, error) {
+	type embed LineRunDebugResponse
+	var marshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed:       embed(*l),
+		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
+		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (l *LineRunDebugResponse) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LineRunDebugStage struct {
+	StageName    *string                  `json:"stage_name,omitempty" url:"stage_name,omitempty"`
+	StageOrder   *int                     `json:"stage_order,omitempty" url:"stage_order,omitempty"`
+	Iteration    *int                     `json:"iteration,omitempty" url:"iteration,omitempty"`
+	Status       *string                  `json:"status,omitempty" url:"status,omitempty"`
+	Outcome      *string                  `json:"outcome,omitempty" url:"outcome,omitempty"`
+	Reason       *string                  `json:"reason,omitempty" url:"reason,omitempty"`
+	JobRunID     *string                  `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
+	JobVersionID *string                  `json:"job_version_id,omitempty" url:"job_version_id,omitempty"`
+	Steps        []*LineRunDebugStep      `json:"steps,omitempty" url:"steps,omitempty"`
+	Environment  *LineRunDebugEnvironment `json:"environment,omitempty" url:"environment,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LineRunDebugStage) GetStageName() *string {
+	if l == nil {
+		return nil
+	}
+	return l.StageName
+}
+
+func (l *LineRunDebugStage) GetStageOrder() *int {
+	if l == nil {
+		return nil
+	}
+	return l.StageOrder
+}
+
+func (l *LineRunDebugStage) GetIteration() *int {
+	if l == nil {
+		return nil
+	}
+	return l.Iteration
+}
+
+func (l *LineRunDebugStage) GetStatus() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Status
+}
+
+func (l *LineRunDebugStage) GetOutcome() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Outcome
+}
+
+func (l *LineRunDebugStage) GetReason() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Reason
+}
+
+func (l *LineRunDebugStage) GetJobRunID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.JobRunID
+}
+
+func (l *LineRunDebugStage) GetJobVersionID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.JobVersionID
+}
+
+func (l *LineRunDebugStage) GetSteps() []*LineRunDebugStep {
+	if l == nil {
+		return nil
+	}
+	return l.Steps
+}
+
+func (l *LineRunDebugStage) GetEnvironment() *LineRunDebugEnvironment {
+	if l == nil {
+		return nil
+	}
+	return l.Environment
+}
+
+func (l *LineRunDebugStage) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LineRunDebugStage) UnmarshalJSON(data []byte) error {
+	type unmarshaler LineRunDebugStage
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LineRunDebugStage(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LineRunDebugStage) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LineRunDebugStep struct {
+	Name             *string                `json:"name,omitempty" url:"name,omitempty"`
+	Action           *string                `json:"action,omitempty" url:"action,omitempty"`
+	Status           *string                `json:"status,omitempty" url:"status,omitempty"`
+	TaskName         *string                `json:"task_name,omitempty" url:"task_name,omitempty"`
+	ExitCode         *int                   `json:"exit_code,omitempty" url:"exit_code,omitempty"`
+	ErrorCode        *string                `json:"error_code,omitempty" url:"error_code,omitempty"`
+	FailureClass     *string                `json:"failure_class,omitempty" url:"failure_class,omitempty"`
+	ErrorMessage     *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorDetails     map[string]interface{} `json:"error_details,omitempty" url:"error_details,omitempty"`
+	ComputeCommandID *string                `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
+	SandboxName      *string                `json:"sandbox_name,omitempty" url:"sandbox_name,omitempty"`
+	AgentSessionID   *string                `json:"agent_session_id,omitempty" url:"agent_session_id,omitempty"`
+	StdoutTail       *string                `json:"stdout_tail,omitempty" url:"stdout_tail,omitempty"`
+	StderrTail       *string                `json:"stderr_tail,omitempty" url:"stderr_tail,omitempty"`
+	StartedAt        *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt      *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LineRunDebugStep) GetName() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Name
+}
+
+func (l *LineRunDebugStep) GetAction() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Action
+}
+
+func (l *LineRunDebugStep) GetStatus() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Status
+}
+
+func (l *LineRunDebugStep) GetTaskName() *string {
+	if l == nil {
+		return nil
+	}
+	return l.TaskName
+}
+
+func (l *LineRunDebugStep) GetExitCode() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ExitCode
+}
+
+func (l *LineRunDebugStep) GetErrorCode() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorCode
+}
+
+func (l *LineRunDebugStep) GetFailureClass() *string {
+	if l == nil {
+		return nil
+	}
+	return l.FailureClass
+}
+
+func (l *LineRunDebugStep) GetErrorMessage() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorMessage
+}
+
+func (l *LineRunDebugStep) GetErrorDetails() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorDetails
+}
+
+func (l *LineRunDebugStep) GetComputeCommandID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCommandID
+}
+
+func (l *LineRunDebugStep) GetSandboxName() *string {
+	if l == nil {
+		return nil
+	}
+	return l.SandboxName
+}
+
+func (l *LineRunDebugStep) GetAgentSessionID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.AgentSessionID
+}
+
+func (l *LineRunDebugStep) GetStdoutTail() *string {
+	if l == nil {
+		return nil
+	}
+	return l.StdoutTail
+}
+
+func (l *LineRunDebugStep) GetStderrTail() *string {
+	if l == nil {
+		return nil
+	}
+	return l.StderrTail
+}
+
+func (l *LineRunDebugStep) GetStartedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.StartedAt
+}
+
+func (l *LineRunDebugStep) GetCompletedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CompletedAt
+}
+
+func (l *LineRunDebugStep) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LineRunDebugStep) UnmarshalJSON(data []byte) error {
+	type embed LineRunDebugStep
+	var unmarshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed: embed(*l),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*l = LineRunDebugStep(unmarshaler.embed)
+	l.StartedAt = unmarshaler.StartedAt.TimePtr()
+	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LineRunDebugStep) MarshalJSON() ([]byte, error) {
+	type embed LineRunDebugStep
+	var marshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed:       embed(*l),
+		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
+		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (l *LineRunDebugStep) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LineRunDetail struct {
 	ID             string                 `json:"id" url:"id"`
 	LineName       string                 `json:"line_name" url:"line_name"`
 	LineVersionID  string                 `json:"line_version_id" url:"line_version_id"`
 	WorkflowRunID  string                 `json:"workflow_run_id" url:"workflow_run_id"`
 	Status         string                 `json:"status" url:"status"`
-	TriggeredBy    string                 `json:"triggered_by" url:"triggered_by"`
-	TriggerPayload map[string]interface{} `json:"trigger_payload" url:"trigger_payload"`
+	Trigger        *TriggerSummary        `json:"trigger" url:"trigger"`
 	Region         *string                `json:"region,omitempty" url:"region,omitempty"`
-	RunParams      map[string]interface{} `json:"run_params" url:"run_params"`
+	RunParams      map[string]interface{} `json:"run_params,omitempty" url:"run_params,omitempty"`
 	ResultPayload  map[string]interface{} `json:"result_payload,omitempty" url:"result_payload,omitempty"`
 	ErrorMessage   *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
-	IterationCount int                    `json:"iteration_count" url:"iteration_count"`
+	IterationCount *int                   `json:"iteration_count,omitempty" url:"iteration_count,omitempty"`
 	BudgetUsedUsd  *string                `json:"budget_used_usd,omitempty" url:"budget_used_usd,omitempty"`
 	Retry          *LineRunRetryAction    `json:"retry,omitempty" url:"retry,omitempty"`
-	Events         []*LineEventResponse   `json:"events,omitempty" url:"events,omitempty"`
+	Stages         []*LineRunStageDetail  `json:"stages,omitempty" url:"stages,omitempty"`
+	Failure        *LineRunFailure        `json:"failure,omitempty" url:"failure,omitempty"`
 	StartedAt      *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
 	CompletedAt    *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
 	CreatedAt      time.Time              `json:"created_at" url:"created_at"`
@@ -4517,138 +4876,138 @@ type LineRunResponse struct {
 	rawJSON         json.RawMessage
 }
 
-func (l *LineRunResponse) GetID() string {
+func (l *LineRunDetail) GetID() string {
 	if l == nil {
 		return ""
 	}
 	return l.ID
 }
 
-func (l *LineRunResponse) GetLineName() string {
+func (l *LineRunDetail) GetLineName() string {
 	if l == nil {
 		return ""
 	}
 	return l.LineName
 }
 
-func (l *LineRunResponse) GetLineVersionID() string {
+func (l *LineRunDetail) GetLineVersionID() string {
 	if l == nil {
 		return ""
 	}
 	return l.LineVersionID
 }
 
-func (l *LineRunResponse) GetWorkflowRunID() string {
+func (l *LineRunDetail) GetWorkflowRunID() string {
 	if l == nil {
 		return ""
 	}
 	return l.WorkflowRunID
 }
 
-func (l *LineRunResponse) GetStatus() string {
+func (l *LineRunDetail) GetStatus() string {
 	if l == nil {
 		return ""
 	}
 	return l.Status
 }
 
-func (l *LineRunResponse) GetTriggeredBy() string {
-	if l == nil {
-		return ""
-	}
-	return l.TriggeredBy
-}
-
-func (l *LineRunResponse) GetTriggerPayload() map[string]interface{} {
+func (l *LineRunDetail) GetTrigger() *TriggerSummary {
 	if l == nil {
 		return nil
 	}
-	return l.TriggerPayload
+	return l.Trigger
 }
 
-func (l *LineRunResponse) GetRegion() *string {
+func (l *LineRunDetail) GetRegion() *string {
 	if l == nil {
 		return nil
 	}
 	return l.Region
 }
 
-func (l *LineRunResponse) GetRunParams() map[string]interface{} {
+func (l *LineRunDetail) GetRunParams() map[string]interface{} {
 	if l == nil {
 		return nil
 	}
 	return l.RunParams
 }
 
-func (l *LineRunResponse) GetResultPayload() map[string]interface{} {
+func (l *LineRunDetail) GetResultPayload() map[string]interface{} {
 	if l == nil {
 		return nil
 	}
 	return l.ResultPayload
 }
 
-func (l *LineRunResponse) GetErrorMessage() *string {
+func (l *LineRunDetail) GetErrorMessage() *string {
 	if l == nil {
 		return nil
 	}
 	return l.ErrorMessage
 }
 
-func (l *LineRunResponse) GetIterationCount() int {
+func (l *LineRunDetail) GetIterationCount() *int {
 	if l == nil {
-		return 0
+		return nil
 	}
 	return l.IterationCount
 }
 
-func (l *LineRunResponse) GetBudgetUsedUsd() *string {
+func (l *LineRunDetail) GetBudgetUsedUsd() *string {
 	if l == nil {
 		return nil
 	}
 	return l.BudgetUsedUsd
 }
 
-func (l *LineRunResponse) GetRetry() *LineRunRetryAction {
+func (l *LineRunDetail) GetRetry() *LineRunRetryAction {
 	if l == nil {
 		return nil
 	}
 	return l.Retry
 }
 
-func (l *LineRunResponse) GetEvents() []*LineEventResponse {
+func (l *LineRunDetail) GetStages() []*LineRunStageDetail {
 	if l == nil {
 		return nil
 	}
-	return l.Events
+	return l.Stages
 }
 
-func (l *LineRunResponse) GetStartedAt() *time.Time {
+func (l *LineRunDetail) GetFailure() *LineRunFailure {
+	if l == nil {
+		return nil
+	}
+	return l.Failure
+}
+
+func (l *LineRunDetail) GetStartedAt() *time.Time {
 	if l == nil {
 		return nil
 	}
 	return l.StartedAt
 }
 
-func (l *LineRunResponse) GetCompletedAt() *time.Time {
+func (l *LineRunDetail) GetCompletedAt() *time.Time {
 	if l == nil {
 		return nil
 	}
 	return l.CompletedAt
 }
 
-func (l *LineRunResponse) GetCreatedAt() time.Time {
+func (l *LineRunDetail) GetCreatedAt() time.Time {
 	if l == nil {
 		return time.Time{}
 	}
 	return l.CreatedAt
 }
 
-func (l *LineRunResponse) GetExtraProperties() map[string]interface{} {
+func (l *LineRunDetail) GetExtraProperties() map[string]interface{} {
 	return l.extraProperties
 }
 
-func (l *LineRunResponse) UnmarshalJSON(data []byte) error {
-	type embed LineRunResponse
+func (l *LineRunDetail) UnmarshalJSON(data []byte) error {
+	type embed LineRunDetail
 	var unmarshaler = struct {
 		embed
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
@@ -4660,7 +5019,7 @@ func (l *LineRunResponse) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*l = LineRunResponse(unmarshaler.embed)
+	*l = LineRunDetail(unmarshaler.embed)
 	l.StartedAt = unmarshaler.StartedAt.TimePtr()
 	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	l.CreatedAt = unmarshaler.CreatedAt.Time()
@@ -4673,8 +5032,8 @@ func (l *LineRunResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (l *LineRunResponse) MarshalJSON() ([]byte, error) {
-	type embed LineRunResponse
+func (l *LineRunDetail) MarshalJSON() ([]byte, error) {
+	type embed LineRunDetail
 	var marshaler = struct {
 		embed
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
@@ -4689,7 +5048,227 @@ func (l *LineRunResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (l *LineRunResponse) String() string {
+func (l *LineRunDetail) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+// Why a line run ended, and which step surfaced it.
+//
+// Orchestrator classification (“code“, “domain“) is written into
+// “result_payload“ on terminal paths. Step diagnostics are enriched in by
+// the API without replacing those fields.
+//
+// Read out of “result_payload“ rather than carried as its own request field.
+// “api“ and “workflow-handlers“ are separate Deployments with no rollout
+// ordering, so a new key on a request body is rejected by whichever old pods
+// are still serving — and on “LineControlWaitRequest“, which forbids extras,
+// that rejection would finalize a succeeded run as failed.
+//
+// Unknown keys are tolerated for the same reason, in the other direction: a
+// later orchestrator that adds a field here must not make every failure read
+// as unclassified while the rollout is in flight.
+type LineRunFailure struct {
+	Code         *FactoryFailureCode    `json:"code,omitempty" url:"code,omitempty"`
+	Domain       *FactoryFailureDomain  `json:"domain,omitempty" url:"domain,omitempty"`
+	ErrorCode    *string                `json:"error_code,omitempty" url:"error_code,omitempty"`
+	FailureClass *string                `json:"failure_class,omitempty" url:"failure_class,omitempty"`
+	ErrorMessage *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorDetails map[string]interface{} `json:"error_details,omitempty" url:"error_details,omitempty"`
+	StageName    *string                `json:"stage_name,omitempty" url:"stage_name,omitempty"`
+	StageStep    *string                `json:"stage_step,omitempty" url:"stage_step,omitempty"`
+	TaskName     *string                `json:"task_name,omitempty" url:"task_name,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LineRunFailure) GetCode() *FactoryFailureCode {
+	if l == nil {
+		return nil
+	}
+	return l.Code
+}
+
+func (l *LineRunFailure) GetDomain() *FactoryFailureDomain {
+	if l == nil {
+		return nil
+	}
+	return l.Domain
+}
+
+func (l *LineRunFailure) GetErrorCode() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorCode
+}
+
+func (l *LineRunFailure) GetFailureClass() *string {
+	if l == nil {
+		return nil
+	}
+	return l.FailureClass
+}
+
+func (l *LineRunFailure) GetErrorMessage() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorMessage
+}
+
+func (l *LineRunFailure) GetErrorDetails() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorDetails
+}
+
+func (l *LineRunFailure) GetStageName() *string {
+	if l == nil {
+		return nil
+	}
+	return l.StageName
+}
+
+func (l *LineRunFailure) GetStageStep() *string {
+	if l == nil {
+		return nil
+	}
+	return l.StageStep
+}
+
+func (l *LineRunFailure) GetTaskName() *string {
+	if l == nil {
+		return nil
+	}
+	return l.TaskName
+}
+
+func (l *LineRunFailure) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LineRunFailure) UnmarshalJSON(data []byte) error {
+	type unmarshaler LineRunFailure
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LineRunFailure(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LineRunFailure) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+// The first failed step within the run's last failed stage attempt.
+type LineRunFailureSummary struct {
+	StageName        *string                `json:"stage_name,omitempty" url:"stage_name,omitempty"`
+	StepName         *string                `json:"step_name,omitempty" url:"step_name,omitempty"`
+	FailureClass     *string                `json:"failure_class,omitempty" url:"failure_class,omitempty"`
+	ErrorCode        *string                `json:"error_code,omitempty" url:"error_code,omitempty"`
+	ErrorMessage     *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorDetails     map[string]interface{} `json:"error_details,omitempty" url:"error_details,omitempty"`
+	ComputeCommandID *string                `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LineRunFailureSummary) GetStageName() *string {
+	if l == nil {
+		return nil
+	}
+	return l.StageName
+}
+
+func (l *LineRunFailureSummary) GetStepName() *string {
+	if l == nil {
+		return nil
+	}
+	return l.StepName
+}
+
+func (l *LineRunFailureSummary) GetFailureClass() *string {
+	if l == nil {
+		return nil
+	}
+	return l.FailureClass
+}
+
+func (l *LineRunFailureSummary) GetErrorCode() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorCode
+}
+
+func (l *LineRunFailureSummary) GetErrorMessage() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorMessage
+}
+
+func (l *LineRunFailureSummary) GetErrorDetails() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorDetails
+}
+
+func (l *LineRunFailureSummary) GetComputeCommandID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCommandID
+}
+
+func (l *LineRunFailureSummary) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LineRunFailureSummary) UnmarshalJSON(data []byte) error {
+	type unmarshaler LineRunFailureSummary
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LineRunFailureSummary(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LineRunFailureSummary) String() string {
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -4736,6 +5315,478 @@ func (l *LineRunRetryAction) UnmarshalJSON(data []byte) error {
 }
 
 func (l *LineRunRetryAction) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LineRunStageDetail struct {
+	StageName     string                   `json:"stage_name" url:"stage_name"`
+	StageOrder    int                      `json:"stage_order" url:"stage_order"`
+	Iteration     int                      `json:"iteration" url:"iteration"`
+	Status        string                   `json:"status" url:"status"`
+	Outcome       *string                  `json:"outcome,omitempty" url:"outcome,omitempty"`
+	JobRunID      *string                  `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
+	StartedAt     *time.Time               `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt   *time.Time               `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ArtifactCount *int                     `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+	InputPayload  map[string]interface{}   `json:"input_payload,omitempty" url:"input_payload,omitempty"`
+	ResultPayload map[string]interface{}   `json:"result_payload,omitempty" url:"result_payload,omitempty"`
+	Artifacts     []map[string]interface{} `json:"artifacts,omitempty" url:"artifacts,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LineRunStageDetail) GetStageName() string {
+	if l == nil {
+		return ""
+	}
+	return l.StageName
+}
+
+func (l *LineRunStageDetail) GetStageOrder() int {
+	if l == nil {
+		return 0
+	}
+	return l.StageOrder
+}
+
+func (l *LineRunStageDetail) GetIteration() int {
+	if l == nil {
+		return 0
+	}
+	return l.Iteration
+}
+
+func (l *LineRunStageDetail) GetStatus() string {
+	if l == nil {
+		return ""
+	}
+	return l.Status
+}
+
+func (l *LineRunStageDetail) GetOutcome() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Outcome
+}
+
+func (l *LineRunStageDetail) GetJobRunID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.JobRunID
+}
+
+func (l *LineRunStageDetail) GetStartedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.StartedAt
+}
+
+func (l *LineRunStageDetail) GetCompletedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CompletedAt
+}
+
+func (l *LineRunStageDetail) GetArtifactCount() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ArtifactCount
+}
+
+func (l *LineRunStageDetail) GetInputPayload() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.InputPayload
+}
+
+func (l *LineRunStageDetail) GetResultPayload() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.ResultPayload
+}
+
+func (l *LineRunStageDetail) GetArtifacts() []map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.Artifacts
+}
+
+func (l *LineRunStageDetail) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LineRunStageDetail) UnmarshalJSON(data []byte) error {
+	type embed LineRunStageDetail
+	var unmarshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed: embed(*l),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*l = LineRunStageDetail(unmarshaler.embed)
+	l.StartedAt = unmarshaler.StartedAt.TimePtr()
+	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LineRunStageDetail) MarshalJSON() ([]byte, error) {
+	type embed LineRunStageDetail
+	var marshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed:       embed(*l),
+		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
+		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (l *LineRunStageDetail) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LineRunStageSummary struct {
+	StageName     string     `json:"stage_name" url:"stage_name"`
+	StageOrder    int        `json:"stage_order" url:"stage_order"`
+	Iteration     int        `json:"iteration" url:"iteration"`
+	Status        string     `json:"status" url:"status"`
+	Outcome       *string    `json:"outcome,omitempty" url:"outcome,omitempty"`
+	JobRunID      *string    `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
+	StartedAt     *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt   *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ArtifactCount *int       `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LineRunStageSummary) GetStageName() string {
+	if l == nil {
+		return ""
+	}
+	return l.StageName
+}
+
+func (l *LineRunStageSummary) GetStageOrder() int {
+	if l == nil {
+		return 0
+	}
+	return l.StageOrder
+}
+
+func (l *LineRunStageSummary) GetIteration() int {
+	if l == nil {
+		return 0
+	}
+	return l.Iteration
+}
+
+func (l *LineRunStageSummary) GetStatus() string {
+	if l == nil {
+		return ""
+	}
+	return l.Status
+}
+
+func (l *LineRunStageSummary) GetOutcome() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Outcome
+}
+
+func (l *LineRunStageSummary) GetJobRunID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.JobRunID
+}
+
+func (l *LineRunStageSummary) GetStartedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.StartedAt
+}
+
+func (l *LineRunStageSummary) GetCompletedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CompletedAt
+}
+
+func (l *LineRunStageSummary) GetArtifactCount() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ArtifactCount
+}
+
+func (l *LineRunStageSummary) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LineRunStageSummary) UnmarshalJSON(data []byte) error {
+	type embed LineRunStageSummary
+	var unmarshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed: embed(*l),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*l = LineRunStageSummary(unmarshaler.embed)
+	l.StartedAt = unmarshaler.StartedAt.TimePtr()
+	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LineRunStageSummary) MarshalJSON() ([]byte, error) {
+	type embed LineRunStageSummary
+	var marshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+	}{
+		embed:       embed(*l),
+		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
+		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (l *LineRunStageSummary) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type LineRunSummary struct {
+	ID            string                 `json:"id" url:"id"`
+	LineName      string                 `json:"line_name" url:"line_name"`
+	LineVersionID *string                `json:"line_version_id,omitempty" url:"line_version_id,omitempty"`
+	Status        string                 `json:"status" url:"status"`
+	Trigger       *TriggerSummary        `json:"trigger" url:"trigger"`
+	Region        *string                `json:"region,omitempty" url:"region,omitempty"`
+	RunParams     map[string]interface{} `json:"run_params,omitempty" url:"run_params,omitempty"`
+	Stages        []*LineRunStageSummary `json:"stages,omitempty" url:"stages,omitempty"`
+	ArtifactCount *int                   `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+	Artifacts     []*ArtifactSummary     `json:"artifacts,omitempty" url:"artifacts,omitempty"`
+	ErrorMessage  *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	Failure       *LineRunFailure        `json:"failure,omitempty" url:"failure,omitempty"`
+	StartedAt     *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt   *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	CreatedAt     time.Time              `json:"created_at" url:"created_at"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LineRunSummary) GetID() string {
+	if l == nil {
+		return ""
+	}
+	return l.ID
+}
+
+func (l *LineRunSummary) GetLineName() string {
+	if l == nil {
+		return ""
+	}
+	return l.LineName
+}
+
+func (l *LineRunSummary) GetLineVersionID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.LineVersionID
+}
+
+func (l *LineRunSummary) GetStatus() string {
+	if l == nil {
+		return ""
+	}
+	return l.Status
+}
+
+func (l *LineRunSummary) GetTrigger() *TriggerSummary {
+	if l == nil {
+		return nil
+	}
+	return l.Trigger
+}
+
+func (l *LineRunSummary) GetRegion() *string {
+	if l == nil {
+		return nil
+	}
+	return l.Region
+}
+
+func (l *LineRunSummary) GetRunParams() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.RunParams
+}
+
+func (l *LineRunSummary) GetStages() []*LineRunStageSummary {
+	if l == nil {
+		return nil
+	}
+	return l.Stages
+}
+
+func (l *LineRunSummary) GetArtifactCount() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ArtifactCount
+}
+
+func (l *LineRunSummary) GetArtifacts() []*ArtifactSummary {
+	if l == nil {
+		return nil
+	}
+	return l.Artifacts
+}
+
+func (l *LineRunSummary) GetErrorMessage() *string {
+	if l == nil {
+		return nil
+	}
+	return l.ErrorMessage
+}
+
+func (l *LineRunSummary) GetFailure() *LineRunFailure {
+	if l == nil {
+		return nil
+	}
+	return l.Failure
+}
+
+func (l *LineRunSummary) GetStartedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.StartedAt
+}
+
+func (l *LineRunSummary) GetCompletedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CompletedAt
+}
+
+func (l *LineRunSummary) GetCreatedAt() time.Time {
+	if l == nil {
+		return time.Time{}
+	}
+	return l.CreatedAt
+}
+
+func (l *LineRunSummary) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LineRunSummary) UnmarshalJSON(data []byte) error {
+	type embed LineRunSummary
+	var unmarshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+		CreatedAt   *internal.DateTime `json:"created_at"`
+	}{
+		embed: embed(*l),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*l = LineRunSummary(unmarshaler.embed)
+	l.StartedAt = unmarshaler.StartedAt.TimePtr()
+	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
+	l.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LineRunSummary) MarshalJSON() ([]byte, error) {
+	type embed LineRunSummary
+	var marshaler = struct {
+		embed
+		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
+		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
+		CreatedAt   *internal.DateTime `json:"created_at"`
+	}{
+		embed:       embed(*l),
+		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
+		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
+		CreatedAt:   internal.NewDateTime(l.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (l *LineRunSummary) String() string {
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5885,6 +6936,91 @@ func NewTriggerPathBindingTypeFromString(s string) (TriggerPathBindingType, erro
 
 func (t TriggerPathBindingType) Ptr() *TriggerPathBindingType {
 	return &t
+}
+
+// What set a run off.
+//
+// `provider`, `event_name`, and `delivery_id` are lifted out of the nested
+// `payload.trigger` object so a list row is readable without walking the
+// envelope. The extracted trigger values are not repeated here; they land in
+// the run's `run_params`. `payload` still carries the whole envelope, minus the
+// raw webhook body on list responses.
+type TriggerSummary struct {
+	Source     string                 `json:"source" url:"source"`
+	Provider   *string                `json:"provider,omitempty" url:"provider,omitempty"`
+	EventName  *string                `json:"event_name,omitempty" url:"event_name,omitempty"`
+	DeliveryID *string                `json:"delivery_id,omitempty" url:"delivery_id,omitempty"`
+	Payload    map[string]interface{} `json:"payload,omitempty" url:"payload,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TriggerSummary) GetSource() string {
+	if t == nil {
+		return ""
+	}
+	return t.Source
+}
+
+func (t *TriggerSummary) GetProvider() *string {
+	if t == nil {
+		return nil
+	}
+	return t.Provider
+}
+
+func (t *TriggerSummary) GetEventName() *string {
+	if t == nil {
+		return nil
+	}
+	return t.EventName
+}
+
+func (t *TriggerSummary) GetDeliveryID() *string {
+	if t == nil {
+		return nil
+	}
+	return t.DeliveryID
+}
+
+func (t *TriggerSummary) GetPayload() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.Payload
+}
+
+func (t *TriggerSummary) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TriggerSummary) UnmarshalJSON(data []byte) error {
+	type unmarshaler TriggerSummary
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TriggerSummary(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TriggerSummary) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
 }
 
 type UnaryConditionInput struct {

@@ -1286,13 +1286,14 @@ func (r RunAgentExecStepActionHarness) Ptr() *RunAgentExecStepActionHarness {
 }
 
 type RunAgentSessionStepAction struct {
-	Harness      RunAgentSessionStepActionHarness       `json:"harness" url:"harness"`
-	Model        *string                                `json:"model,omitempty" url:"model,omitempty"`
-	Prompt       *RunAgentSessionStepActionPrompt       `json:"prompt,omitempty" url:"prompt,omitempty"`
-	ResumePrompt *RunAgentSessionStepActionResumePrompt `json:"resume_prompt,omitempty" url:"resume_prompt,omitempty"`
-	Knowledge    []*KnowledgeBinding                    `json:"knowledge,omitempty" url:"knowledge,omitempty"`
-	Session      *string                                `json:"session,omitempty" url:"session,omitempty"`
-	Command      *RunAgentSessionStepActionCommand      `json:"command,omitempty" url:"command,omitempty"`
+	Harness       RunAgentSessionStepActionHarness        `json:"harness" url:"harness"`
+	Model         *string                                 `json:"model,omitempty" url:"model,omitempty"`
+	ModelProvider *RunAgentSessionStepActionModelProvider `json:"model_provider,omitempty" url:"model_provider,omitempty"`
+	Prompt        *RunAgentSessionStepActionPrompt        `json:"prompt,omitempty" url:"prompt,omitempty"`
+	ResumePrompt  *RunAgentSessionStepActionResumePrompt  `json:"resume_prompt,omitempty" url:"resume_prompt,omitempty"`
+	Knowledge     []*KnowledgeBinding                     `json:"knowledge,omitempty" url:"knowledge,omitempty"`
+	Session       *string                                 `json:"session,omitempty" url:"session,omitempty"`
+	Command       *RunAgentSessionStepActionCommand       `json:"command,omitempty" url:"command,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1310,6 +1311,13 @@ func (r *RunAgentSessionStepAction) GetModel() *string {
 		return nil
 	}
 	return r.Model
+}
+
+func (r *RunAgentSessionStepAction) GetModelProvider() *RunAgentSessionStepActionModelProvider {
+	if r == nil {
+		return nil
+	}
+	return r.ModelProvider
 }
 
 func (r *RunAgentSessionStepAction) GetPrompt() *RunAgentSessionStepActionPrompt {
@@ -1463,6 +1471,28 @@ func NewRunAgentSessionStepActionHarnessFromString(s string) (RunAgentSessionSte
 }
 
 func (r RunAgentSessionStepActionHarness) Ptr() *RunAgentSessionStepActionHarness {
+	return &r
+}
+
+type RunAgentSessionStepActionModelProvider string
+
+const (
+	RunAgentSessionStepActionModelProviderIslo          RunAgentSessionStepActionModelProvider = "islo"
+	RunAgentSessionStepActionModelProviderIsloInference RunAgentSessionStepActionModelProvider = "islo_inference"
+)
+
+func NewRunAgentSessionStepActionModelProviderFromString(s string) (RunAgentSessionStepActionModelProvider, error) {
+	switch s {
+	case "islo":
+		return RunAgentSessionStepActionModelProviderIslo, nil
+	case "islo_inference":
+		return RunAgentSessionStepActionModelProviderIsloInference, nil
+	}
+	var t RunAgentSessionStepActionModelProvider
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r RunAgentSessionStepActionModelProvider) Ptr() *RunAgentSessionStepActionModelProvider {
 	return &r
 }
 

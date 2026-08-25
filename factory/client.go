@@ -297,7 +297,7 @@ func (c *Client) ListFactoryLineRunsForLine(
 	ctx context.Context,
 	request *gosdk.ListFactoryLineRunsForLineRequest,
 	opts ...option.RequestOption,
-) ([]*gosdk.LineRunListItem, error) {
+) ([]*gosdk.LineRunSummary, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -327,7 +327,7 @@ func (c *Client) ListFactoryLineRunsForLine(
 		},
 	}
 
-	var response []*gosdk.LineRunListItem
+	var response []*gosdk.LineRunSummary
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -351,7 +351,7 @@ func (c *Client) TriggerFactoryLineRun(
 	ctx context.Context,
 	request *gosdk.LineRunCreate,
 	opts ...option.RequestOption,
-) (*gosdk.LineRunResponse, error) {
+) (*gosdk.LineRunDetail, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -375,7 +375,7 @@ func (c *Client) TriggerFactoryLineRun(
 		},
 	}
 
-	var response *gosdk.LineRunResponse
+	var response *gosdk.LineRunDetail
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -400,7 +400,7 @@ func (c *Client) ListFactoryLineRuns(
 	ctx context.Context,
 	request *gosdk.ListFactoryLineRunsRequest,
 	opts ...option.RequestOption,
-) ([]*gosdk.LineRunListItem, error) {
+) ([]*gosdk.LineRunSummary, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -427,7 +427,7 @@ func (c *Client) ListFactoryLineRuns(
 		},
 	}
 
-	var response []*gosdk.LineRunListItem
+	var response []*gosdk.LineRunSummary
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -451,7 +451,7 @@ func (c *Client) GetFactoryLineRun(
 	ctx context.Context,
 	request *gosdk.GetFactoryLineRunRequest,
 	opts ...option.RequestOption,
-) (*gosdk.LineRunResponse, error) {
+) (*gosdk.LineRunDetail, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -474,7 +474,60 @@ func (c *Client) GetFactoryLineRun(
 		},
 	}
 
-	var response *gosdk.LineRunResponse
+	var response *gosdk.LineRunDetail
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// Per-stage and per-step diagnostics for one line run, including the last failed stage attempt's first failing step, each step's exit code and output tails, and the sandbox environment each stage ran in.
+func (c *Client) GetFactoryLineRunDebug(
+	ctx context.Context,
+	request *gosdk.GetFactoryLineRunDebugRequest,
+	opts ...option.RequestOption,
+) (*gosdk.LineRunDebugResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/factory/line-runs/%v/debug",
+		request.RunID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	errorCodes := internal.ErrorCodes{
+		404: func(apiError *core.APIError) error {
+			return &gosdk.NotFoundError{
+				APIError: apiError,
+			}
+		},
+		422: func(apiError *core.APIError) error {
+			return &gosdk.UnprocessableEntityError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	var response *gosdk.LineRunDebugResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
