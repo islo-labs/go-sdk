@@ -122,6 +122,8 @@ type ComputeEventDetailResponse struct {
 	ErrorDetails map[string]interface{}            `json:"error_details,omitempty" url:"error_details,omitempty"`
 	StartedAt    *time.Time                        `json:"started_at,omitempty" url:"started_at,omitempty"`
 	CompletedAt  *time.Time                        `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	SessionName  *string                           `json:"session_name,omitempty" url:"session_name,omitempty"`
+	SandboxName  *string                           `json:"sandbox_name,omitempty" url:"sandbox_name,omitempty"`
 	Result       *ComputeEventDetailResponseResult `json:"result" url:"result"`
 
 	extraProperties map[string]interface{}
@@ -182,6 +184,20 @@ func (c *ComputeEventDetailResponse) GetCompletedAt() *time.Time {
 		return nil
 	}
 	return c.CompletedAt
+}
+
+func (c *ComputeEventDetailResponse) GetSessionName() *string {
+	if c == nil {
+		return nil
+	}
+	return c.SessionName
+}
+
+func (c *ComputeEventDetailResponse) GetSandboxName() *string {
+	if c == nil {
+		return nil
+	}
+	return c.SandboxName
 }
 
 func (c *ComputeEventDetailResponse) GetResult() *ComputeEventDetailResponseResult {

@@ -1291,6 +1291,7 @@ type JobRunResponse struct {
 	ErrorMessage  *string                    `json:"error_message,omitempty" url:"error_message,omitempty"`
 	ErrorCode     *string                    `json:"error_code,omitempty" url:"error_code,omitempty"`
 	ErrorDetails  map[string]interface{}     `json:"error_details,omitempty" url:"error_details,omitempty"`
+	FailureClass  *string                    `json:"failure_class,omitempty" url:"failure_class,omitempty"`
 	CreatedAt     time.Time                  `json:"created_at" url:"created_at"`
 
 	extraProperties map[string]interface{}
@@ -1395,6 +1396,13 @@ func (j *JobRunResponse) GetErrorDetails() map[string]interface{} {
 	return j.ErrorDetails
 }
 
+func (j *JobRunResponse) GetFailureClass() *string {
+	if j == nil {
+		return nil
+	}
+	return j.FailureClass
+}
+
 func (j *JobRunResponse) GetCreatedAt() time.Time {
 	if j == nil {
 		return time.Time{}
@@ -1472,6 +1480,8 @@ type JobRunStepTimelineEntry struct {
 	ErrorMessage     *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
 	ErrorCode        *string                `json:"error_code,omitempty" url:"error_code,omitempty"`
 	ErrorDetails     map[string]interface{} `json:"error_details,omitempty" url:"error_details,omitempty"`
+	FailureClass     *string                `json:"failure_class,omitempty" url:"failure_class,omitempty"`
+	ExitCode         *int                   `json:"exit_code,omitempty" url:"exit_code,omitempty"`
 	ComputeCommandID *string                `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -1553,6 +1563,20 @@ func (j *JobRunStepTimelineEntry) GetErrorDetails() map[string]interface{} {
 		return nil
 	}
 	return j.ErrorDetails
+}
+
+func (j *JobRunStepTimelineEntry) GetFailureClass() *string {
+	if j == nil {
+		return nil
+	}
+	return j.FailureClass
+}
+
+func (j *JobRunStepTimelineEntry) GetExitCode() *int {
+	if j == nil {
+		return nil
+	}
+	return j.ExitCode
 }
 
 func (j *JobRunStepTimelineEntry) GetComputeCommandID() *string {
