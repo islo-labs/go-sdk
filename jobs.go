@@ -223,11 +223,12 @@ func (j *JobListItem) String() string {
 
 // Full job.toml manifest (TOML or JSON authoring; stored as JSON).
 type JobManifestInput struct {
-	Job          *JobSection               `json:"job" url:"job"`
-	Run          *RunSectionInput          `json:"run" url:"run"`
-	Schedule     *ScheduleSection          `json:"schedule,omitempty" url:"schedule,omitempty"`
-	Verification *VerificationSection      `json:"verification,omitempty" url:"verification,omitempty"`
-	Outputs      map[string]*JobOutputSpec `json:"outputs,omitempty" url:"outputs,omitempty"`
+	Job          *JobSection          `json:"job" url:"job"`
+	Run          *RunSectionInput     `json:"run" url:"run"`
+	Schedule     *ScheduleSection     `json:"schedule,omitempty" url:"schedule,omitempty"`
+	Verification *VerificationSection `json:"verification,omitempty" url:"verification,omitempty"`
+	// Public job output contract for the job and downstream lines.
+	Outputs map[string]*JobOutputSpec `json:"outputs,omitempty" url:"outputs,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -302,11 +303,12 @@ func (j *JobManifestInput) String() string {
 
 // Full job.toml manifest (TOML or JSON authoring; stored as JSON).
 type JobManifestOutput struct {
-	Job          *JobSection               `json:"job" url:"job"`
-	Run          *RunSectionOutput         `json:"run" url:"run"`
-	Schedule     *ScheduleSection          `json:"schedule,omitempty" url:"schedule,omitempty"`
-	Verification *VerificationSection      `json:"verification,omitempty" url:"verification,omitempty"`
-	Outputs      map[string]*JobOutputSpec `json:"outputs,omitempty" url:"outputs,omitempty"`
+	Job          *JobSection          `json:"job" url:"job"`
+	Run          *RunSectionOutput    `json:"run" url:"run"`
+	Schedule     *ScheduleSection     `json:"schedule,omitempty" url:"schedule,omitempty"`
+	Verification *VerificationSection `json:"verification,omitempty" url:"verification,omitempty"`
+	// Public job output contract for the job and downstream lines.
+	Outputs map[string]*JobOutputSpec `json:"outputs,omitempty" url:"outputs,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -379,13 +381,20 @@ func (j *JobManifestOutput) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+// Public job output contract.
+//
+// Writers emit the producer type; lines bind the published type after reduce.
+// Session agents and $ISLO_OUTPUT use producer types (collect/gather still send
+// the producer type, not the published array).
 type JobOutputSpec struct {
-	Type        JobOutputSpecType    `json:"type" url:"type"`
-	Items       *JobOutputSpecItems  `json:"items,omitempty" url:"items,omitempty"`
-	Required    *bool                `json:"required,omitempty" url:"required,omitempty"`
-	Description *string              `json:"description,omitempty" url:"description,omitempty"`
-	Enum        []interface{}        `json:"enum,omitempty" url:"enum,omitempty"`
-	Reduce      *JobOutputSpecReduce `json:"reduce,omitempty" url:"reduce,omitempty"`
+	Type JobOutputSpecType `json:"type" url:"type"`
+	// Item type for array outputs. Required at deploy when type = array. Do not use reduce = collect with type = array; use gather to concatenate arrays.
+	Items       *JobOutputSpecItems `json:"items,omitempty" url:"items,omitempty"`
+	Required    *bool               `json:"required,omitempty" url:"required,omitempty"`
+	Description *string             `json:"description,omitempty" url:"description,omitempty"`
+	Enum        []interface{}       `json:"enum,omitempty" url:"enum,omitempty"`
+	// one: exactly one claiming step. last: last successful write in manifest task order. collect: published array of producer values (dense nulls for missing tasks); required collect must be claimed by every task. gather: concatenate arrays or collect scalars, skipping omissions.
+	Reduce *JobOutputSpecReduce `json:"reduce,omitempty" url:"reduce,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -493,6 +502,7 @@ func (j JobOutputSpecItems) Ptr() *JobOutputSpecItems {
 	return &j
 }
 
+// one: exactly one claiming step. last: last successful write in manifest task order. collect: published array of producer values (dense nulls for missing tasks); required collect must be claimed by every task. gather: concatenate arrays or collect scalars, skipping omissions.
 type JobOutputSpecReduce string
 
 const (
@@ -553,14 +563,17 @@ func (j JobOutputSpecType) Ptr() *JobOutputSpecType {
 }
 
 type JobParamSpec struct {
-	Type        *JobParamSpecType  `json:"type" url:"type"`
-	Items       *JobParamSpecItems `json:"items,omitempty" url:"items,omitempty"`
-	Required    *bool              `json:"required,omitempty" url:"required,omitempty"`
-	Default     interface{}        `json:"default,omitempty" url:"default,omitempty"`
-	Description *string            `json:"description,omitempty" url:"description,omitempty"`
-	Pattern     *string            `json:"pattern,omitempty" url:"pattern,omitempty"`
-	Prefix      *string            `json:"prefix,omitempty" url:"prefix,omitempty"`
-	Enum        []interface{}      `json:"enum,omitempty" url:"enum,omitempty"`
+	Type *JobParamSpecType `json:"type" url:"type"`
+	// Item type when type = array.
+	Items *JobParamSpecItems `json:"items,omitempty" url:"items,omitempty"`
+	// Cannot combine required=true with a default.
+	Required *bool `json:"required,omitempty" url:"required,omitempty"`
+	// Required for every param used by a scheduled run before adding [schedule].
+	Default     interface{}   `json:"default,omitempty" url:"default,omitempty"`
+	Description *string       `json:"description,omitempty" url:"description,omitempty"`
+	Pattern     *string       `json:"pattern,omitempty" url:"pattern,omitempty"`
+	Prefix      *string       `json:"prefix,omitempty" url:"prefix,omitempty"`
+	Enum        []interface{} `json:"enum,omitempty" url:"enum,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -968,10 +981,11 @@ func (j *JobScheduleResponse) String() string {
 
 type JobSection struct {
 	// Job name; must match jobs/<name>/ and deploy path
-	Name        string                   `json:"name" url:"name"`
-	Version     *string                  `json:"version,omitempty" url:"version,omitempty"`
-	Description *string                  `json:"description,omitempty" url:"description,omitempty"`
-	Params      map[string]*JobParamSpec `json:"params,omitempty" url:"params,omitempty"`
+	Name        string  `json:"name" url:"name"`
+	Version     *string `json:"version,omitempty" url:"version,omitempty"`
+	Description *string `json:"description,omitempty" url:"description,omitempty"`
+	// Declared run parameters. Reference as {{name}} in manifest strings (substitution and undeclared-reference checks walk the whole manifest, not only step fields). Reserved: {{run_id}}.
+	Params map[string]*JobParamSpec `json:"params,omitempty" url:"params,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1133,6 +1147,7 @@ func (j *JobVersionResponse) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+// Exec-mode agent step. Uses the $ISLO_OUTPUT side channel like exec.
 type RunAgentExecStepAction struct {
 	Harness RunAgentExecStepActionHarness  `json:"harness" url:"harness"`
 	Command *RunAgentExecStepActionCommand `json:"command" url:"command"`
@@ -1260,10 +1275,11 @@ func (r *RunAgentExecStepActionCommand) Accept(visitor RunAgentExecStepActionCom
 type RunAgentExecStepActionHarness string
 
 const (
-	RunAgentExecStepActionHarnessCodex  RunAgentExecStepActionHarness = "codex"
-	RunAgentExecStepActionHarnessCursor RunAgentExecStepActionHarness = "cursor"
-	RunAgentExecStepActionHarnessClaude RunAgentExecStepActionHarness = "claude"
-	RunAgentExecStepActionHarnessCustom RunAgentExecStepActionHarness = "custom"
+	RunAgentExecStepActionHarnessCodex    RunAgentExecStepActionHarness = "codex"
+	RunAgentExecStepActionHarnessCursor   RunAgentExecStepActionHarness = "cursor"
+	RunAgentExecStepActionHarnessClaude   RunAgentExecStepActionHarness = "claude"
+	RunAgentExecStepActionHarnessOpencode RunAgentExecStepActionHarness = "opencode"
+	RunAgentExecStepActionHarnessCustom   RunAgentExecStepActionHarness = "custom"
 )
 
 func NewRunAgentExecStepActionHarnessFromString(s string) (RunAgentExecStepActionHarness, error) {
@@ -1274,6 +1290,8 @@ func NewRunAgentExecStepActionHarnessFromString(s string) (RunAgentExecStepActio
 		return RunAgentExecStepActionHarnessCursor, nil
 	case "claude":
 		return RunAgentExecStepActionHarnessClaude, nil
+	case "opencode":
+		return RunAgentExecStepActionHarnessOpencode, nil
 	case "custom":
 		return RunAgentExecStepActionHarnessCustom, nil
 	}
@@ -1286,6 +1304,7 @@ func (r RunAgentExecStepActionHarness) Ptr() *RunAgentExecStepActionHarness {
 }
 
 type RunAgentSessionStepAction struct {
+	// Session outputs require claude, codex, cursor, or opencode.
 	Harness       RunAgentSessionStepActionHarness        `json:"harness" url:"harness"`
 	Model         *string                                 `json:"model,omitempty" url:"model,omitempty"`
 	ModelProvider *RunAgentSessionStepActionModelProvider `json:"model_provider,omitempty" url:"model_provider,omitempty"`
@@ -1449,12 +1468,14 @@ func (r *RunAgentSessionStepActionCommand) Accept(visitor RunAgentSessionStepAct
 	return fmt.Errorf("type %T does not include a non-empty union type", r)
 }
 
+// Session outputs require claude, codex, cursor, or opencode.
 type RunAgentSessionStepActionHarness string
 
 const (
-	RunAgentSessionStepActionHarnessCodex  RunAgentSessionStepActionHarness = "codex"
-	RunAgentSessionStepActionHarnessCursor RunAgentSessionStepActionHarness = "cursor"
-	RunAgentSessionStepActionHarnessClaude RunAgentSessionStepActionHarness = "claude"
+	RunAgentSessionStepActionHarnessCodex    RunAgentSessionStepActionHarness = "codex"
+	RunAgentSessionStepActionHarnessCursor   RunAgentSessionStepActionHarness = "cursor"
+	RunAgentSessionStepActionHarnessClaude   RunAgentSessionStepActionHarness = "claude"
+	RunAgentSessionStepActionHarnessOpencode RunAgentSessionStepActionHarness = "opencode"
 )
 
 func NewRunAgentSessionStepActionHarnessFromString(s string) (RunAgentSessionStepActionHarness, error) {
@@ -1465,6 +1486,8 @@ func NewRunAgentSessionStepActionHarnessFromString(s string) (RunAgentSessionSte
 		return RunAgentSessionStepActionHarnessCursor, nil
 	case "claude":
 		return RunAgentSessionStepActionHarnessClaude, nil
+	case "opencode":
+		return RunAgentSessionStepActionHarnessOpencode, nil
 	}
 	var t RunAgentSessionStepActionHarness
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -1731,9 +1754,10 @@ func (r *RunAgentSessionStepActionResumePrompt) validate() error {
 }
 
 type RunSectionInput struct {
-	FailFast           *bool                   `json:"fail_fast,omitempty" url:"fail_fast,omitempty"`
-	Fanout             *bool                   `json:"fanout,omitempty" url:"fanout,omitempty"`
-	Concurrency        *int                    `json:"concurrency,omitempty" url:"concurrency,omitempty"`
+	FailFast    *bool `json:"fail_fast,omitempty" url:"fail_fast,omitempty"`
+	Fanout      *bool `json:"fanout,omitempty" url:"fanout,omitempty"`
+	Concurrency *int  `json:"concurrency,omitempty" url:"concurrency,omitempty"`
+	// Working directory for every exec and run_agent step. Defaults to ".". Falls back to run.sandbox.workdir when omitted.
 	Workdir            *string                 `json:"workdir,omitempty" url:"workdir,omitempty"`
 	Timeout            *RunSectionInputTimeout `json:"timeout,omitempty" url:"timeout,omitempty"`
 	Region             *string                 `json:"region,omitempty" url:"region,omitempty"`
@@ -1911,9 +1935,10 @@ func (r *RunSectionInputTimeout) Accept(visitor RunSectionInputTimeoutVisitor) e
 }
 
 type RunSectionOutput struct {
-	FailFast           *bool                    `json:"fail_fast,omitempty" url:"fail_fast,omitempty"`
-	Fanout             *bool                    `json:"fanout,omitempty" url:"fanout,omitempty"`
-	Concurrency        *int                     `json:"concurrency,omitempty" url:"concurrency,omitempty"`
+	FailFast    *bool `json:"fail_fast,omitempty" url:"fail_fast,omitempty"`
+	Fanout      *bool `json:"fanout,omitempty" url:"fanout,omitempty"`
+	Concurrency *int  `json:"concurrency,omitempty" url:"concurrency,omitempty"`
+	// Working directory for every exec and run_agent step. Defaults to ".". Falls back to run.sandbox.workdir when omitted.
 	Workdir            *string                  `json:"workdir,omitempty" url:"workdir,omitempty"`
 	Timeout            *RunSectionOutputTimeout `json:"timeout,omitempty" url:"timeout,omitempty"`
 	Region             *string                  `json:"region,omitempty" url:"region,omitempty"`
@@ -2092,8 +2117,10 @@ func (r *RunSectionOutputTimeout) Accept(visitor RunSectionOutputTimeoutVisitor)
 
 // Sandbox requirements for job runs (matches compute IncomingWebhookSandboxTemplate shape).
 type SandboxConfig struct {
-	Mode            *SandboxConfigMode `json:"mode,omitempty" url:"mode,omitempty"`
-	Name            *string            `json:"name,omitempty" url:"name,omitempty"`
+	Mode *SandboxConfigMode `json:"mode,omitempty" url:"mode,omitempty"`
+	// Required for ensure/reuse. Supports {{param}} substitution.
+	Name *string `json:"name,omitempty" url:"name,omitempty"`
+	// Required for provision/ensure.
 	Image           *string            `json:"image,omitempty" url:"image,omitempty"`
 	Vcpus           *int               `json:"vcpus,omitempty" url:"vcpus,omitempty"`
 	MemoryMb        *int               `json:"memory_mb,omitempty" url:"memory_mb,omitempty"`
@@ -2103,12 +2130,13 @@ type SandboxConfig struct {
 	Environment     *string            `json:"environment,omitempty" url:"environment,omitempty"`
 	Init            *SandboxConfigInit `json:"init,omitempty" url:"init,omitempty"`
 	InternetEnabled *bool              `json:"internet_enabled,omitempty" url:"internet_enabled,omitempty"`
-	Workdir         *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
-	CacheKey        *string            `json:"cache_key,omitempty" url:"cache_key,omitempty"`
-	Env             map[string]*string `json:"env,omitempty" url:"env,omitempty"`
-	Sources         []*GitSource       `json:"sources,omitempty" url:"sources,omitempty"`
-	SetupScripts    []*SetupScript     `json:"setup_scripts,omitempty" url:"setup_scripts,omitempty"`
-	Lifecycle       *LifecyclePolicy   `json:"lifecycle,omitempty" url:"lifecycle,omitempty"`
+	// Sandbox default working directory. Used when [run].workdir is omitted.
+	Workdir      *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
+	CacheKey     *string            `json:"cache_key,omitempty" url:"cache_key,omitempty"`
+	Env          map[string]*string `json:"env,omitempty" url:"env,omitempty"`
+	Sources      []*GitSource       `json:"sources,omitempty" url:"sources,omitempty"`
+	SetupScripts []*SetupScript     `json:"setup_scripts,omitempty" url:"setup_scripts,omitempty"`
+	Lifecycle    *LifecyclePolicy   `json:"lifecycle,omitempty" url:"lifecycle,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2432,6 +2460,7 @@ func (s SandboxConfigMode) Ptr() *SandboxConfigMode {
 }
 
 type ScheduleSection struct {
+	// Cron expression; validated at deploy time. Every param the schedule uses must have a default before you add [schedule].
 	Cron     string  `json:"cron" url:"cron"`
 	Timezone *string `json:"timezone,omitempty" url:"timezone,omitempty"`
 	Enabled  *bool   `json:"enabled,omitempty" url:"enabled,omitempty"`
@@ -2540,8 +2569,10 @@ func (s *SnapshotStepAction) String() string {
 }
 
 type StepOutputClaim struct {
-	From     *string `json:"from,omitempty" url:"from,omitempty"`
-	Required *bool   `json:"required,omitempty" url:"required,omitempty"`
+	// Writer key. Defaults to the job output key.
+	From *string `json:"from,omitempty" url:"from,omitempty"`
+	// May tighten the job-level required flag, not loosen it.
+	Required *bool `json:"required,omitempty" url:"required,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2718,20 +2749,34 @@ func (t *TaskOutput) String() string {
 }
 
 // One compute action per step.
+//
+// Define exactly one action key (exec, run_agent, snapshot, pause, resume, or
+// delete). Task names and step names must be unique and non-blank. A job with
+// [outputs], exactly one session run_agent step, and no step listing outputs
+// implicitly claims every output key. More than one potential writer, or any
+// explicit outputs list, requires every writer to claim.
 type TaskStepInput struct {
-	Name     *string                `json:"name,omitempty" url:"name,omitempty"`
-	Workdir  *string                `json:"workdir,omitempty" url:"workdir,omitempty"`
-	Timeout  *int                   `json:"timeout,omitempty" url:"timeout,omitempty"`
-	User     *string                `json:"user,omitempty" url:"user,omitempty"`
-	Exec     *TaskStepInputExec     `json:"exec,omitempty" url:"exec,omitempty"`
+	// Unique non-blank step name within the task.
+	Name *string `json:"name,omitempty" url:"name,omitempty"`
+	// Override [run].workdir for this step. Supports {{name}} placeholders.
+	Workdir *string `json:"workdir,omitempty" url:"workdir,omitempty"`
+	// Max wall-clock duration for this step in seconds.
+	Timeout *int    `json:"timeout,omitempty" url:"timeout,omitempty"`
+	User    *string `json:"user,omitempty" url:"user,omitempty"`
+	// Shell command. Supports {{name}} placeholders in each argv element. Control plane sets $ISLO_OUTPUT to /dev/null when the step claims no output keys, or /tmp/islo_output.<job_run_id>.<random> when it claims keys. Write key=value lines (JSON after =, raw string fallback for type=string). Do not pre-create the file. Cap is 64 KiB.
+	Exec *TaskStepInputExec `json:"exec,omitempty" url:"exec,omitempty"`
+	// Run an agent step. Session mode publishes claimed producer keys as structured JSON. Exec mode uses $ISLO_OUTPUT like exec.
 	RunAgent *TaskStepInputRunAgent `json:"run_agent,omitempty" url:"run_agent,omitempty"`
 	Snapshot *SnapshotStepAction    `json:"snapshot,omitempty" url:"snapshot,omitempty"`
 	Pause    *bool                  `json:"pause,omitempty" url:"pause,omitempty"`
 	Resume   *bool                  `json:"resume,omitempty" url:"resume,omitempty"`
 	Delete   *bool                  `json:"delete,omitempty" url:"delete,omitempty"`
-	Upload   *string                `json:"upload,omitempty" url:"upload,omitempty"`
-	Download *string                `json:"download,omitempty" url:"download,omitempty"`
-	Outputs  *TaskStepInputOutputs  `json:"outputs,omitempty" url:"outputs,omitempty"`
+	// Not implemented yet; do not author.
+	Upload *string `json:"upload,omitempty" url:"upload,omitempty"`
+	// Not implemented yet; do not author.
+	Download *string `json:"download,omitempty" url:"download,omitempty"`
+	// Claim job output keys. List shortcut: outputs = ["summary"]. Table: [run.tasks.steps.outputs.summary] from = "agent_key", required = true.
+	Outputs *TaskStepInputOutputs `json:"outputs,omitempty" url:"outputs,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2860,6 +2905,7 @@ func (t *TaskStepInput) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
+// Shell command. Supports {{name}} placeholders in each argv element. Control plane sets $ISLO_OUTPUT to /dev/null when the step claims no output keys, or /tmp/islo_output.<job_run_id>.<random> when it claims keys. Write key=value lines (JSON after =, raw string fallback for type=string). Do not pre-create the file. Cap is 64 KiB.
 type TaskStepInputExec struct {
 	StringList []string
 	String     string
@@ -2922,6 +2968,7 @@ func (t *TaskStepInputExec) Accept(visitor TaskStepInputExecVisitor) error {
 	return fmt.Errorf("type %T does not include a non-empty union type", t)
 }
 
+// Claim job output keys. List shortcut: outputs = ["summary"]. Table: [run.tasks.steps.outputs.summary] from = "agent_key", required = true.
 type TaskStepInputOutputs struct {
 	StringList               []string
 	StringStepOutputClaimMap map[string]*StepOutputClaim
@@ -3102,20 +3149,34 @@ func (t *TaskStepInputRunAgent) validate() error {
 }
 
 // One compute action per step.
+//
+// Define exactly one action key (exec, run_agent, snapshot, pause, resume, or
+// delete). Task names and step names must be unique and non-blank. A job with
+// [outputs], exactly one session run_agent step, and no step listing outputs
+// implicitly claims every output key. More than one potential writer, or any
+// explicit outputs list, requires every writer to claim.
 type TaskStepOutput struct {
-	Name     *string                 `json:"name,omitempty" url:"name,omitempty"`
-	Workdir  *string                 `json:"workdir,omitempty" url:"workdir,omitempty"`
-	Timeout  *int                    `json:"timeout,omitempty" url:"timeout,omitempty"`
-	User     *string                 `json:"user,omitempty" url:"user,omitempty"`
-	Exec     *TaskStepOutputExec     `json:"exec,omitempty" url:"exec,omitempty"`
+	// Unique non-blank step name within the task.
+	Name *string `json:"name,omitempty" url:"name,omitempty"`
+	// Override [run].workdir for this step. Supports {{name}} placeholders.
+	Workdir *string `json:"workdir,omitempty" url:"workdir,omitempty"`
+	// Max wall-clock duration for this step in seconds.
+	Timeout *int    `json:"timeout,omitempty" url:"timeout,omitempty"`
+	User    *string `json:"user,omitempty" url:"user,omitempty"`
+	// Shell command. Supports {{name}} placeholders in each argv element. Control plane sets $ISLO_OUTPUT to /dev/null when the step claims no output keys, or /tmp/islo_output.<job_run_id>.<random> when it claims keys. Write key=value lines (JSON after =, raw string fallback for type=string). Do not pre-create the file. Cap is 64 KiB.
+	Exec *TaskStepOutputExec `json:"exec,omitempty" url:"exec,omitempty"`
+	// Run an agent step. Session mode publishes claimed producer keys as structured JSON. Exec mode uses $ISLO_OUTPUT like exec.
 	RunAgent *TaskStepOutputRunAgent `json:"run_agent,omitempty" url:"run_agent,omitempty"`
 	Snapshot *SnapshotStepAction     `json:"snapshot,omitempty" url:"snapshot,omitempty"`
 	Pause    *bool                   `json:"pause,omitempty" url:"pause,omitempty"`
 	Resume   *bool                   `json:"resume,omitempty" url:"resume,omitempty"`
 	Delete   *bool                   `json:"delete,omitempty" url:"delete,omitempty"`
-	Upload   *string                 `json:"upload,omitempty" url:"upload,omitempty"`
-	Download *string                 `json:"download,omitempty" url:"download,omitempty"`
-	Outputs  *TaskStepOutputOutputs  `json:"outputs,omitempty" url:"outputs,omitempty"`
+	// Not implemented yet; do not author.
+	Upload *string `json:"upload,omitempty" url:"upload,omitempty"`
+	// Not implemented yet; do not author.
+	Download *string `json:"download,omitempty" url:"download,omitempty"`
+	// Claim job output keys. List shortcut: outputs = ["summary"]. Table: [run.tasks.steps.outputs.summary] from = "agent_key", required = true.
+	Outputs *TaskStepOutputOutputs `json:"outputs,omitempty" url:"outputs,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3244,6 +3305,7 @@ func (t *TaskStepOutput) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
+// Shell command. Supports {{name}} placeholders in each argv element. Control plane sets $ISLO_OUTPUT to /dev/null when the step claims no output keys, or /tmp/islo_output.<job_run_id>.<random> when it claims keys. Write key=value lines (JSON after =, raw string fallback for type=string). Do not pre-create the file. Cap is 64 KiB.
 type TaskStepOutputExec struct {
 	StringList []string
 	String     string
@@ -3306,6 +3368,7 @@ func (t *TaskStepOutputExec) Accept(visitor TaskStepOutputExecVisitor) error {
 	return fmt.Errorf("type %T does not include a non-empty union type", t)
 }
 
+// Claim job output keys. List shortcut: outputs = ["summary"]. Table: [run.tasks.steps.outputs.summary] from = "agent_key", required = true.
 type TaskStepOutputOutputs struct {
 	StringList               []string
 	StringStepOutputClaimMap map[string]*StepOutputClaim

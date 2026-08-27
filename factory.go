@@ -87,7 +87,7 @@ type AgenticTransitionInput struct {
 	ID           string                              `json:"id" url:"id"`
 	From         string                              `json:"from" url:"from"`
 	Instructions *AgenticTransitionInputInstructions `json:"instructions" url:"instructions"`
-	Options      []*AgenticTransitionOption          `json:"options" url:"options"`
+	Options      []*AgenticTransitionOption          `json:"options,omitempty" url:"options,omitempty"`
 	Label        *string                             `json:"label,omitempty" url:"label,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -493,7 +493,7 @@ type AgenticTransitionOutput struct {
 	ID           string                               `json:"id" url:"id"`
 	From         string                               `json:"from" url:"from"`
 	Instructions *AgenticTransitionOutputInstructions `json:"instructions" url:"instructions"`
-	Options      []*AgenticTransitionOption           `json:"options" url:"options"`
+	Options      []*AgenticTransitionOption           `json:"options,omitempty" url:"options,omitempty"`
 	Label        *string                              `json:"label,omitempty" url:"label,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -1645,8 +1645,6 @@ const (
 	FactoryFailureCodeNoRoute                     FactoryFailureCode = "no_route"
 	FactoryFailureCodeAmbiguousTransition         FactoryFailureCode = "ambiguous_transition"
 	FactoryFailureCodeAmbiguousAgenticTransition  FactoryFailureCode = "ambiguous_agentic_transition"
-	FactoryFailureCodeAgenticTransitionNoOptions  FactoryFailureCode = "agentic_transition_no_options"
-	FactoryFailureCodeWaitWithoutResume           FactoryFailureCode = "wait_without_resume"
 	FactoryFailureCodeTransitionParamsInvalid     FactoryFailureCode = "transition_params_invalid"
 	FactoryFailureCodeMaxIterationsExhausted      FactoryFailureCode = "max_iterations_exhausted"
 	FactoryFailureCodeJobResultInvalid            FactoryFailureCode = "job_result_invalid"
@@ -1654,16 +1652,15 @@ const (
 	FactoryFailureCodeStageParamsInvalid          FactoryFailureCode = "stage_params_invalid"
 	FactoryFailureCodeLineStateInvalid            FactoryFailureCode = "line_state_invalid"
 	FactoryFailureCodeDispatchFailed              FactoryFailureCode = "dispatch_failed"
-	FactoryFailureCodeDecisionPayloadInvalid      FactoryFailureCode = "decision_payload_invalid"
 	FactoryFailureCodeControlPayloadInvalid       FactoryFailureCode = "control_payload_invalid"
 	FactoryFailureCodeControlTargetInvalid        FactoryFailureCode = "control_target_invalid"
 	FactoryFailureCodeControlMissingID            FactoryFailureCode = "control_missing_id"
 	FactoryFailureCodeControlWaitExpired          FactoryFailureCode = "control_wait_expired"
 	FactoryFailureCodeControlWaitUnknownSelection FactoryFailureCode = "control_wait_unknown_selection"
+	FactoryFailureCodeControlStopNotApplied       FactoryFailureCode = "control_stop_not_applied"
 	FactoryFailureCodeRetrySnapshotInvalid        FactoryFailureCode = "retry_snapshot_invalid"
-	FactoryFailureCodeDecisionOptionNotAllowed    FactoryFailureCode = "decision_option_not_allowed"
-	FactoryFailureCodeDecisionStopInvalid         FactoryFailureCode = "decision_stop_invalid"
 	FactoryFailureCodeStageFailed                 FactoryFailureCode = "stage_failed"
+	FactoryFailureCodeRoutingWaitExpired          FactoryFailureCode = "routing_wait_expired"
 	FactoryFailureCodeUserCancelled               FactoryFailureCode = "user_cancelled"
 	FactoryFailureCodeUnknown                     FactoryFailureCode = "unknown"
 )
@@ -1682,10 +1679,6 @@ func NewFactoryFailureCodeFromString(s string) (FactoryFailureCode, error) {
 		return FactoryFailureCodeAmbiguousTransition, nil
 	case "ambiguous_agentic_transition":
 		return FactoryFailureCodeAmbiguousAgenticTransition, nil
-	case "agentic_transition_no_options":
-		return FactoryFailureCodeAgenticTransitionNoOptions, nil
-	case "wait_without_resume":
-		return FactoryFailureCodeWaitWithoutResume, nil
 	case "transition_params_invalid":
 		return FactoryFailureCodeTransitionParamsInvalid, nil
 	case "max_iterations_exhausted":
@@ -1700,8 +1693,6 @@ func NewFactoryFailureCodeFromString(s string) (FactoryFailureCode, error) {
 		return FactoryFailureCodeLineStateInvalid, nil
 	case "dispatch_failed":
 		return FactoryFailureCodeDispatchFailed, nil
-	case "decision_payload_invalid":
-		return FactoryFailureCodeDecisionPayloadInvalid, nil
 	case "control_payload_invalid":
 		return FactoryFailureCodeControlPayloadInvalid, nil
 	case "control_target_invalid":
@@ -1712,14 +1703,14 @@ func NewFactoryFailureCodeFromString(s string) (FactoryFailureCode, error) {
 		return FactoryFailureCodeControlWaitExpired, nil
 	case "control_wait_unknown_selection":
 		return FactoryFailureCodeControlWaitUnknownSelection, nil
+	case "control_stop_not_applied":
+		return FactoryFailureCodeControlStopNotApplied, nil
 	case "retry_snapshot_invalid":
 		return FactoryFailureCodeRetrySnapshotInvalid, nil
-	case "decision_option_not_allowed":
-		return FactoryFailureCodeDecisionOptionNotAllowed, nil
-	case "decision_stop_invalid":
-		return FactoryFailureCodeDecisionStopInvalid, nil
 	case "stage_failed":
 		return FactoryFailureCodeStageFailed, nil
+	case "routing_wait_expired":
+		return FactoryFailureCodeRoutingWaitExpired, nil
 	case "user_cancelled":
 		return FactoryFailureCodeUserCancelled, nil
 	case "unknown":
@@ -6507,10 +6498,11 @@ func (r *ResolvedStage) String() string {
 type ResolvedStageHarness string
 
 const (
-	ResolvedStageHarnessCodex  ResolvedStageHarness = "codex"
-	ResolvedStageHarnessCursor ResolvedStageHarness = "cursor"
-	ResolvedStageHarnessClaude ResolvedStageHarness = "claude"
-	ResolvedStageHarnessCustom ResolvedStageHarness = "custom"
+	ResolvedStageHarnessCodex    ResolvedStageHarness = "codex"
+	ResolvedStageHarnessCursor   ResolvedStageHarness = "cursor"
+	ResolvedStageHarnessClaude   ResolvedStageHarness = "claude"
+	ResolvedStageHarnessOpencode ResolvedStageHarness = "opencode"
+	ResolvedStageHarnessCustom   ResolvedStageHarness = "custom"
 )
 
 func NewResolvedStageHarnessFromString(s string) (ResolvedStageHarness, error) {
@@ -6521,6 +6513,8 @@ func NewResolvedStageHarnessFromString(s string) (ResolvedStageHarness, error) {
 		return ResolvedStageHarnessCursor, nil
 	case "claude":
 		return ResolvedStageHarnessClaude, nil
+	case "opencode":
+		return ResolvedStageHarnessOpencode, nil
 	case "custom":
 		return ResolvedStageHarnessCustom, nil
 	}
@@ -7159,6 +7153,33 @@ func (w *WebhookTriggerSection) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", w)
+}
+
+type LineUpdateStatus string
+
+const (
+	LineUpdateStatusActive LineUpdateStatus = "active"
+	LineUpdateStatusPaused LineUpdateStatus = "paused"
+)
+
+func NewLineUpdateStatusFromString(s string) (LineUpdateStatus, error) {
+	switch s {
+	case "active":
+		return LineUpdateStatusActive, nil
+	case "paused":
+		return LineUpdateStatusPaused, nil
+	}
+	var t LineUpdateStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l LineUpdateStatus) Ptr() *LineUpdateStatus {
+	return &l
+}
+
+type LineUpdate struct {
+	Name   string            `json:"-" url:"-"`
+	Status *LineUpdateStatus `json:"status,omitempty" url:"-"`
 }
 
 type LineScheduleUpdate struct {
