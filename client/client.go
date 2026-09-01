@@ -3,6 +3,7 @@
 package client
 
 import (
+	byo "github.com/islo-labs/go-sdk/byo"
 	cloudroles "github.com/islo-labs/go-sdk/cloudroles"
 	computeevents "github.com/islo-labs/go-sdk/computeevents"
 	containerregistries "github.com/islo-labs/go-sdk/containerregistries"
@@ -39,6 +40,7 @@ type Client struct {
 	GatewayProfiles     *gatewayprofiles.Client
 	Environments        *environments.Client
 	CloudRoles          *cloudroles.Client
+	Byo                 *byo.Client
 	Inference           *inference.Client
 	ContainerRegistries *containerregistries.Client
 	Jobs                *jobs.Client
@@ -72,6 +74,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 		GatewayProfiles:     gatewayprofiles.NewClient(opts...),
 		Environments:        environments.NewClient(opts...),
 		CloudRoles:          cloudroles.NewClient(opts...),
+		Byo:                 byo.NewClient(opts...),
 		Inference:           inference.NewClient(opts...),
 		ContainerRegistries: containerregistries.NewClient(opts...),
 		Jobs:                jobs.NewClient(opts...),

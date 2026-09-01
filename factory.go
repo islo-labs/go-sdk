@@ -6402,6 +6402,7 @@ type ResolvedStage struct {
 	AgentModel  *string               `json:"agent_model,omitempty" url:"agent_model,omitempty"`
 	AgentRole   *string               `json:"agent_role,omitempty" url:"agent_role,omitempty"`
 	Runtime     *string               `json:"runtime,omitempty" url:"runtime,omitempty"`
+	Params      []*JobParamDefinition `json:"params,omitempty" url:"params,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6461,6 +6462,13 @@ func (r *ResolvedStage) GetRuntime() *string {
 		return nil
 	}
 	return r.Runtime
+}
+
+func (r *ResolvedStage) GetParams() []*JobParamDefinition {
+	if r == nil {
+		return nil
+	}
+	return r.Params
 }
 
 func (r *ResolvedStage) GetExtraProperties() map[string]interface{} {

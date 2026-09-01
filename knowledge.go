@@ -6,17 +6,25 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	io "io"
 	time "time"
 )
 
 type KnowledgeItemCreate struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Slug     string                 `json:"slug" url:"-"`
-	Level    KnowledgeLevel         `json:"level" url:"-"`
+	Level    *KnowledgeLevel        `json:"level,omitempty" url:"-"`
+	Type     *KnowledgeLevel        `json:"type,omitempty" url:"-"`
 	Format   *string                `json:"format,omitempty" url:"-"`
-	Body     string                 `json:"body" url:"-"`
+	Body     *string                `json:"body,omitempty" url:"-"`
 	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
 	Links    []*KnowledgeLinkInput  `json:"links,omitempty" url:"-"`
+}
+
+type BodyCreateKnowledgeMedia struct {
+	File io.Reader `json:"-" url:"-"`
+	// JSON metadata for the knowledge item
+	Item string `json:"item" url:"-"`
 }
 
 type DeleteKnowledgeRequest struct {
@@ -29,7 +37,18 @@ type GetKnowledgeRequest struct {
 	Identifier string `json:"-" url:"-"`
 }
 
+type GetKnowledgeContentRequest struct {
+	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
+	Identifier string `json:"-" url:"-"`
+}
+
 type GetKnowledgeVersionRequest struct {
+	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
+	Identifier    string `json:"-" url:"-"`
+	VersionNumber int    `json:"-" url:"-"`
+}
+
+type GetKnowledgeVersionContentRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier    string `json:"-" url:"-"`
 	VersionNumber int    `json:"-" url:"-"`
@@ -37,6 +56,7 @@ type GetKnowledgeVersionRequest struct {
 
 type ListKnowledgeRequest struct {
 	Level      *KnowledgeLevel `json:"-" url:"level,omitempty"`
+	Type       *KnowledgeLevel `json:"-" url:"type,omitempty"`
 	Tag        *string         `json:"-" url:"tag,omitempty"`
 	Repository *string         `json:"-" url:"repository,omitempty"`
 	// Search identifier or body text
@@ -52,6 +72,12 @@ type ListKnowledgeVersionsRequest struct {
 	Limit      *int    `json:"-" url:"limit,omitempty"`
 }
 
+type BodyPutKnowledgeContent struct {
+	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
+	Identifier string    `json:"-" url:"-"`
+	File       io.Reader `json:"-" url:"-"`
+}
+
 type KnowledgeRestoreRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier    string `json:"-" url:"-"`
@@ -62,12 +88,14 @@ type KnowledgeItemListResponse struct {
 	ID string `json:"id" url:"id"`
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Slug          string                   `json:"slug" url:"slug"`
+	Type          KnowledgeLevel           `json:"type" url:"type"`
 	Level         KnowledgeLevel           `json:"level" url:"level"`
 	Status        KnowledgeStatus          `json:"status" url:"status"`
 	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
 	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
 	UpdatedAt     time.Time                `json:"updated_at" url:"updated_at"`
 	VersionNumber *int                     `json:"version_number,omitempty" url:"version_number,omitempty"`
+	ByteSize      *int                     `json:"byte_size,omitempty" url:"byte_size,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -85,6 +113,13 @@ func (k *KnowledgeItemListResponse) GetSlug() string {
 		return ""
 	}
 	return k.Slug
+}
+
+func (k *KnowledgeItemListResponse) GetType() KnowledgeLevel {
+	if k == nil {
+		return ""
+	}
+	return k.Type
 }
 
 func (k *KnowledgeItemListResponse) GetLevel() KnowledgeLevel {
@@ -127,6 +162,13 @@ func (k *KnowledgeItemListResponse) GetVersionNumber() *int {
 		return nil
 	}
 	return k.VersionNumber
+}
+
+func (k *KnowledgeItemListResponse) GetByteSize() *int {
+	if k == nil {
+		return nil
+	}
+	return k.ByteSize
 }
 
 func (k *KnowledgeItemListResponse) GetExtraProperties() map[string]interface{} {
@@ -187,6 +229,7 @@ type KnowledgeItemResponse struct {
 	ID string `json:"id" url:"id"`
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Slug          string                   `json:"slug" url:"slug"`
+	Type          KnowledgeLevel           `json:"type" url:"type"`
 	Level         KnowledgeLevel           `json:"level" url:"level"`
 	Format        string                   `json:"format" url:"format"`
 	Body          string                   `json:"body" url:"body"`
@@ -197,6 +240,7 @@ type KnowledgeItemResponse struct {
 	UpdatedAt     time.Time                `json:"updated_at" url:"updated_at"`
 	VersionID     *string                  `json:"version_id,omitempty" url:"version_id,omitempty"`
 	VersionNumber *int                     `json:"version_number,omitempty" url:"version_number,omitempty"`
+	ByteSize      *int                     `json:"byte_size,omitempty" url:"byte_size,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -214,6 +258,13 @@ func (k *KnowledgeItemResponse) GetSlug() string {
 		return ""
 	}
 	return k.Slug
+}
+
+func (k *KnowledgeItemResponse) GetType() KnowledgeLevel {
+	if k == nil {
+		return ""
+	}
+	return k.Type
 }
 
 func (k *KnowledgeItemResponse) GetLevel() KnowledgeLevel {
@@ -286,6 +337,13 @@ func (k *KnowledgeItemResponse) GetVersionNumber() *int {
 	return k.VersionNumber
 }
 
+func (k *KnowledgeItemResponse) GetByteSize() *int {
+	if k == nil {
+		return nil
+	}
+	return k.ByteSize
+}
+
 func (k *KnowledgeItemResponse) GetExtraProperties() map[string]interface{} {
 	return k.extraProperties
 }
@@ -347,6 +405,9 @@ const (
 	KnowledgeLevelProcedural  KnowledgeLevel = "procedural"
 	KnowledgeLevelDeclarative KnowledgeLevel = "declarative"
 	KnowledgeLevelPrompt      KnowledgeLevel = "prompt"
+	KnowledgeLevelImage       KnowledgeLevel = "image"
+	KnowledgeLevelVideo       KnowledgeLevel = "video"
+	KnowledgeLevelAudio       KnowledgeLevel = "audio"
 )
 
 func NewKnowledgeLevelFromString(s string) (KnowledgeLevel, error) {
@@ -359,6 +420,12 @@ func NewKnowledgeLevelFromString(s string) (KnowledgeLevel, error) {
 		return KnowledgeLevelDeclarative, nil
 	case "prompt":
 		return KnowledgeLevelPrompt, nil
+	case "image":
+		return KnowledgeLevelImage, nil
+	case "video":
+		return KnowledgeLevelVideo, nil
+	case "audio":
+		return KnowledgeLevelAudio, nil
 	}
 	var t KnowledgeLevel
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -603,6 +670,7 @@ func (k *KnowledgeVersionListResponse) String() string {
 type KnowledgeVersionResponse struct {
 	ID            string                   `json:"id" url:"id"`
 	VersionNumber int                      `json:"version_number" url:"version_number"`
+	Type          KnowledgeLevel           `json:"type" url:"type"`
 	Level         KnowledgeLevel           `json:"level" url:"level"`
 	Format        string                   `json:"format" url:"format"`
 	Body          string                   `json:"body" url:"body"`
@@ -610,6 +678,7 @@ type KnowledgeVersionResponse struct {
 	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
 	ContentHash   string                   `json:"content_hash" url:"content_hash"`
 	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
+	ByteSize      *int                     `json:"byte_size,omitempty" url:"byte_size,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -627,6 +696,13 @@ func (k *KnowledgeVersionResponse) GetVersionNumber() int {
 		return 0
 	}
 	return k.VersionNumber
+}
+
+func (k *KnowledgeVersionResponse) GetType() KnowledgeLevel {
+	if k == nil {
+		return ""
+	}
+	return k.Type
 }
 
 func (k *KnowledgeVersionResponse) GetLevel() KnowledgeLevel {
@@ -676,6 +752,13 @@ func (k *KnowledgeVersionResponse) GetCreatedAt() time.Time {
 		return time.Time{}
 	}
 	return k.CreatedAt
+}
+
+func (k *KnowledgeVersionResponse) GetByteSize() *int {
+	if k == nil {
+		return nil
+	}
+	return k.ByteSize
 }
 
 func (k *KnowledgeVersionResponse) GetExtraProperties() map[string]interface{} {
@@ -840,6 +923,7 @@ type KnowledgeItemUpdate struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string                 `json:"-" url:"-"`
 	Level      *KnowledgeLevel        `json:"level,omitempty" url:"-"`
+	Type       *KnowledgeLevel        `json:"type,omitempty" url:"-"`
 	Format     *string                `json:"format,omitempty" url:"-"`
 	Body       *string                `json:"body,omitempty" url:"-"`
 	Metadata   map[string]interface{} `json:"metadata,omitempty" url:"-"`
