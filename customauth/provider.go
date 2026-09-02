@@ -21,6 +21,16 @@ import (
 // refreshed. Matches the python-sdk.
 const DefaultRefreshMargin = 60 * time.Second
 
+const (
+	maxExchangeAttempts   = 3
+	initialRetryDelay     = 250 * time.Millisecond
+	retryBackoffMultiplier = 2
+)
+
+func isTransientStatus(code int) bool {
+	return code == 502 || code == 503 || code == 504
+}
+
 // providerKey scopes shared cache state to a (baseURL, accessKey) pair so
 // multiple Islo() instances with the same key share one token.
 type providerKey struct {
@@ -95,34 +105,62 @@ type tokenResponse struct {
 }
 
 func (p *Provider) refresh(ctx context.Context) (string, error) {
+	var lastErr error
+	delay := initialRetryDelay
+
+	for attempt := 0; attempt < maxExchangeAttempts; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return "", fmt.Errorf("islo: token exchange: %w", ctx.Err())
+			case <-time.After(delay):
+			}
+			delay *= retryBackoffMultiplier
+		}
+
+		token, err, transient := p.doExchange(ctx)
+		if err == nil {
+			return token, nil
+		}
+		lastErr = err
+		if !transient {
+			return "", err
+		}
+	}
+
+	return "", lastErr
+}
+
+func (p *Provider) doExchange(ctx context.Context) (token string, err error, transient bool) {
 	body, err := json.Marshal(map[string]string{"access_key": p.accessKey})
 	if err != nil {
-		return "", fmt.Errorf("islo: encode token request: %w", err)
+		return "", fmt.Errorf("islo: encode token request: %w", err), false
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.baseURL+"/auth/token", bytes.NewReader(body))
 	if err != nil {
-		return "", fmt.Errorf("islo: build token request: %w", err)
+		return "", fmt.Errorf("islo: build token request: %w", err), false
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("islo: token exchange: %w", err)
+		return "", fmt.Errorf("islo: token exchange: %w", err), true
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 		snippet, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		return "", fmt.Errorf("islo: token exchange failed (%d): %s", resp.StatusCode, bytes.TrimSpace(snippet))
+		err := fmt.Errorf("islo: token exchange failed (%d): %s", resp.StatusCode, bytes.TrimSpace(snippet))
+		return "", err, isTransientStatus(resp.StatusCode)
 	}
 
 	var data tokenResponse
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return "", fmt.Errorf("islo: decode token response: %w", err)
+		return "", fmt.Errorf("islo: decode token response: %w", err), false
 	}
 	if data.SessionToken == "" {
-		return "", errors.New("islo: token exchange response missing session_token")
+		return "", errors.New("islo: token exchange response missing session_token"), false
 	}
 
 	ttl := time.Duration(data.CookieMaxAge)*time.Second - p.refreshMargin
@@ -131,5 +169,5 @@ func (p *Provider) refresh(ctx context.Context) (string, error) {
 	}
 	p.state.token = data.SessionToken
 	p.state.expiresAt = time.Now().Add(ttl)
-	return p.state.token, nil
+	return p.state.token, nil, false
 }

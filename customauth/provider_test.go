@@ -111,6 +111,78 @@ func TestProvider_NonOKStatus(t *testing.T) {
 	}
 }
 
+func TestProvider_Retries502ThenSucceeds(t *testing.T) {
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n := atomic.AddInt32(&calls, 1)
+		if n <= 2 {
+			w.WriteHeader(http.StatusBadGateway)
+			_, _ = w.Write([]byte("<html>502 Bad Gateway</html>"))
+			return
+		}
+		_ = json.NewEncoder(w).Encode(tokenResponse{
+			SessionToken: "jwt-retry",
+			CookieMaxAge: 600,
+		})
+	}))
+	defer srv.Close()
+
+	resetSharedStates(t)
+	p := NewProvider(srv.URL, "ak_test", DefaultRefreshMargin, srv.Client())
+
+	tok, err := p.Token(context.Background())
+	if err != nil {
+		t.Fatalf("Token: %v", err)
+	}
+	if tok != "jwt-retry" {
+		t.Fatalf("got token %q, want jwt-retry", tok)
+	}
+	if got := atomic.LoadInt32(&calls); got != 3 {
+		t.Fatalf("expected 3 exchange calls (2 retries + 1 success), got %d", got)
+	}
+}
+
+func TestProvider_NoRetryOn401(t *testing.T) {
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		w.WriteHeader(http.StatusUnauthorized)
+		_, _ = w.Write([]byte(`{"error":"bad key"}`))
+	}))
+	defer srv.Close()
+
+	resetSharedStates(t)
+	p := NewProvider(srv.URL, "ak_bad", DefaultRefreshMargin, srv.Client())
+
+	if _, err := p.Token(context.Background()); err == nil {
+		t.Fatal("expected error on 401, got nil")
+	}
+	if got := atomic.LoadInt32(&calls); got != 1 {
+		t.Fatalf("expected 1 call (no retry on 401), got %d", got)
+	}
+}
+
+func TestProvider_ExhaustsRetriesOn502(t *testing.T) {
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		w.WriteHeader(http.StatusBadGateway)
+		_, _ = w.Write([]byte("<html>502 Bad Gateway</html>"))
+	}))
+	defer srv.Close()
+
+	resetSharedStates(t)
+	p := NewProvider(srv.URL, "ak_test", DefaultRefreshMargin, srv.Client())
+
+	_, err := p.Token(context.Background())
+	if err == nil {
+		t.Fatal("expected error after exhausting retries, got nil")
+	}
+	if got := atomic.LoadInt32(&calls); got != 3 {
+		t.Fatalf("expected 3 calls (maxExchangeAttempts), got %d", got)
+	}
+}
+
 func TestTransport_InjectsBearer(t *testing.T) {
 	var captured string
 	tokenSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
