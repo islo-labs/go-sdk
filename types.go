@@ -123,6 +123,7 @@ type ArtifactRefExternalRef struct {
 	Provider string
 	Github   *GitHubExternalRef
 	Islo     *IsloKnowledgeItemExternalRef
+	Jira     *JiraExternalRef
 	Linear   *LinearExternalRef
 	Slack    *SlackMessageExternalRef
 	URL      *URLExternalRef
@@ -147,6 +148,13 @@ func (a *ArtifactRefExternalRef) GetIslo() *IsloKnowledgeItemExternalRef {
 		return nil
 	}
 	return a.Islo
+}
+
+func (a *ArtifactRefExternalRef) GetJira() *JiraExternalRef {
+	if a == nil {
+		return nil
+	}
+	return a.Jira
 }
 
 func (a *ArtifactRefExternalRef) GetLinear() *LinearExternalRef {
@@ -194,6 +202,12 @@ func (a *ArtifactRefExternalRef) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		a.Islo = value
+	case "jira":
+		value := new(JiraExternalRef)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		a.Jira = value
 	case "linear":
 		value := new(LinearExternalRef)
 		if err := json.Unmarshal(data, &value); err != nil {
@@ -226,6 +240,9 @@ func (a ArtifactRefExternalRef) MarshalJSON() ([]byte, error) {
 	if a.Islo != nil {
 		return internal.MarshalJSONWithExtraProperty(a.Islo, "provider", "islo")
 	}
+	if a.Jira != nil {
+		return internal.MarshalJSONWithExtraProperty(a.Jira, "provider", "jira")
+	}
 	if a.Linear != nil {
 		return internal.MarshalJSONWithExtraProperty(a.Linear, "provider", "linear")
 	}
@@ -241,6 +258,7 @@ func (a ArtifactRefExternalRef) MarshalJSON() ([]byte, error) {
 type ArtifactRefExternalRefVisitor interface {
 	VisitGithub(*GitHubExternalRef) error
 	VisitIslo(*IsloKnowledgeItemExternalRef) error
+	VisitJira(*JiraExternalRef) error
 	VisitLinear(*LinearExternalRef) error
 	VisitSlack(*SlackMessageExternalRef) error
 	VisitURL(*URLExternalRef) error
@@ -252,6 +270,9 @@ func (a *ArtifactRefExternalRef) Accept(visitor ArtifactRefExternalRefVisitor) e
 	}
 	if a.Islo != nil {
 		return visitor.VisitIslo(a.Islo)
+	}
+	if a.Jira != nil {
+		return visitor.VisitJira(a.Jira)
 	}
 	if a.Linear != nil {
 		return visitor.VisitLinear(a.Linear)
@@ -275,6 +296,9 @@ func (a *ArtifactRefExternalRef) validate() error {
 	}
 	if a.Islo != nil {
 		fields = append(fields, "islo")
+	}
+	if a.Jira != nil {
+		fields = append(fields, "jira")
 	}
 	if a.Linear != nil {
 		fields = append(fields, "linear")
@@ -423,6 +447,70 @@ func NewAutoResumePolicyFromString(s string) (AutoResumePolicy, error) {
 
 func (a AutoResumePolicy) Ptr() *AutoResumePolicy {
 	return &a
+}
+
+// Safe display metadata for unknown URL artifacts.
+type DisplayHint struct {
+	Title *string `json:"title,omitempty" url:"title,omitempty"`
+	// HTTPS-only icon URL for rendering
+	IconURL      *string `json:"icon_url,omitempty" url:"icon_url,omitempty"`
+	ProviderName *string `json:"provider_name,omitempty" url:"provider_name,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (d *DisplayHint) GetTitle() *string {
+	if d == nil {
+		return nil
+	}
+	return d.Title
+}
+
+func (d *DisplayHint) GetIconURL() *string {
+	if d == nil {
+		return nil
+	}
+	return d.IconURL
+}
+
+func (d *DisplayHint) GetProviderName() *string {
+	if d == nil {
+		return nil
+	}
+	return d.ProviderName
+}
+
+func (d *DisplayHint) GetExtraProperties() map[string]interface{} {
+	return d.extraProperties
+}
+
+func (d *DisplayHint) UnmarshalJSON(data []byte) error {
+	type unmarshaler DisplayHint
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*d = DisplayHint(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *d)
+	if err != nil {
+		return err
+	}
+	d.extraProperties = extraProperties
+	d.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (d *DisplayHint) String() string {
+	if len(d.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(d.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(d); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", d)
 }
 
 type ErrorCode string
@@ -963,6 +1051,86 @@ func (i IsloKnowledgeItemExternalRefKind) Ptr() *IsloKnowledgeItemExternalRefKin
 	return &i
 }
 
+// Jira identity: issues, epics, and tasks use key; comments use id.
+type JiraExternalRef struct {
+	Kind    *string `json:"kind,omitempty" url:"kind,omitempty"`
+	Key     *string `json:"key,omitempty" url:"key,omitempty"`
+	ID      *string `json:"id,omitempty" url:"id,omitempty"`
+	Project *string `json:"project,omitempty" url:"project,omitempty"`
+	// Atlassian site hostname, e.g. myteam.atlassian.net
+	Site *string `json:"site,omitempty" url:"site,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JiraExternalRef) GetKind() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Kind
+}
+
+func (j *JiraExternalRef) GetKey() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Key
+}
+
+func (j *JiraExternalRef) GetID() *string {
+	if j == nil {
+		return nil
+	}
+	return j.ID
+}
+
+func (j *JiraExternalRef) GetProject() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Project
+}
+
+func (j *JiraExternalRef) GetSite() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Site
+}
+
+func (j *JiraExternalRef) GetExtraProperties() map[string]interface{} {
+	return j.extraProperties
+}
+
+func (j *JiraExternalRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler JiraExternalRef
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JiraExternalRef(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JiraExternalRef) String() string {
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
 type JobParamDefinition struct {
 	Name        string                   `json:"name" url:"name"`
 	Type        JobParamDefinitionType   `json:"type" url:"type"`
@@ -1133,16 +1301,20 @@ func (j JobParamDefinitionType) Ptr() *JobParamDefinitionType {
 }
 
 type JobRunListItem struct {
-	ID           string     `json:"id" url:"id"`
-	JobName      string     `json:"job_name" url:"job_name"`
-	JobVersionID string     `json:"job_version_id" url:"job_version_id"`
-	Status       string     `json:"status" url:"status"`
-	Region       *string    `json:"region,omitempty" url:"region,omitempty"`
-	StepCount    int        `json:"step_count" url:"step_count"`
-	StartedAt    *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt  *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	CreatedAt    time.Time  `json:"created_at" url:"created_at"`
-	ErrorMessage *string    `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ID                 string     `json:"id" url:"id"`
+	JobName            string     `json:"job_name" url:"job_name"`
+	JobVersionID       string     `json:"job_version_id" url:"job_version_id"`
+	Status             string     `json:"status" url:"status"`
+	Region             *string    `json:"region,omitempty" url:"region,omitempty"`
+	StepCount          int        `json:"step_count" url:"step_count"`
+	ComputeCostCents   *int       `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int       `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int       `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	StartedAt          *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	CreatedAt          time.Time  `json:"created_at" url:"created_at"`
+	ErrorMessage       *string    `json:"error_message,omitempty" url:"error_message,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1190,6 +1362,34 @@ func (j *JobRunListItem) GetStepCount() int {
 	return j.StepCount
 }
 
+func (j *JobRunListItem) GetComputeCostCents() *int {
+	if j == nil {
+		return nil
+	}
+	return j.ComputeCostCents
+}
+
+func (j *JobRunListItem) GetInferenceCostCents() *int {
+	if j == nil {
+		return nil
+	}
+	return j.InferenceCostCents
+}
+
+func (j *JobRunListItem) GetTotalCostCents() *int {
+	if j == nil {
+		return nil
+	}
+	return j.TotalCostCents
+}
+
+func (j *JobRunListItem) GetCostRatedAt() *time.Time {
+	if j == nil {
+		return nil
+	}
+	return j.CostRatedAt
+}
+
 func (j *JobRunListItem) GetStartedAt() *time.Time {
 	if j == nil {
 		return nil
@@ -1226,6 +1426,7 @@ func (j *JobRunListItem) UnmarshalJSON(data []byte) error {
 	type embed JobRunListItem
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
@@ -1236,6 +1437,7 @@ func (j *JobRunListItem) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*j = JobRunListItem(unmarshaler.embed)
+	j.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	j.StartedAt = unmarshaler.StartedAt.TimePtr()
 	j.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	j.CreatedAt = unmarshaler.CreatedAt.Time()
@@ -1252,11 +1454,13 @@ func (j *JobRunListItem) MarshalJSON() ([]byte, error) {
 	type embed JobRunListItem
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
 	}{
 		embed:       embed(*j),
+		CostRatedAt: internal.NewOptionalDateTime(j.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(j.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(j.CompletedAt),
 		CreatedAt:   internal.NewDateTime(j.CreatedAt),
@@ -1277,22 +1481,26 @@ func (j *JobRunListItem) String() string {
 }
 
 type JobRunResponse struct {
-	ID            string                     `json:"id" url:"id"`
-	JobName       string                     `json:"job_name" url:"job_name"`
-	JobVersionID  string                     `json:"job_version_id" url:"job_version_id"`
-	Status        string                     `json:"status" url:"status"`
-	Region        *string                    `json:"region,omitempty" url:"region,omitempty"`
-	RunParams     map[string]interface{}     `json:"run_params" url:"run_params"`
-	ResultPayload map[string]interface{}     `json:"result_payload,omitempty" url:"result_payload,omitempty"`
-	StepTimeline  []*JobRunStepTimelineEntry `json:"step_timeline" url:"step_timeline"`
-	ArtifactRefs  []*ArtifactRef             `json:"artifact_refs" url:"artifact_refs"`
-	StartedAt     *time.Time                 `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt   *time.Time                 `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	ErrorMessage  *string                    `json:"error_message,omitempty" url:"error_message,omitempty"`
-	ErrorCode     *string                    `json:"error_code,omitempty" url:"error_code,omitempty"`
-	ErrorDetails  map[string]interface{}     `json:"error_details,omitempty" url:"error_details,omitempty"`
-	FailureClass  *string                    `json:"failure_class,omitempty" url:"failure_class,omitempty"`
-	CreatedAt     time.Time                  `json:"created_at" url:"created_at"`
+	ID                 string                     `json:"id" url:"id"`
+	JobName            string                     `json:"job_name" url:"job_name"`
+	JobVersionID       string                     `json:"job_version_id" url:"job_version_id"`
+	Status             string                     `json:"status" url:"status"`
+	Region             *string                    `json:"region,omitempty" url:"region,omitempty"`
+	RunParams          map[string]interface{}     `json:"run_params" url:"run_params"`
+	ResultPayload      map[string]interface{}     `json:"result_payload,omitempty" url:"result_payload,omitempty"`
+	StepTimeline       []*JobRunStepTimelineEntry `json:"step_timeline" url:"step_timeline"`
+	ArtifactRefs       []*ArtifactRef             `json:"artifact_refs" url:"artifact_refs"`
+	ComputeCostCents   *int                       `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int                       `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int                       `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time                 `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	StartedAt          *time.Time                 `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time                 `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ErrorMessage       *string                    `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorCode          *string                    `json:"error_code,omitempty" url:"error_code,omitempty"`
+	ErrorDetails       map[string]interface{}     `json:"error_details,omitempty" url:"error_details,omitempty"`
+	FailureClass       *string                    `json:"failure_class,omitempty" url:"failure_class,omitempty"`
+	CreatedAt          time.Time                  `json:"created_at" url:"created_at"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1361,6 +1569,34 @@ func (j *JobRunResponse) GetArtifactRefs() []*ArtifactRef {
 	return j.ArtifactRefs
 }
 
+func (j *JobRunResponse) GetComputeCostCents() *int {
+	if j == nil {
+		return nil
+	}
+	return j.ComputeCostCents
+}
+
+func (j *JobRunResponse) GetInferenceCostCents() *int {
+	if j == nil {
+		return nil
+	}
+	return j.InferenceCostCents
+}
+
+func (j *JobRunResponse) GetTotalCostCents() *int {
+	if j == nil {
+		return nil
+	}
+	return j.TotalCostCents
+}
+
+func (j *JobRunResponse) GetCostRatedAt() *time.Time {
+	if j == nil {
+		return nil
+	}
+	return j.CostRatedAt
+}
+
 func (j *JobRunResponse) GetStartedAt() *time.Time {
 	if j == nil {
 		return nil
@@ -1418,6 +1654,7 @@ func (j *JobRunResponse) UnmarshalJSON(data []byte) error {
 	type embed JobRunResponse
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
@@ -1428,6 +1665,7 @@ func (j *JobRunResponse) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*j = JobRunResponse(unmarshaler.embed)
+	j.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	j.StartedAt = unmarshaler.StartedAt.TimePtr()
 	j.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	j.CreatedAt = unmarshaler.CreatedAt.Time()
@@ -1444,11 +1682,13 @@ func (j *JobRunResponse) MarshalJSON() ([]byte, error) {
 	type embed JobRunResponse
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
 	}{
 		embed:       embed(*j),
+		CostRatedAt: internal.NewOptionalDateTime(j.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(j.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(j.CompletedAt),
 		CreatedAt:   internal.NewDateTime(j.CreatedAt),
@@ -2393,6 +2633,8 @@ type URLExternalRef struct {
 	Kind *URLExternalRefKind `json:"kind,omitempty" url:"kind,omitempty"`
 	// Public HTTP(S) URL
 	URL string `json:"url" url:"url"`
+	// Optional safe display metadata for richer rendering of unknown URL artifacts
+	DisplayHint *DisplayHint `json:"display_hint,omitempty" url:"display_hint,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2410,6 +2652,13 @@ func (u *URLExternalRef) GetURL() string {
 		return ""
 	}
 	return u.URL
+}
+
+func (u *URLExternalRef) GetDisplayHint() *DisplayHint {
+	if u == nil {
+		return nil
+	}
+	return u.DisplayHint
 }
 
 func (u *URLExternalRef) GetExtraProperties() map[string]interface{} {

@@ -587,6 +587,52 @@ func (k KnowledgeStatus) Ptr() *KnowledgeStatus {
 	return &k
 }
 
+type KnowledgeTagsResponse struct {
+	Tags []string `json:"tags" url:"tags"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KnowledgeTagsResponse) GetTags() []string {
+	if k == nil {
+		return nil
+	}
+	return k.Tags
+}
+
+func (k *KnowledgeTagsResponse) GetExtraProperties() map[string]interface{} {
+	return k.extraProperties
+}
+
+func (k *KnowledgeTagsResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler KnowledgeTagsResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*k = KnowledgeTagsResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KnowledgeTagsResponse) String() string {
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
+}
+
 type KnowledgeVersionListResponse struct {
 	ID            string    `json:"id" url:"id"`
 	VersionNumber int       `json:"version_number" url:"version_number"`

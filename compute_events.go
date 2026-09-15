@@ -22,6 +22,7 @@ type GetComputeEventRequest struct {
 type AgentResult struct {
 	Mode           *string               `json:"mode,omitempty" url:"mode,omitempty"`
 	Harness        *string               `json:"harness,omitempty" url:"harness,omitempty"`
+	Model          *string               `json:"model,omitempty" url:"model,omitempty"`
 	Status         *string               `json:"status,omitempty" url:"status,omitempty"`
 	Outcome        *string               `json:"outcome,omitempty" url:"outcome,omitempty"`
 	AgentSessionID *string               `json:"agent_session_id,omitempty" url:"agent_session_id,omitempty"`
@@ -44,6 +45,13 @@ func (a *AgentResult) GetHarness() *string {
 		return nil
 	}
 	return a.Harness
+}
+
+func (a *AgentResult) GetModel() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Model
 }
 
 func (a *AgentResult) GetStatus() *string {

@@ -384,3 +384,65 @@ func (c *Client) SetDefaultEnvironment(
 	}
 	return response, nil
 }
+
+func (c *Client) UnsetDefaultEnvironment(
+	ctx context.Context,
+	request *gosdk.UnsetDefaultEnvironmentRequest,
+	opts ...option.RequestOption,
+) (*gosdk.EnvironmentResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/environments/%v/default",
+		request.EnvironmentRef,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	errorCodes := internal.ErrorCodes{
+		401: func(apiError *core.APIError) error {
+			return &gosdk.UnauthorizedError{
+				APIError: apiError,
+			}
+		},
+		404: func(apiError *core.APIError) error {
+			return &gosdk.NotFoundError{
+				APIError: apiError,
+			}
+		},
+		409: func(apiError *core.APIError) error {
+			return &gosdk.ConflictError{
+				APIError: apiError,
+			}
+		},
+		422: func(apiError *core.APIError) error {
+			return &gosdk.UnprocessableEntityError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	var response *gosdk.EnvironmentResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodDelete,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}

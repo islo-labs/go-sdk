@@ -4844,24 +4844,29 @@ func (l *LineRunDebugStep) String() string {
 }
 
 type LineRunDetail struct {
-	ID             string                 `json:"id" url:"id"`
-	LineName       string                 `json:"line_name" url:"line_name"`
-	LineVersionID  string                 `json:"line_version_id" url:"line_version_id"`
-	WorkflowRunID  string                 `json:"workflow_run_id" url:"workflow_run_id"`
-	Status         string                 `json:"status" url:"status"`
-	Trigger        *TriggerSummary        `json:"trigger" url:"trigger"`
-	Region         *string                `json:"region,omitempty" url:"region,omitempty"`
-	RunParams      map[string]interface{} `json:"run_params,omitempty" url:"run_params,omitempty"`
-	ResultPayload  map[string]interface{} `json:"result_payload,omitempty" url:"result_payload,omitempty"`
-	ErrorMessage   *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
-	IterationCount *int                   `json:"iteration_count,omitempty" url:"iteration_count,omitempty"`
-	BudgetUsedUsd  *string                `json:"budget_used_usd,omitempty" url:"budget_used_usd,omitempty"`
-	Retry          *LineRunRetryAction    `json:"retry,omitempty" url:"retry,omitempty"`
-	Stages         []*LineRunStageDetail  `json:"stages,omitempty" url:"stages,omitempty"`
-	Failure        *LineRunFailure        `json:"failure,omitempty" url:"failure,omitempty"`
-	StartedAt      *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt    *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	CreatedAt      time.Time              `json:"created_at" url:"created_at"`
+	ID                 string                 `json:"id" url:"id"`
+	LineName           string                 `json:"line_name" url:"line_name"`
+	LineVersionID      string                 `json:"line_version_id" url:"line_version_id"`
+	WorkflowRunID      string                 `json:"workflow_run_id" url:"workflow_run_id"`
+	Status             string                 `json:"status" url:"status"`
+	Trigger            *TriggerSummary        `json:"trigger" url:"trigger"`
+	Region             *string                `json:"region,omitempty" url:"region,omitempty"`
+	RunParams          map[string]interface{} `json:"run_params,omitempty" url:"run_params,omitempty"`
+	ResultPayload      map[string]interface{} `json:"result_payload,omitempty" url:"result_payload,omitempty"`
+	ErrorMessage       *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	IterationCount     *int                   `json:"iteration_count,omitempty" url:"iteration_count,omitempty"`
+	BudgetUsedUsd      *string                `json:"budget_used_usd,omitempty" url:"budget_used_usd,omitempty"`
+	ComputeCostCents   *int                   `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int                   `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int                   `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time             `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	Retry              *LineRunRetryAction    `json:"retry,omitempty" url:"retry,omitempty"`
+	Stages             []*LineRunStageDetail  `json:"stages,omitempty" url:"stages,omitempty"`
+	Failure            *LineRunFailure        `json:"failure,omitempty" url:"failure,omitempty"`
+	TriggeredByActor   map[string]interface{} `json:"triggered_by_actor,omitempty" url:"triggered_by_actor,omitempty"`
+	StartedAt          *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	CreatedAt          time.Time              `json:"created_at" url:"created_at"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4951,6 +4956,34 @@ func (l *LineRunDetail) GetBudgetUsedUsd() *string {
 	return l.BudgetUsedUsd
 }
 
+func (l *LineRunDetail) GetComputeCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCostCents
+}
+
+func (l *LineRunDetail) GetInferenceCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.InferenceCostCents
+}
+
+func (l *LineRunDetail) GetTotalCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.TotalCostCents
+}
+
+func (l *LineRunDetail) GetCostRatedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CostRatedAt
+}
+
 func (l *LineRunDetail) GetRetry() *LineRunRetryAction {
 	if l == nil {
 		return nil
@@ -4970,6 +5003,13 @@ func (l *LineRunDetail) GetFailure() *LineRunFailure {
 		return nil
 	}
 	return l.Failure
+}
+
+func (l *LineRunDetail) GetTriggeredByActor() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.TriggeredByActor
 }
 
 func (l *LineRunDetail) GetStartedAt() *time.Time {
@@ -5001,6 +5041,7 @@ func (l *LineRunDetail) UnmarshalJSON(data []byte) error {
 	type embed LineRunDetail
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
@@ -5011,6 +5052,7 @@ func (l *LineRunDetail) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*l = LineRunDetail(unmarshaler.embed)
+	l.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	l.StartedAt = unmarshaler.StartedAt.TimePtr()
 	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	l.CreatedAt = unmarshaler.CreatedAt.Time()
@@ -5027,11 +5069,13 @@ func (l *LineRunDetail) MarshalJSON() ([]byte, error) {
 	type embed LineRunDetail
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
 	}{
 		embed:       embed(*l),
+		CostRatedAt: internal.NewOptionalDateTime(l.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 		CreatedAt:   internal.NewDateTime(l.CreatedAt),
@@ -5318,18 +5362,22 @@ func (l *LineRunRetryAction) String() string {
 }
 
 type LineRunStageDetail struct {
-	StageName     string                   `json:"stage_name" url:"stage_name"`
-	StageOrder    int                      `json:"stage_order" url:"stage_order"`
-	Iteration     int                      `json:"iteration" url:"iteration"`
-	Status        string                   `json:"status" url:"status"`
-	Outcome       *string                  `json:"outcome,omitempty" url:"outcome,omitempty"`
-	JobRunID      *string                  `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
-	StartedAt     *time.Time               `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt   *time.Time               `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	ArtifactCount *int                     `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
-	InputPayload  map[string]interface{}   `json:"input_payload,omitempty" url:"input_payload,omitempty"`
-	ResultPayload map[string]interface{}   `json:"result_payload,omitempty" url:"result_payload,omitempty"`
-	Artifacts     []map[string]interface{} `json:"artifacts,omitempty" url:"artifacts,omitempty"`
+	StageName          string                   `json:"stage_name" url:"stage_name"`
+	StageOrder         int                      `json:"stage_order" url:"stage_order"`
+	Iteration          int                      `json:"iteration" url:"iteration"`
+	Status             string                   `json:"status" url:"status"`
+	Outcome            *string                  `json:"outcome,omitempty" url:"outcome,omitempty"`
+	JobRunID           *string                  `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
+	ComputeCostCents   *int                     `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int                     `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int                     `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time               `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	StartedAt          *time.Time               `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time               `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ArtifactCount      *int                     `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+	InputPayload       map[string]interface{}   `json:"input_payload,omitempty" url:"input_payload,omitempty"`
+	ResultPayload      map[string]interface{}   `json:"result_payload,omitempty" url:"result_payload,omitempty"`
+	Artifacts          []map[string]interface{} `json:"artifacts,omitempty" url:"artifacts,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5375,6 +5423,34 @@ func (l *LineRunStageDetail) GetJobRunID() *string {
 		return nil
 	}
 	return l.JobRunID
+}
+
+func (l *LineRunStageDetail) GetComputeCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCostCents
+}
+
+func (l *LineRunStageDetail) GetInferenceCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.InferenceCostCents
+}
+
+func (l *LineRunStageDetail) GetTotalCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.TotalCostCents
+}
+
+func (l *LineRunStageDetail) GetCostRatedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CostRatedAt
 }
 
 func (l *LineRunStageDetail) GetStartedAt() *time.Time {
@@ -5427,6 +5503,7 @@ func (l *LineRunStageDetail) UnmarshalJSON(data []byte) error {
 	type embed LineRunStageDetail
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 	}{
@@ -5436,6 +5513,7 @@ func (l *LineRunStageDetail) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*l = LineRunStageDetail(unmarshaler.embed)
+	l.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	l.StartedAt = unmarshaler.StartedAt.TimePtr()
 	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *l)
@@ -5451,10 +5529,12 @@ func (l *LineRunStageDetail) MarshalJSON() ([]byte, error) {
 	type embed LineRunStageDetail
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 	}{
 		embed:       embed(*l),
+		CostRatedAt: internal.NewOptionalDateTime(l.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 	}
@@ -5474,15 +5554,19 @@ func (l *LineRunStageDetail) String() string {
 }
 
 type LineRunStageSummary struct {
-	StageName     string     `json:"stage_name" url:"stage_name"`
-	StageOrder    int        `json:"stage_order" url:"stage_order"`
-	Iteration     int        `json:"iteration" url:"iteration"`
-	Status        string     `json:"status" url:"status"`
-	Outcome       *string    `json:"outcome,omitempty" url:"outcome,omitempty"`
-	JobRunID      *string    `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
-	StartedAt     *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt   *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	ArtifactCount *int       `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+	StageName          string     `json:"stage_name" url:"stage_name"`
+	StageOrder         int        `json:"stage_order" url:"stage_order"`
+	Iteration          int        `json:"iteration" url:"iteration"`
+	Status             string     `json:"status" url:"status"`
+	Outcome            *string    `json:"outcome,omitempty" url:"outcome,omitempty"`
+	JobRunID           *string    `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
+	ComputeCostCents   *int       `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int       `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int       `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	StartedAt          *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ArtifactCount      *int       `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5530,6 +5614,34 @@ func (l *LineRunStageSummary) GetJobRunID() *string {
 	return l.JobRunID
 }
 
+func (l *LineRunStageSummary) GetComputeCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCostCents
+}
+
+func (l *LineRunStageSummary) GetInferenceCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.InferenceCostCents
+}
+
+func (l *LineRunStageSummary) GetTotalCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.TotalCostCents
+}
+
+func (l *LineRunStageSummary) GetCostRatedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CostRatedAt
+}
+
 func (l *LineRunStageSummary) GetStartedAt() *time.Time {
 	if l == nil {
 		return nil
@@ -5559,6 +5671,7 @@ func (l *LineRunStageSummary) UnmarshalJSON(data []byte) error {
 	type embed LineRunStageSummary
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 	}{
@@ -5568,6 +5681,7 @@ func (l *LineRunStageSummary) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*l = LineRunStageSummary(unmarshaler.embed)
+	l.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	l.StartedAt = unmarshaler.StartedAt.TimePtr()
 	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *l)
@@ -5583,10 +5697,12 @@ func (l *LineRunStageSummary) MarshalJSON() ([]byte, error) {
 	type embed LineRunStageSummary
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 	}{
 		embed:       embed(*l),
+		CostRatedAt: internal.NewOptionalDateTime(l.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 	}
@@ -5606,21 +5722,27 @@ func (l *LineRunStageSummary) String() string {
 }
 
 type LineRunSummary struct {
-	ID            string                 `json:"id" url:"id"`
-	LineName      string                 `json:"line_name" url:"line_name"`
-	LineVersionID *string                `json:"line_version_id,omitempty" url:"line_version_id,omitempty"`
-	Status        string                 `json:"status" url:"status"`
-	Trigger       *TriggerSummary        `json:"trigger" url:"trigger"`
-	Region        *string                `json:"region,omitempty" url:"region,omitempty"`
-	RunParams     map[string]interface{} `json:"run_params,omitempty" url:"run_params,omitempty"`
-	Stages        []*LineRunStageSummary `json:"stages,omitempty" url:"stages,omitempty"`
-	ArtifactCount *int                   `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
-	Artifacts     []*ArtifactSummary     `json:"artifacts,omitempty" url:"artifacts,omitempty"`
-	ErrorMessage  *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
-	Failure       *LineRunFailure        `json:"failure,omitempty" url:"failure,omitempty"`
-	StartedAt     *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt   *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	CreatedAt     time.Time              `json:"created_at" url:"created_at"`
+	ID                 string                 `json:"id" url:"id"`
+	LineName           string                 `json:"line_name" url:"line_name"`
+	LineVersionID      *string                `json:"line_version_id,omitempty" url:"line_version_id,omitempty"`
+	Status             string                 `json:"status" url:"status"`
+	Trigger            *TriggerSummary        `json:"trigger" url:"trigger"`
+	Region             *string                `json:"region,omitempty" url:"region,omitempty"`
+	RunParams          map[string]interface{} `json:"run_params,omitempty" url:"run_params,omitempty"`
+	Stages             []*LineRunStageSummary `json:"stages,omitempty" url:"stages,omitempty"`
+	ArtifactCount      *int                   `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+	Artifacts          []*ArtifactSummary     `json:"artifacts,omitempty" url:"artifacts,omitempty"`
+	ComputeCostCents   *int                   `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int                   `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int                   `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time             `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	ErrorMessage       *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	Failure            *LineRunFailure        `json:"failure,omitempty" url:"failure,omitempty"`
+	ManagerTurns       []*ManagerTurnSummary  `json:"manager_turns,omitempty" url:"manager_turns,omitempty"`
+	TriggeredByActor   map[string]interface{} `json:"triggered_by_actor,omitempty" url:"triggered_by_actor,omitempty"`
+	StartedAt          *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	CreatedAt          time.Time              `json:"created_at" url:"created_at"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5696,6 +5818,34 @@ func (l *LineRunSummary) GetArtifacts() []*ArtifactSummary {
 	return l.Artifacts
 }
 
+func (l *LineRunSummary) GetComputeCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCostCents
+}
+
+func (l *LineRunSummary) GetInferenceCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.InferenceCostCents
+}
+
+func (l *LineRunSummary) GetTotalCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.TotalCostCents
+}
+
+func (l *LineRunSummary) GetCostRatedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CostRatedAt
+}
+
 func (l *LineRunSummary) GetErrorMessage() *string {
 	if l == nil {
 		return nil
@@ -5708,6 +5858,20 @@ func (l *LineRunSummary) GetFailure() *LineRunFailure {
 		return nil
 	}
 	return l.Failure
+}
+
+func (l *LineRunSummary) GetManagerTurns() []*ManagerTurnSummary {
+	if l == nil {
+		return nil
+	}
+	return l.ManagerTurns
+}
+
+func (l *LineRunSummary) GetTriggeredByActor() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.TriggeredByActor
 }
 
 func (l *LineRunSummary) GetStartedAt() *time.Time {
@@ -5739,6 +5903,7 @@ func (l *LineRunSummary) UnmarshalJSON(data []byte) error {
 	type embed LineRunSummary
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
@@ -5749,6 +5914,7 @@ func (l *LineRunSummary) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*l = LineRunSummary(unmarshaler.embed)
+	l.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	l.StartedAt = unmarshaler.StartedAt.TimePtr()
 	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	l.CreatedAt = unmarshaler.CreatedAt.Time()
@@ -5765,11 +5931,13 @@ func (l *LineRunSummary) MarshalJSON() ([]byte, error) {
 	type embed LineRunSummary
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
 	}{
 		embed:       embed(*l),
+		CostRatedAt: internal.NewOptionalDateTime(l.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 		CreatedAt:   internal.NewDateTime(l.CreatedAt),
@@ -5790,10 +5958,11 @@ func (l *LineRunSummary) String() string {
 }
 
 type LineScheduleResponse struct {
-	Cron               string `json:"cron" url:"cron"`
-	Timezone           string `json:"timezone" url:"timezone"`
-	Enabled            bool   `json:"enabled" url:"enabled"`
-	ScheduleGeneration int    `json:"schedule_generation" url:"schedule_generation"`
+	Cron               string                 `json:"cron" url:"cron"`
+	Timezone           string                 `json:"timezone" url:"timezone"`
+	Enabled            bool                   `json:"enabled" url:"enabled"`
+	ScheduleGeneration int                    `json:"schedule_generation" url:"schedule_generation"`
+	Inputs             map[string]interface{} `json:"inputs,omitempty" url:"inputs,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5825,6 +5994,13 @@ func (l *LineScheduleResponse) GetScheduleGeneration() int {
 		return 0
 	}
 	return l.ScheduleGeneration
+}
+
+func (l *LineScheduleResponse) GetInputs() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.Inputs
 }
 
 func (l *LineScheduleResponse) GetExtraProperties() map[string]interface{} {
@@ -6209,6 +6385,87 @@ func (l LinearIssueSelectorKind) Ptr() *LinearIssueSelectorKind {
 	return &l
 }
 
+// One manager turn, projected for a list row.
+type ManagerTurnSummary struct {
+	WorkflowRunID string     `json:"workflow_run_id" url:"workflow_run_id"`
+	State         string     `json:"state" url:"state"`
+	StartedAt     *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *ManagerTurnSummary) GetWorkflowRunID() string {
+	if m == nil {
+		return ""
+	}
+	return m.WorkflowRunID
+}
+
+func (m *ManagerTurnSummary) GetState() string {
+	if m == nil {
+		return ""
+	}
+	return m.State
+}
+
+func (m *ManagerTurnSummary) GetStartedAt() *time.Time {
+	if m == nil {
+		return nil
+	}
+	return m.StartedAt
+}
+
+func (m *ManagerTurnSummary) GetExtraProperties() map[string]interface{} {
+	return m.extraProperties
+}
+
+func (m *ManagerTurnSummary) UnmarshalJSON(data []byte) error {
+	type embed ManagerTurnSummary
+	var unmarshaler = struct {
+		embed
+		StartedAt *internal.DateTime `json:"started_at,omitempty"`
+	}{
+		embed: embed(*m),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*m = ManagerTurnSummary(unmarshaler.embed)
+	m.StartedAt = unmarshaler.StartedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *ManagerTurnSummary) MarshalJSON() ([]byte, error) {
+	type embed ManagerTurnSummary
+	var marshaler = struct {
+		embed
+		StartedAt *internal.DateTime `json:"started_at,omitempty"`
+	}{
+		embed:     embed(*m),
+		StartedAt: internal.NewOptionalDateTime(m.StartedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (m *ManagerTurnSummary) String() string {
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
 type ManualTriggerSection struct {
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6557,8 +6814,9 @@ func (r ResolvedStageKind) Ptr() *ResolvedStageKind {
 }
 
 type ScheduleTriggerSection struct {
-	Cron     string  `json:"cron" url:"cron"`
-	Timezone *string `json:"timezone,omitempty" url:"timezone,omitempty"`
+	Cron     string                 `json:"cron" url:"cron"`
+	Timezone *string                `json:"timezone,omitempty" url:"timezone,omitempty"`
+	Inputs   map[string]interface{} `json:"inputs,omitempty" url:"inputs,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6576,6 +6834,13 @@ func (s *ScheduleTriggerSection) GetTimezone() *string {
 		return nil
 	}
 	return s.Timezone
+}
+
+func (s *ScheduleTriggerSection) GetInputs() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.Inputs
 }
 
 func (s *ScheduleTriggerSection) GetExtraProperties() map[string]interface{} {
@@ -7191,10 +7456,11 @@ type LineUpdate struct {
 }
 
 type LineScheduleUpdate struct {
-	Name     string  `json:"-" url:"-"`
-	Cron     string  `json:"cron" url:"-"`
-	Timezone *string `json:"timezone,omitempty" url:"-"`
-	Enabled  *bool   `json:"enabled,omitempty" url:"-"`
+	Name     string                 `json:"-" url:"-"`
+	Cron     string                 `json:"cron" url:"-"`
+	Timezone *string                `json:"timezone,omitempty" url:"-"`
+	Enabled  *bool                  `json:"enabled,omitempty" url:"-"`
+	Inputs   map[string]interface{} `json:"inputs,omitempty" url:"-"`
 }
 
 type ValidateFactoryLineManifestRequest struct {

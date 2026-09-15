@@ -33,6 +33,290 @@ func (c ClientInferenceAPI) Ptr() *ClientInferenceAPI {
 	return &c
 }
 
+// A `(model, effort)` pair and the harness model id it resolves to.
+//
+// Only needed where the harness encodes effort in the id rather than taking a
+// flag. `effort: None` marks the pair a bare model resolves through, which is
+// the only way `cursor-grok-4.6` works — it is not a usable id on its own.
+//
+// Those null rows pin a reasoning level for every bare-base manifest, so their
+// provenance matters: each is the row `cursor-agent --list-models` labels with
+// no effort word, which is how Cursor marks a family's own default. Hence
+// `gpt-5.6-sol` → `-medium` ("GPT-5.6 Sol 1M") while the other four → `-high`.
+// Confirmed by running each bare base and reading back the resolved model name.
+// Regenerate from the CLI rather than editing by hand, and strip the
+// `(current)` suffix the CLI appends to whichever model is selected.
+type EffortAlias struct {
+	Harness EffortAliasHarness `json:"harness" url:"harness"`
+	ID      string             `json:"id" url:"id"`
+	Model   string             `json:"model" url:"model"`
+	Effort  *string            `json:"effort,omitempty" url:"effort,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EffortAlias) GetHarness() EffortAliasHarness {
+	if e == nil {
+		return ""
+	}
+	return e.Harness
+}
+
+func (e *EffortAlias) GetID() string {
+	if e == nil {
+		return ""
+	}
+	return e.ID
+}
+
+func (e *EffortAlias) GetModel() string {
+	if e == nil {
+		return ""
+	}
+	return e.Model
+}
+
+func (e *EffortAlias) GetEffort() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Effort
+}
+
+func (e *EffortAlias) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EffortAlias) UnmarshalJSON(data []byte) error {
+	type unmarshaler EffortAlias
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EffortAlias(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EffortAlias) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EffortAliasHarness string
+
+const (
+	EffortAliasHarnessCodex    EffortAliasHarness = "codex"
+	EffortAliasHarnessCursor   EffortAliasHarness = "cursor"
+	EffortAliasHarnessClaude   EffortAliasHarness = "claude"
+	EffortAliasHarnessOpencode EffortAliasHarness = "opencode"
+)
+
+func NewEffortAliasHarnessFromString(s string) (EffortAliasHarness, error) {
+	switch s {
+	case "codex":
+		return EffortAliasHarnessCodex, nil
+	case "cursor":
+		return EffortAliasHarnessCursor, nil
+	case "claude":
+		return EffortAliasHarnessClaude, nil
+	case "opencode":
+		return EffortAliasHarnessOpencode, nil
+	}
+	var t EffortAliasHarness
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e EffortAliasHarness) Ptr() *EffortAliasHarness {
+	return &e
+}
+
+// Everything about reasoning effort, in one place.
+//
+// Deliberately not on `InferenceModelCatalogEntry`: that row exists for gateway
+// egress allowlisting, alias rewriting and billing, and effort is a harness CLI
+// concern with no bearing on any of them.
+type EffortCatalog struct {
+	Levels  []*EffortLevelRule `json:"levels,omitempty" url:"levels,omitempty"`
+	Aliases []*EffortAlias     `json:"aliases,omitempty" url:"aliases,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EffortCatalog) GetLevels() []*EffortLevelRule {
+	if e == nil {
+		return nil
+	}
+	return e.Levels
+}
+
+func (e *EffortCatalog) GetAliases() []*EffortAlias {
+	if e == nil {
+		return nil
+	}
+	return e.Aliases
+}
+
+func (e *EffortCatalog) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EffortCatalog) UnmarshalJSON(data []byte) error {
+	type unmarshaler EffortCatalog
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EffortCatalog(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EffortCatalog) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+// Which effort tokens are legal, for one harness or one harness+model.
+//
+// Keyed this way because that is how the data actually is. `claude --effort`
+// reports the same five values whatever `--model` is set to, and codex's
+// `model_reasoning_effort` is a static API enum — both are harness facts, not
+// model facts. Cursor is the exception: its token is part of the model id, so
+// every family has its own set.
+//
+// `model: None` is the harness default. A row naming a model overrides it,
+// including to `[]` for the nano and image rows, which cannot reason. No
+// matching row means the harness has no effort control.
+//
+// Cursor deliberately has no default: its token is part of the model id, so a
+// model outside the transcribed families has no vocabulary to offer, and
+// validation falls through to the alias guard rather than guessing one.
+type EffortLevelRule struct {
+	Harness EffortLevelRuleHarness `json:"harness" url:"harness"`
+	Model   *string                `json:"model,omitempty" url:"model,omitempty"`
+	Levels  []string               `json:"levels,omitempty" url:"levels,omitempty"`
+	// Display name for a harness model absent from the models array. Only set where the picker has no other source for it.
+	Label *string `json:"label,omitempty" url:"label,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EffortLevelRule) GetHarness() EffortLevelRuleHarness {
+	if e == nil {
+		return ""
+	}
+	return e.Harness
+}
+
+func (e *EffortLevelRule) GetModel() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Model
+}
+
+func (e *EffortLevelRule) GetLevels() []string {
+	if e == nil {
+		return nil
+	}
+	return e.Levels
+}
+
+func (e *EffortLevelRule) GetLabel() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Label
+}
+
+func (e *EffortLevelRule) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EffortLevelRule) UnmarshalJSON(data []byte) error {
+	type unmarshaler EffortLevelRule
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EffortLevelRule(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EffortLevelRule) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type EffortLevelRuleHarness string
+
+const (
+	EffortLevelRuleHarnessCodex    EffortLevelRuleHarness = "codex"
+	EffortLevelRuleHarnessCursor   EffortLevelRuleHarness = "cursor"
+	EffortLevelRuleHarnessClaude   EffortLevelRuleHarness = "claude"
+	EffortLevelRuleHarnessOpencode EffortLevelRuleHarness = "opencode"
+)
+
+func NewEffortLevelRuleHarnessFromString(s string) (EffortLevelRuleHarness, error) {
+	switch s {
+	case "codex":
+		return EffortLevelRuleHarnessCodex, nil
+	case "cursor":
+		return EffortLevelRuleHarnessCursor, nil
+	case "claude":
+		return EffortLevelRuleHarnessClaude, nil
+	case "opencode":
+		return EffortLevelRuleHarnessOpencode, nil
+	}
+	var t EffortLevelRuleHarness
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e EffortLevelRuleHarness) Ptr() *EffortLevelRuleHarness {
+	return &e
+}
+
 type InferenceModelCatalogEntry struct {
 	ID                              string               `json:"id" url:"id"`
 	UpstreamProvider                *InferenceProvider   `json:"upstream_provider,omitempty" url:"upstream_provider,omitempty"`
@@ -169,6 +453,7 @@ func (i *InferenceModelCatalogEntry) String() string {
 
 type InferenceModelsResponse struct {
 	Models []*InferenceModelCatalogEntry `json:"models,omitempty" url:"models,omitempty"`
+	Effort *EffortCatalog                `json:"effort,omitempty" url:"effort,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -179,6 +464,13 @@ func (i *InferenceModelsResponse) GetModels() []*InferenceModelCatalogEntry {
 		return nil
 	}
 	return i.Models
+}
+
+func (i *InferenceModelsResponse) GetEffort() *EffortCatalog {
+	if i == nil {
+		return nil
+	}
+	return i.Effort
 }
 
 func (i *InferenceModelsResponse) GetExtraProperties() map[string]interface{} {
@@ -220,6 +512,7 @@ const (
 	InferenceProviderThesean    InferenceProvider = "thesean"
 	InferenceProviderDatabricks InferenceProvider = "databricks"
 	InferenceProviderAlien      InferenceProvider = "alien"
+	InferenceProviderValarai    InferenceProvider = "valarai"
 )
 
 func NewInferenceProviderFromString(s string) (InferenceProvider, error) {
@@ -232,6 +525,8 @@ func NewInferenceProviderFromString(s string) (InferenceProvider, error) {
 		return InferenceProviderDatabricks, nil
 	case "alien":
 		return InferenceProviderAlien, nil
+	case "valarai":
+		return InferenceProviderValarai, nil
 	}
 	var t InferenceProvider
 	return "", fmt.Errorf("%s is not a valid %T", s, t)

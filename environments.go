@@ -1059,6 +1059,10 @@ func (e *EnvironmentUpdateEntriesItem) validate() error {
 	return nil
 }
 
+type UnsetDefaultEnvironmentRequest struct {
+	EnvironmentRef string `json:"-" url:"-"`
+}
+
 type EnvironmentUpdate struct {
 	EnvironmentRef string                          `json:"-" url:"-"`
 	Name           *string                         `json:"name,omitempty" url:"-"`

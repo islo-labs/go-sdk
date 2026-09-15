@@ -133,6 +133,49 @@ func (c *Client) CreateKnowledge(
 	return response, nil
 }
 
+func (c *Client) ListKnowledgeTags(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*gosdk.KnowledgeTagsResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.islo.dev",
+	)
+	endpointURL := baseURL + "/knowledge/tags"
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	errorCodes := internal.ErrorCodes{
+		422: func(apiError *core.APIError) error {
+			return &gosdk.UnprocessableEntityError{
+				APIError: apiError,
+			}
+		},
+	}
+
+	var response *gosdk.KnowledgeTagsResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
 func (c *Client) CreateKnowledgeMedia(
 	ctx context.Context,
 	request *gosdk.BodyCreateKnowledgeMedia,

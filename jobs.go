@@ -1147,6 +1147,61 @@ func (j *JobVersionResponse) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+// One MCP server descriptor in a run_agent step.
+type McpEntry struct {
+	Key string `json:"key" url:"key"`
+	URL string `json:"url" url:"url"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *McpEntry) GetKey() string {
+	if m == nil {
+		return ""
+	}
+	return m.Key
+}
+
+func (m *McpEntry) GetURL() string {
+	if m == nil {
+		return ""
+	}
+	return m.URL
+}
+
+func (m *McpEntry) GetExtraProperties() map[string]interface{} {
+	return m.extraProperties
+}
+
+func (m *McpEntry) UnmarshalJSON(data []byte) error {
+	type unmarshaler McpEntry
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = McpEntry(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *McpEntry) String() string {
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
 // Exec-mode agent step. Uses the $ISLO_OUTPUT side channel like exec.
 type RunAgentExecStepAction struct {
 	Harness RunAgentExecStepActionHarness  `json:"harness" url:"harness"`
@@ -1308,11 +1363,15 @@ type RunAgentSessionStepAction struct {
 	Harness       RunAgentSessionStepActionHarness        `json:"harness" url:"harness"`
 	Model         *string                                 `json:"model,omitempty" url:"model,omitempty"`
 	ModelProvider *RunAgentSessionStepActionModelProvider `json:"model_provider,omitempty" url:"model_provider,omitempty"`
-	Prompt        *RunAgentSessionStepActionPrompt        `json:"prompt,omitempty" url:"prompt,omitempty"`
-	ResumePrompt  *RunAgentSessionStepActionResumePrompt  `json:"resume_prompt,omitempty" url:"resume_prompt,omitempty"`
-	Knowledge     []*KnowledgeBinding                     `json:"knowledge,omitempty" url:"knowledge,omitempty"`
-	Session       *string                                 `json:"session,omitempty" url:"session,omitempty"`
-	Command       *RunAgentSessionStepActionCommand       `json:"command,omitempty" url:"command,omitempty"`
+	// Reasoning effort token. Requires model. Legal values come from the effort table on GET /inference/models, which is keyed by harness and optionally by model. For cursor the pair also resolves to a real model id, because cursor encodes effort in the id rather than taking a flag. Omit to use the harness default.
+	Effort       *string                                `json:"effort,omitempty" url:"effort,omitempty"`
+	Prompt       *RunAgentSessionStepActionPrompt       `json:"prompt,omitempty" url:"prompt,omitempty"`
+	ResumePrompt *RunAgentSessionStepActionResumePrompt `json:"resume_prompt,omitempty" url:"resume_prompt,omitempty"`
+	Knowledge    []*KnowledgeBinding                    `json:"knowledge,omitempty" url:"knowledge,omitempty"`
+	Session      *string                                `json:"session,omitempty" url:"session,omitempty"`
+	Command      *RunAgentSessionStepActionCommand      `json:"command,omitempty" url:"command,omitempty"`
+	// MCP server descriptors to make available to the agent. Each entry carries a key (unique label) and url (MCP endpoint). Duplicates by key are rejected.
+	Mcp []*McpEntry `json:"mcp,omitempty" url:"mcp,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1337,6 +1396,13 @@ func (r *RunAgentSessionStepAction) GetModelProvider() *RunAgentSessionStepActio
 		return nil
 	}
 	return r.ModelProvider
+}
+
+func (r *RunAgentSessionStepAction) GetEffort() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Effort
 }
 
 func (r *RunAgentSessionStepAction) GetPrompt() *RunAgentSessionStepActionPrompt {
@@ -1372,6 +1438,13 @@ func (r *RunAgentSessionStepAction) GetCommand() *RunAgentSessionStepActionComma
 		return nil
 	}
 	return r.Command
+}
+
+func (r *RunAgentSessionStepAction) GetMcp() []*McpEntry {
+	if r == nil {
+		return nil
+	}
+	return r.Mcp
 }
 
 func (r *RunAgentSessionStepAction) GetExtraProperties() map[string]interface{} {
