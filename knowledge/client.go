@@ -4,630 +4,365 @@ package knowledge
 
 import (
 	context "context"
-	fmt "fmt"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
+// Example:
+//
+//	request := &gosdk.ListKnowledgeRequest{}
+//	client.Knowledge.ListKnowledge(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListKnowledge(
 	ctx context.Context,
 	request *gosdk.ListKnowledgeRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.PaginatedKnowledgeResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
+	response, err := c.WithRawResponse.ListKnowledge(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := baseURL + "/knowledge"
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.PaginatedKnowledgeResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.KnowledgeItemCreate{
+//	    Slug: "slug",
+//	}
+//	client.Knowledge.CreateKnowledge(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) CreateKnowledge(
 	ctx context.Context,
 	request *gosdk.KnowledgeItemCreate,
 	opts ...option.RequestOption,
 ) (*gosdk.KnowledgeItemResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/knowledge"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.KnowledgeItemResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.CreateKnowledge(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	client.Knowledge.ListKnowledgeTags(
+//	    context.TODO(),
+//	)
+func (c *Client) ListKnowledgeTags(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*gosdk.KnowledgeTagsResponse, error) {
+	response, err := c.WithRawResponse.ListKnowledgeTags(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Example:
+//
+//	request := &gosdk.BodyCreateKnowledgeMedia{
+//	    File: strings.NewReader(
+//	        "",
+//	    ),
+//	    Item: "item",
+//	}
+//	client.Knowledge.CreateKnowledgeMedia(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) CreateKnowledgeMedia(
 	ctx context.Context,
 	request *gosdk.BodyCreateKnowledgeMedia,
 	opts ...option.RequestOption,
 ) (*gosdk.KnowledgeItemResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/knowledge/upload"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-	writer := internal.NewMultipartWriter()
-	if err := writer.WriteFile("file", request.File); err != nil {
-		return nil, err
-	}
-	if err := writer.WriteField("item", fmt.Sprintf("%v", request.Item)); err != nil {
-		return nil, err
-	}
-	if err := writer.Close(); err != nil {
-		return nil, err
-	}
-	headers.Set("Content-Type", writer.ContentType())
-
-	var response *gosdk.KnowledgeItemResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.CreateKnowledgeMedia(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         writer.Buffer(),
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.GetKnowledgeRequest{
+//	    Identifier: "identifier",
+//	}
+//	client.Knowledge.GetKnowledge(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetKnowledge(
 	ctx context.Context,
 	request *gosdk.GetKnowledgeRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.KnowledgeItemResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/knowledge/%v",
-		request.Identifier,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.KnowledgeItemResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetKnowledge(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.DeleteKnowledgeRequest{
+//	    Identifier: "identifier",
+//	}
+//	client.Knowledge.DeleteKnowledge(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DeleteKnowledge(
 	ctx context.Context,
 	request *gosdk.DeleteKnowledgeRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/knowledge/%v",
-		request.Identifier,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.DeleteKnowledge(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// Example:
+//
+//	request := &gosdk.KnowledgeItemUpdate{
+//	    Identifier: "identifier",
+//	}
+//	client.Knowledge.UpdateKnowledge(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) UpdateKnowledge(
 	ctx context.Context,
 	request *gosdk.KnowledgeItemUpdate,
 	opts ...option.RequestOption,
 ) (*gosdk.KnowledgeItemResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/knowledge/%v",
-		request.Identifier,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.KnowledgeItemResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.UpdateKnowledge(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPatch,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.GetKnowledgeContentRequest{
+//	    Identifier: "identifier",
+//	}
+//	client.Knowledge.GetKnowledgeContent(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetKnowledgeContent(
 	ctx context.Context,
 	request *gosdk.GetKnowledgeContentRequest,
 	opts ...option.RequestOption,
-) (interface{}, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/knowledge/%v/content",
-		request.Identifier,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response interface{}
-	if err := c.caller.Call(
+) (any, error) {
+	response, err := c.WithRawResponse.GetKnowledgeContent(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.BodyPutKnowledgeContent{
+//	    Identifier: "identifier",
+//	    File: strings.NewReader(
+//	        "",
+//	    ),
+//	}
+//	client.Knowledge.PutKnowledgeContent(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) PutKnowledgeContent(
 	ctx context.Context,
 	request *gosdk.BodyPutKnowledgeContent,
 	opts ...option.RequestOption,
 ) (*gosdk.KnowledgeItemResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/knowledge/%v/content",
-		request.Identifier,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-	writer := internal.NewMultipartWriter()
-	if err := writer.WriteFile("file", request.File); err != nil {
-		return nil, err
-	}
-	if err := writer.Close(); err != nil {
-		return nil, err
-	}
-	headers.Set("Content-Type", writer.ContentType())
-
-	var response *gosdk.KnowledgeItemResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.PutKnowledgeContent(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPut,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         writer.Buffer(),
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.ListKnowledgeVersionsRequest{
+//	    Identifier: "identifier",
+//	}
+//	client.Knowledge.ListKnowledgeVersions(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListKnowledgeVersions(
 	ctx context.Context,
 	request *gosdk.ListKnowledgeVersionsRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.PaginatedKnowledgeVersionResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
+	response, err := c.WithRawResponse.ListKnowledgeVersions(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/knowledge/%v/versions",
-		request.Identifier,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.PaginatedKnowledgeVersionResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.GetKnowledgeVersionRequest{
+//	    Identifier: "identifier",
+//	    VersionNumber: 1,
+//	}
+//	client.Knowledge.GetKnowledgeVersion(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetKnowledgeVersion(
 	ctx context.Context,
 	request *gosdk.GetKnowledgeVersionRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.KnowledgeVersionResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/knowledge/%v/versions/%v",
-		request.Identifier,
-		request.VersionNumber,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.KnowledgeVersionResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetKnowledgeVersion(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.GetKnowledgeVersionContentRequest{
+//	    Identifier: "identifier",
+//	    VersionNumber: 1,
+//	}
+//	client.Knowledge.GetKnowledgeVersionContent(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetKnowledgeVersionContent(
 	ctx context.Context,
 	request *gosdk.GetKnowledgeVersionContentRequest,
 	opts ...option.RequestOption,
-) (interface{}, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/knowledge/%v/versions/%v/content",
-		request.Identifier,
-		request.VersionNumber,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response interface{}
-	if err := c.caller.Call(
+) (any, error) {
+	response, err := c.WithRawResponse.GetKnowledgeVersionContent(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.KnowledgeRestoreRequest{
+//	    Identifier: "identifier",
+//	    VersionNumber: 1,
+//	}
+//	client.Knowledge.RestoreKnowledgeVersion(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) RestoreKnowledgeVersion(
 	ctx context.Context,
 	request *gosdk.KnowledgeRestoreRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.KnowledgeItemResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/knowledge/%v/restore",
-		request.Identifier,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.KnowledgeItemResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.RestoreKnowledgeVersion(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }

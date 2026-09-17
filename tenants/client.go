@@ -4,82 +4,60 @@ package tenants
 
 import (
 	context "context"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
 // Return the compute regions the authenticated tenant may use, including the API and WebSocket base URLs for each region.
+//
+// Example:
+//
+//	client.Tenants.ListTenantComputeRegions(
+//	    context.TODO(),
+//	)
 func (c *Client) ListTenantComputeRegions(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) (*gosdk.TenantRegionsResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/tenants/regions"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.TenantRegionsResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ListTenantComputeRegions(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }

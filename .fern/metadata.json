@@ -1,0 +1,16 @@
+{
+  "cliVersion": "5.46.1",
+  "generatorName": "fernapi/fern-go-sdk",
+  "generatorVersion": "1.58.1",
+  "generatorConfig": {
+    "module": {
+      "path": "github.com/islo-labs/go-sdk"
+    },
+    "exportedClientName": "Islo"
+  },
+  "originGitCommit": "d9342837203ab55283f1c6fa7a69d9c6bb1fadb0",
+  "originGitCommitIsDirty": false,
+  "invokedBy": "ci",
+  "ciProvider": "github",
+  "sdkVersion": "v0.0.0"
+}

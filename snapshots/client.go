@@ -4,255 +4,144 @@ package snapshots
 
 import (
 	context "context"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
 // List all snapshots for the current tenant.
+//
+// Example:
+//
+//	request := &gosdk.ListSnapshotsRequest{}
+//	client.Snapshots.ListSnapshots(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListSnapshots(
 	ctx context.Context,
 	request *gosdk.ListSnapshotsRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.PaginatedSnapshotResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
+	response, err := c.WithRawResponse.ListSnapshots(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := baseURL + "/snapshots/"
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.PaginatedSnapshotResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Create a snapshot from a running sandbox. By default, waits for capture and returns a ready snapshot. Send `Prefer: respond-async` to return immediately with a saving snapshot.
+//
+// Example:
+//
+//	request := &gosdk.SnapshotCreate{
+//	    SandboxName: "sandbox_name",
+//	}
+//	client.Snapshots.CreateSnapshot(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) CreateSnapshot(
 	ctx context.Context,
 	request *gosdk.SnapshotCreate,
 	opts ...option.RequestOption,
 ) (*gosdk.SnapshotResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := baseURL + "/snapshots/"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		409: func(apiError *core.APIError) error {
-			return &gosdk.ConflictError{
-				APIError: apiError,
-			}
-		},
-		503: func(apiError *core.APIError) error {
-			return &gosdk.ServiceUnavailableError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.SnapshotResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.CreateSnapshot(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Get snapshot details by name.
+//
+// Example:
+//
+//	request := &gosdk.GetSnapshotRequest{
+//	    Name: "name",
+//	}
+//	client.Snapshots.GetSnapshot(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetSnapshot(
 	ctx context.Context,
 	request *gosdk.GetSnapshotRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.SnapshotResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/snapshots/%v",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.SnapshotResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetSnapshot(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Delete a snapshot by name.
+//
+// Example:
+//
+//	request := &gosdk.DeleteSnapshotRequest{
+//	    Name: "name",
+//	}
+//	client.Snapshots.DeleteSnapshot(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DeleteSnapshot(
 	ctx context.Context,
 	request *gosdk.DeleteSnapshotRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/snapshots/%v",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		409: func(apiError *core.APIError) error {
-			return &gosdk.ConflictError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.DeleteSnapshot(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil

@@ -6,6 +6,12 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
+)
+
+var (
+	creditBalanceFieldBalanceCents = big.NewInt(1 << 0)
+	creditBalanceFieldCurrency     = big.NewInt(1 << 1)
 )
 
 type CreditBalance struct {
@@ -13,6 +19,9 @@ type CreditBalance struct {
 	BalanceCents int `json:"balance_cents" url:"balance_cents"`
 	// ISO 4217 currency code.
 	Currency *string `json:"currency,omitempty" url:"currency,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -33,7 +42,33 @@ func (c *CreditBalance) GetCurrency() *string {
 }
 
 func (c *CreditBalance) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *CreditBalance) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetBalanceCents sets the BalanceCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreditBalance) SetBalanceCents(balanceCents int) {
+	c.BalanceCents = balanceCents
+	c.require(creditBalanceFieldBalanceCents)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreditBalance) SetCurrency(currency *string) {
+	c.Currency = currency
+	c.require(creditBalanceFieldCurrency)
 }
 
 func (c *CreditBalance) UnmarshalJSON(data []byte) error {
@@ -52,7 +87,21 @@ func (c *CreditBalance) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *CreditBalance) MarshalJSON() ([]byte, error) {
+	type embed CreditBalance
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *CreditBalance) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value

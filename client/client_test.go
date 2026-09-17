@@ -10,14 +10,14 @@ import (
 	time "time"
 )
 
-func TestNewClient(t *testing.T) {
+func TestNewIslo(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
-		c := NewClient()
+		c := NewIslo()
 		assert.Empty(t, c.baseURL)
 	})
 
 	t.Run("base url", func(t *testing.T) {
-		c := NewClient(
+		c := NewIslo(
 			option.WithBaseURL("test.co"),
 		)
 		assert.Equal(t, "test.co", c.baseURL)
@@ -27,7 +27,7 @@ func TestNewClient(t *testing.T) {
 		httpClient := &http.Client{
 			Timeout: 5 * time.Second,
 		}
-		c := NewClient(
+		c := NewIslo(
 			option.WithHTTPClient(httpClient),
 		)
 		assert.Empty(t, c.baseURL)
@@ -36,10 +36,10 @@ func TestNewClient(t *testing.T) {
 	t.Run("http header", func(t *testing.T) {
 		header := make(http.Header)
 		header.Set("X-API-Tenancy", "test")
-		c := NewClient(
+		c := NewIslo(
 			option.WithHTTPHeader(header),
 		)
 		assert.Empty(t, c.baseURL)
-		assert.Equal(t, "test", c.header.Get("X-API-Tenancy"))
+		assert.Equal(t, "test", c.options.HTTPHeader.Get("X-API-Tenancy"))
 	})
 }
