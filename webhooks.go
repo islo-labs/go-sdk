@@ -6,34 +6,205 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
 	time "time"
 )
 
+var (
+	incomingWebhookCreateFieldAuth        = big.NewInt(1 << 0)
+	incomingWebhookCreateFieldIdempotency = big.NewInt(1 << 1)
+	incomingWebhookCreateFieldName        = big.NewInt(1 << 2)
+	incomingWebhookCreateFieldRules       = big.NewInt(1 << 3)
+	incomingWebhookCreateFieldStatus      = big.NewInt(1 << 4)
+	incomingWebhookCreateFieldTarget      = big.NewInt(1 << 5)
+)
+
 type IncomingWebhookCreate struct {
-	Auth        *IncomingWebhookAuth   `json:"auth,omitempty" url:"-"`
-	Idempotency *IdempotencyConfig     `json:"idempotency,omitempty" url:"-"`
+	Auth        *IncomingWebhookAuth   `json:"auth" url:"-"`
+	Idempotency *IdempotencyConfig     `json:"idempotency" url:"-"`
 	Name        string                 `json:"name" url:"-"`
 	Rules       []*IncomingWebhookRule `json:"rules,omitempty" url:"-"`
 	Status      *IncomingWebhookStatus `json:"status,omitempty" url:"-"`
-	Target      *IncomingWebhookTarget `json:"target,omitempty" url:"-"`
+	Target      *IncomingWebhookTarget `json:"target" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (i *IncomingWebhookCreate) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAuth sets the Auth field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookCreate) SetAuth(auth *IncomingWebhookAuth) {
+	i.Auth = auth
+	i.require(incomingWebhookCreateFieldAuth)
+}
+
+// SetIdempotency sets the Idempotency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookCreate) SetIdempotency(idempotency *IdempotencyConfig) {
+	i.Idempotency = idempotency
+	i.require(incomingWebhookCreateFieldIdempotency)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookCreate) SetName(name string) {
+	i.Name = name
+	i.require(incomingWebhookCreateFieldName)
+}
+
+// SetRules sets the Rules field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookCreate) SetRules(rules []*IncomingWebhookRule) {
+	i.Rules = rules
+	i.require(incomingWebhookCreateFieldRules)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookCreate) SetStatus(status *IncomingWebhookStatus) {
+	i.Status = status
+	i.require(incomingWebhookCreateFieldStatus)
+}
+
+// SetTarget sets the Target field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookCreate) SetTarget(target *IncomingWebhookTarget) {
+	i.Target = target
+	i.require(incomingWebhookCreateFieldTarget)
+}
+
+func (i *IncomingWebhookCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler IncomingWebhookCreate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*i = IncomingWebhookCreate(body)
+	return nil
+}
+
+func (i *IncomingWebhookCreate) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookCreate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	deleteIncomingWebhookRequestFieldWebhookID = big.NewInt(1 << 0)
+)
 
 type DeleteIncomingWebhookRequest struct {
 	// Incoming webhook ID
 	WebhookID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteIncomingWebhookRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetWebhookID sets the WebhookID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteIncomingWebhookRequest) SetWebhookID(webhookID string) {
+	d.WebhookID = webhookID
+	d.require(deleteIncomingWebhookRequestFieldWebhookID)
+}
+
+var (
+	getIncomingWebhookRequestFieldWebhookID = big.NewInt(1 << 0)
+)
 
 type GetIncomingWebhookRequest struct {
 	// Incoming webhook ID
 	WebhookID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetIncomingWebhookRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetWebhookID sets the WebhookID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetIncomingWebhookRequest) SetWebhookID(webhookID string) {
+	g.WebhookID = webhookID
+	g.require(getIncomingWebhookRequestFieldWebhookID)
+}
+
+var (
+	getWebhookDeliveryRequestFieldWebhookID = big.NewInt(1 << 0)
+	getWebhookDeliveryRequestFieldEventID   = big.NewInt(1 << 1)
+)
 
 type GetWebhookDeliveryRequest struct {
 	// Incoming webhook ID
 	WebhookID string `json:"-" url:"-"`
 	// Delivery event ID
 	EventID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetWebhookDeliveryRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetWebhookID sets the WebhookID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetWebhookDeliveryRequest) SetWebhookID(webhookID string) {
+	g.WebhookID = webhookID
+	g.require(getWebhookDeliveryRequestFieldWebhookID)
+}
+
+// SetEventID sets the EventID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetWebhookDeliveryRequest) SetEventID(eventID string) {
+	g.EventID = eventID
+	g.require(getWebhookDeliveryRequestFieldEventID)
+}
+
+var (
+	listWebhookDeliveriesRequestFieldWebhookID = big.NewInt(1 << 0)
+	listWebhookDeliveriesRequestFieldLimit     = big.NewInt(1 << 1)
+	listWebhookDeliveriesRequestFieldOffset    = big.NewInt(1 << 2)
+	listWebhookDeliveriesRequestFieldStatus    = big.NewInt(1 << 3)
+	listWebhookDeliveriesRequestFieldFrom      = big.NewInt(1 << 4)
+	listWebhookDeliveriesRequestFieldTo        = big.NewInt(1 << 5)
+)
 
 type ListWebhookDeliveriesRequest struct {
 	// Incoming webhook ID
@@ -43,6 +214,60 @@ type ListWebhookDeliveriesRequest struct {
 	Status    *IngressEventStatus `json:"-" url:"status,omitempty"`
 	From      *time.Time          `json:"-" url:"from,omitempty"`
 	To        *time.Time          `json:"-" url:"to,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (l *ListWebhookDeliveriesRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetWebhookID sets the WebhookID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListWebhookDeliveriesRequest) SetWebhookID(webhookID string) {
+	l.WebhookID = webhookID
+	l.require(listWebhookDeliveriesRequestFieldWebhookID)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListWebhookDeliveriesRequest) SetLimit(limit *int64) {
+	l.Limit = limit
+	l.require(listWebhookDeliveriesRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListWebhookDeliveriesRequest) SetOffset(offset *int64) {
+	l.Offset = offset
+	l.require(listWebhookDeliveriesRequestFieldOffset)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListWebhookDeliveriesRequest) SetStatus(status *IngressEventStatus) {
+	l.Status = status
+	l.require(listWebhookDeliveriesRequestFieldStatus)
+}
+
+// SetFrom sets the From field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListWebhookDeliveriesRequest) SetFrom(from *time.Time) {
+	l.From = from
+	l.require(listWebhookDeliveriesRequestFieldFrom)
+}
+
+// SetTo sets the To field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListWebhookDeliveriesRequest) SetTo(to *time.Time) {
+	l.To = to
+	l.require(listWebhookDeliveriesRequestFieldTo)
 }
 
 type AuthVerifier struct {
@@ -212,11 +437,21 @@ func (a *AuthVerifier) Accept(visitor AuthVerifierVisitor) error {
 	return fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
+var (
+	authVerifierFiveFieldAudience = big.NewInt(1 << 0)
+	authVerifierFiveFieldIssuer   = big.NewInt(1 << 1)
+	authVerifierFiveFieldJwksURL  = big.NewInt(1 << 2)
+	authVerifierFiveFieldType     = big.NewInt(1 << 3)
+)
+
 type AuthVerifierFive struct {
 	Audience *string              `json:"audience,omitempty" url:"audience,omitempty"`
 	Issuer   *string              `json:"issuer,omitempty" url:"issuer,omitempty"`
 	JwksURL  string               `json:"jwks_url" url:"jwks_url"`
 	Type     AuthVerifierFiveType `json:"type" url:"type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -251,7 +486,47 @@ func (a *AuthVerifierFive) GetType() AuthVerifierFiveType {
 }
 
 func (a *AuthVerifierFive) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierFive) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetAudience sets the Audience field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierFive) SetAudience(audience *string) {
+	a.Audience = audience
+	a.require(authVerifierFiveFieldAudience)
+}
+
+// SetIssuer sets the Issuer field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierFive) SetIssuer(issuer *string) {
+	a.Issuer = issuer
+	a.require(authVerifierFiveFieldIssuer)
+}
+
+// SetJwksURL sets the JwksURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierFive) SetJwksURL(jwksURL string) {
+	a.JwksURL = jwksURL
+	a.require(authVerifierFiveFieldJwksURL)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierFive) SetType(type_ AuthVerifierFiveType) {
+	a.Type = type_
+	a.require(authVerifierFiveFieldType)
 }
 
 func (a *AuthVerifierFive) UnmarshalJSON(data []byte) error {
@@ -270,7 +545,21 @@ func (a *AuthVerifierFive) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierFive) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierFive
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierFive) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -301,9 +590,17 @@ func (a AuthVerifierFiveType) Ptr() *AuthVerifierFiveType {
 	return &a
 }
 
+var (
+	authVerifierFourFieldToken = big.NewInt(1 << 0)
+	authVerifierFourFieldType  = big.NewInt(1 << 1)
+)
+
 type AuthVerifierFour struct {
 	Token *IncomingWebhookSecret `json:"token" url:"token"`
 	Type  AuthVerifierFourType   `json:"type" url:"type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -324,7 +621,33 @@ func (a *AuthVerifierFour) GetType() AuthVerifierFourType {
 }
 
 func (a *AuthVerifierFour) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierFour) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetToken sets the Token field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierFour) SetToken(token *IncomingWebhookSecret) {
+	a.Token = token
+	a.require(authVerifierFourFieldToken)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierFour) SetType(type_ AuthVerifierFourType) {
+	a.Type = type_
+	a.require(authVerifierFourFieldType)
 }
 
 func (a *AuthVerifierFour) UnmarshalJSON(data []byte) error {
@@ -343,7 +666,21 @@ func (a *AuthVerifierFour) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierFour) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierFour
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierFour) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -374,10 +711,19 @@ func (a AuthVerifierFourType) Ptr() *AuthVerifierFourType {
 	return &a
 }
 
+var (
+	authVerifierOneFieldHeader = big.NewInt(1 << 0)
+	authVerifierOneFieldValue  = big.NewInt(1 << 1)
+	authVerifierOneFieldType   = big.NewInt(1 << 2)
+)
+
 type AuthVerifierOne struct {
 	Header string                 `json:"header" url:"header"`
 	Value  *IncomingWebhookSecret `json:"value" url:"value"`
 	Type   AuthVerifierOneType    `json:"type" url:"type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -405,7 +751,40 @@ func (a *AuthVerifierOne) GetType() AuthVerifierOneType {
 }
 
 func (a *AuthVerifierOne) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierOne) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetHeader sets the Header field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierOne) SetHeader(header string) {
+	a.Header = header
+	a.require(authVerifierOneFieldHeader)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierOne) SetValue(value *IncomingWebhookSecret) {
+	a.Value = value
+	a.require(authVerifierOneFieldValue)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierOne) SetType(type_ AuthVerifierOneType) {
+	a.Type = type_
+	a.require(authVerifierOneFieldType)
 }
 
 func (a *AuthVerifierOne) UnmarshalJSON(data []byte) error {
@@ -424,7 +803,21 @@ func (a *AuthVerifierOne) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierOne) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierOne
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierOne) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -464,6 +857,8 @@ type AuthVerifierResponse struct {
 	BearerStatic *AuthVerifierResponseBearerStatic
 	Jwt          *AuthVerifierResponseJwt
 	IPAllowlist  *AuthVerifierResponseIPAllowlist
+
+	rawJSON json.RawMessage
 }
 
 func (a *AuthVerifierResponse) GetType() string {
@@ -577,6 +972,7 @@ func (a *AuthVerifierResponse) UnmarshalJSON(data []byte) error {
 		}
 		a.IPAllowlist = value
 	}
+	a.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -604,6 +1000,9 @@ func (a AuthVerifierResponse) MarshalJSON() ([]byte, error) {
 	}
 	if a.IPAllowlist != nil {
 		return internal.MarshalJSONWithExtraProperty(a.IPAllowlist, "type", "ip_allowlist")
+	}
+	if len(a.rawJSON) > 0 {
+		return a.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", a)
 }
@@ -671,6 +1070,9 @@ func (a *AuthVerifierResponse) validate() error {
 	}
 	if len(fields) == 0 {
 		if a.Type != "" {
+			if len(a.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", a, a.Type)
 		}
 		return fmt.Errorf("type %T is empty", a)
@@ -692,8 +1094,15 @@ func (a *AuthVerifierResponse) validate() error {
 	return nil
 }
 
+var (
+	authVerifierResponseBasicFieldSecretRedacted = big.NewInt(1 << 0)
+)
+
 type AuthVerifierResponseBasic struct {
 	SecretRedacted bool `json:"secret_redacted" url:"secret_redacted"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -707,7 +1116,26 @@ func (a *AuthVerifierResponseBasic) GetSecretRedacted() bool {
 }
 
 func (a *AuthVerifierResponseBasic) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierResponseBasic) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetSecretRedacted sets the SecretRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseBasic) SetSecretRedacted(secretRedacted bool) {
+	a.SecretRedacted = secretRedacted
+	a.require(authVerifierResponseBasicFieldSecretRedacted)
 }
 
 func (a *AuthVerifierResponseBasic) UnmarshalJSON(data []byte) error {
@@ -726,7 +1154,21 @@ func (a *AuthVerifierResponseBasic) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierResponseBasic) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierResponseBasic
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierResponseBasic) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -738,8 +1180,15 @@ func (a *AuthVerifierResponseBasic) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	authVerifierResponseBearerStaticFieldSecretRedacted = big.NewInt(1 << 0)
+)
+
 type AuthVerifierResponseBearerStatic struct {
 	SecretRedacted bool `json:"secret_redacted" url:"secret_redacted"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -753,7 +1202,26 @@ func (a *AuthVerifierResponseBearerStatic) GetSecretRedacted() bool {
 }
 
 func (a *AuthVerifierResponseBearerStatic) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierResponseBearerStatic) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetSecretRedacted sets the SecretRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseBearerStatic) SetSecretRedacted(secretRedacted bool) {
+	a.SecretRedacted = secretRedacted
+	a.require(authVerifierResponseBearerStaticFieldSecretRedacted)
 }
 
 func (a *AuthVerifierResponseBearerStatic) UnmarshalJSON(data []byte) error {
@@ -772,7 +1240,21 @@ func (a *AuthVerifierResponseBearerStatic) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierResponseBearerStatic) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierResponseBearerStatic
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierResponseBearerStatic) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -784,9 +1266,17 @@ func (a *AuthVerifierResponseBearerStatic) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	authVerifierResponseHeaderEqualsFieldHeader        = big.NewInt(1 << 0)
+	authVerifierResponseHeaderEqualsFieldValueRedacted = big.NewInt(1 << 1)
+)
+
 type AuthVerifierResponseHeaderEquals struct {
 	Header        string `json:"header" url:"header"`
 	ValueRedacted bool   `json:"value_redacted" url:"value_redacted"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -807,7 +1297,33 @@ func (a *AuthVerifierResponseHeaderEquals) GetValueRedacted() bool {
 }
 
 func (a *AuthVerifierResponseHeaderEquals) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierResponseHeaderEquals) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetHeader sets the Header field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseHeaderEquals) SetHeader(header string) {
+	a.Header = header
+	a.require(authVerifierResponseHeaderEqualsFieldHeader)
+}
+
+// SetValueRedacted sets the ValueRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseHeaderEquals) SetValueRedacted(valueRedacted bool) {
+	a.ValueRedacted = valueRedacted
+	a.require(authVerifierResponseHeaderEqualsFieldValueRedacted)
 }
 
 func (a *AuthVerifierResponseHeaderEquals) UnmarshalJSON(data []byte) error {
@@ -826,7 +1342,21 @@ func (a *AuthVerifierResponseHeaderEquals) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierResponseHeaderEquals) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierResponseHeaderEquals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierResponseHeaderEquals) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -838,6 +1368,16 @@ func (a *AuthVerifierResponseHeaderEquals) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	authVerifierResponseHmacFieldAlgorithm      = big.NewInt(1 << 0)
+	authVerifierResponseHmacFieldEncoding       = big.NewInt(1 << 1)
+	authVerifierResponseHmacFieldPrefix         = big.NewInt(1 << 2)
+	authVerifierResponseHmacFieldSecretRedacted = big.NewInt(1 << 3)
+	authVerifierResponseHmacFieldSecretRef      = big.NewInt(1 << 4)
+	authVerifierResponseHmacFieldSignature      = big.NewInt(1 << 5)
+	authVerifierResponseHmacFieldSignedPayload  = big.NewInt(1 << 6)
+)
+
 type AuthVerifierResponseHmac struct {
 	Algorithm      HmacAlgorithm             `json:"algorithm" url:"algorithm"`
 	Encoding       SignatureEncoding         `json:"encoding" url:"encoding"`
@@ -846,6 +1386,9 @@ type AuthVerifierResponseHmac struct {
 	SecretRef      *IncomingWebhookSecretRef `json:"secret_ref" url:"secret_ref"`
 	Signature      *ValueSource              `json:"signature" url:"signature"`
 	SignedPayload  *SignedPayload            `json:"signed_payload" url:"signed_payload"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -901,7 +1444,68 @@ func (a *AuthVerifierResponseHmac) GetSignedPayload() *SignedPayload {
 }
 
 func (a *AuthVerifierResponseHmac) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierResponseHmac) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetAlgorithm sets the Algorithm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseHmac) SetAlgorithm(algorithm HmacAlgorithm) {
+	a.Algorithm = algorithm
+	a.require(authVerifierResponseHmacFieldAlgorithm)
+}
+
+// SetEncoding sets the Encoding field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseHmac) SetEncoding(encoding SignatureEncoding) {
+	a.Encoding = encoding
+	a.require(authVerifierResponseHmacFieldEncoding)
+}
+
+// SetPrefix sets the Prefix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseHmac) SetPrefix(prefix *string) {
+	a.Prefix = prefix
+	a.require(authVerifierResponseHmacFieldPrefix)
+}
+
+// SetSecretRedacted sets the SecretRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseHmac) SetSecretRedacted(secretRedacted bool) {
+	a.SecretRedacted = secretRedacted
+	a.require(authVerifierResponseHmacFieldSecretRedacted)
+}
+
+// SetSecretRef sets the SecretRef field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseHmac) SetSecretRef(secretRef *IncomingWebhookSecretRef) {
+	a.SecretRef = secretRef
+	a.require(authVerifierResponseHmacFieldSecretRef)
+}
+
+// SetSignature sets the Signature field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseHmac) SetSignature(signature *ValueSource) {
+	a.Signature = signature
+	a.require(authVerifierResponseHmacFieldSignature)
+}
+
+// SetSignedPayload sets the SignedPayload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseHmac) SetSignedPayload(signedPayload *SignedPayload) {
+	a.SignedPayload = signedPayload
+	a.require(authVerifierResponseHmacFieldSignedPayload)
 }
 
 func (a *AuthVerifierResponseHmac) UnmarshalJSON(data []byte) error {
@@ -920,7 +1524,21 @@ func (a *AuthVerifierResponseHmac) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierResponseHmac) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierResponseHmac
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierResponseHmac) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -932,8 +1550,15 @@ func (a *AuthVerifierResponseHmac) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	authVerifierResponseIPAllowlistFieldCidrs = big.NewInt(1 << 0)
+)
+
 type AuthVerifierResponseIPAllowlist struct {
 	Cidrs []string `json:"cidrs" url:"cidrs"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -947,7 +1572,26 @@ func (a *AuthVerifierResponseIPAllowlist) GetCidrs() []string {
 }
 
 func (a *AuthVerifierResponseIPAllowlist) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierResponseIPAllowlist) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetCidrs sets the Cidrs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseIPAllowlist) SetCidrs(cidrs []string) {
+	a.Cidrs = cidrs
+	a.require(authVerifierResponseIPAllowlistFieldCidrs)
 }
 
 func (a *AuthVerifierResponseIPAllowlist) UnmarshalJSON(data []byte) error {
@@ -966,7 +1610,21 @@ func (a *AuthVerifierResponseIPAllowlist) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierResponseIPAllowlist) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierResponseIPAllowlist
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierResponseIPAllowlist) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -978,10 +1636,19 @@ func (a *AuthVerifierResponseIPAllowlist) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	authVerifierResponseJwtFieldAudience = big.NewInt(1 << 0)
+	authVerifierResponseJwtFieldIssuer   = big.NewInt(1 << 1)
+	authVerifierResponseJwtFieldJwksURL  = big.NewInt(1 << 2)
+)
+
 type AuthVerifierResponseJwt struct {
 	Audience *string `json:"audience,omitempty" url:"audience,omitempty"`
 	Issuer   *string `json:"issuer,omitempty" url:"issuer,omitempty"`
 	JwksURL  string  `json:"jwks_url" url:"jwks_url"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1009,7 +1676,40 @@ func (a *AuthVerifierResponseJwt) GetJwksURL() string {
 }
 
 func (a *AuthVerifierResponseJwt) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierResponseJwt) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetAudience sets the Audience field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseJwt) SetAudience(audience *string) {
+	a.Audience = audience
+	a.require(authVerifierResponseJwtFieldAudience)
+}
+
+// SetIssuer sets the Issuer field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseJwt) SetIssuer(issuer *string) {
+	a.Issuer = issuer
+	a.require(authVerifierResponseJwtFieldIssuer)
+}
+
+// SetJwksURL sets the JwksURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseJwt) SetJwksURL(jwksURL string) {
+	a.JwksURL = jwksURL
+	a.require(authVerifierResponseJwtFieldJwksURL)
 }
 
 func (a *AuthVerifierResponseJwt) UnmarshalJSON(data []byte) error {
@@ -1028,7 +1728,21 @@ func (a *AuthVerifierResponseJwt) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierResponseJwt) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierResponseJwt
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierResponseJwt) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1040,9 +1754,17 @@ func (a *AuthVerifierResponseJwt) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	authVerifierResponseQueryEqualsFieldQuery         = big.NewInt(1 << 0)
+	authVerifierResponseQueryEqualsFieldValueRedacted = big.NewInt(1 << 1)
+)
+
 type AuthVerifierResponseQueryEquals struct {
 	Query         string `json:"query" url:"query"`
 	ValueRedacted bool   `json:"value_redacted" url:"value_redacted"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1063,7 +1785,33 @@ func (a *AuthVerifierResponseQueryEquals) GetValueRedacted() bool {
 }
 
 func (a *AuthVerifierResponseQueryEquals) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierResponseQueryEquals) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetQuery sets the Query field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseQueryEquals) SetQuery(query string) {
+	a.Query = query
+	a.require(authVerifierResponseQueryEqualsFieldQuery)
+}
+
+// SetValueRedacted sets the ValueRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierResponseQueryEquals) SetValueRedacted(valueRedacted bool) {
+	a.ValueRedacted = valueRedacted
+	a.require(authVerifierResponseQueryEqualsFieldValueRedacted)
 }
 
 func (a *AuthVerifierResponseQueryEquals) UnmarshalJSON(data []byte) error {
@@ -1082,7 +1830,21 @@ func (a *AuthVerifierResponseQueryEquals) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierResponseQueryEquals) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierResponseQueryEquals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierResponseQueryEquals) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1094,9 +1856,17 @@ func (a *AuthVerifierResponseQueryEquals) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	authVerifierSixFieldCidrs = big.NewInt(1 << 0)
+	authVerifierSixFieldType  = big.NewInt(1 << 1)
+)
+
 type AuthVerifierSix struct {
 	Cidrs []string            `json:"cidrs" url:"cidrs"`
 	Type  AuthVerifierSixType `json:"type" url:"type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1117,7 +1887,33 @@ func (a *AuthVerifierSix) GetType() AuthVerifierSixType {
 }
 
 func (a *AuthVerifierSix) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierSix) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetCidrs sets the Cidrs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierSix) SetCidrs(cidrs []string) {
+	a.Cidrs = cidrs
+	a.require(authVerifierSixFieldCidrs)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierSix) SetType(type_ AuthVerifierSixType) {
+	a.Type = type_
+	a.require(authVerifierSixFieldType)
 }
 
 func (a *AuthVerifierSix) UnmarshalJSON(data []byte) error {
@@ -1136,7 +1932,21 @@ func (a *AuthVerifierSix) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierSix) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierSix
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierSix) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1167,10 +1977,19 @@ func (a AuthVerifierSixType) Ptr() *AuthVerifierSixType {
 	return &a
 }
 
+var (
+	authVerifierThreeFieldPassword = big.NewInt(1 << 0)
+	authVerifierThreeFieldUsername = big.NewInt(1 << 1)
+	authVerifierThreeFieldType     = big.NewInt(1 << 2)
+)
+
 type AuthVerifierThree struct {
 	Password *IncomingWebhookSecret `json:"password" url:"password"`
 	Username *IncomingWebhookSecret `json:"username" url:"username"`
 	Type     AuthVerifierThreeType  `json:"type" url:"type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1198,7 +2017,40 @@ func (a *AuthVerifierThree) GetType() AuthVerifierThreeType {
 }
 
 func (a *AuthVerifierThree) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierThree) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetPassword sets the Password field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierThree) SetPassword(password *IncomingWebhookSecret) {
+	a.Password = password
+	a.require(authVerifierThreeFieldPassword)
+}
+
+// SetUsername sets the Username field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierThree) SetUsername(username *IncomingWebhookSecret) {
+	a.Username = username
+	a.require(authVerifierThreeFieldUsername)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierThree) SetType(type_ AuthVerifierThreeType) {
+	a.Type = type_
+	a.require(authVerifierThreeFieldType)
 }
 
 func (a *AuthVerifierThree) UnmarshalJSON(data []byte) error {
@@ -1217,7 +2069,21 @@ func (a *AuthVerifierThree) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierThree) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierThree
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierThree) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1248,10 +2114,19 @@ func (a AuthVerifierThreeType) Ptr() *AuthVerifierThreeType {
 	return &a
 }
 
+var (
+	authVerifierTwoFieldQuery = big.NewInt(1 << 0)
+	authVerifierTwoFieldValue = big.NewInt(1 << 1)
+	authVerifierTwoFieldType  = big.NewInt(1 << 2)
+)
+
 type AuthVerifierTwo struct {
 	Query string                 `json:"query" url:"query"`
 	Value *IncomingWebhookSecret `json:"value" url:"value"`
 	Type  AuthVerifierTwoType    `json:"type" url:"type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1279,7 +2154,40 @@ func (a *AuthVerifierTwo) GetType() AuthVerifierTwoType {
 }
 
 func (a *AuthVerifierTwo) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierTwo) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetQuery sets the Query field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierTwo) SetQuery(query string) {
+	a.Query = query
+	a.require(authVerifierTwoFieldQuery)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierTwo) SetValue(value *IncomingWebhookSecret) {
+	a.Value = value
+	a.require(authVerifierTwoFieldValue)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierTwo) SetType(type_ AuthVerifierTwoType) {
+	a.Type = type_
+	a.require(authVerifierTwoFieldType)
 }
 
 func (a *AuthVerifierTwo) UnmarshalJSON(data []byte) error {
@@ -1298,7 +2206,21 @@ func (a *AuthVerifierTwo) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierTwo) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierTwo
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierTwo) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1329,6 +2251,17 @@ func (a AuthVerifierTwoType) Ptr() *AuthVerifierTwoType {
 	return &a
 }
 
+var (
+	authVerifierZeroFieldAlgorithm     = big.NewInt(1 << 0)
+	authVerifierZeroFieldEncoding      = big.NewInt(1 << 1)
+	authVerifierZeroFieldPrefix        = big.NewInt(1 << 2)
+	authVerifierZeroFieldSecret        = big.NewInt(1 << 3)
+	authVerifierZeroFieldSignature     = big.NewInt(1 << 4)
+	authVerifierZeroFieldSignedPayload = big.NewInt(1 << 5)
+	authVerifierZeroFieldTimestamp     = big.NewInt(1 << 6)
+	authVerifierZeroFieldType          = big.NewInt(1 << 7)
+)
+
 type AuthVerifierZero struct {
 	Algorithm     HmacAlgorithm          `json:"algorithm" url:"algorithm"`
 	Encoding      SignatureEncoding      `json:"encoding" url:"encoding"`
@@ -1338,6 +2271,9 @@ type AuthVerifierZero struct {
 	SignedPayload *SignedPayload         `json:"signed_payload" url:"signed_payload"`
 	Timestamp     *TimestampCheck        `json:"timestamp,omitempty" url:"timestamp,omitempty"`
 	Type          AuthVerifierZeroType   `json:"type" url:"type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1400,7 +2336,75 @@ func (a *AuthVerifierZero) GetType() AuthVerifierZeroType {
 }
 
 func (a *AuthVerifierZero) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AuthVerifierZero) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetAlgorithm sets the Algorithm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierZero) SetAlgorithm(algorithm HmacAlgorithm) {
+	a.Algorithm = algorithm
+	a.require(authVerifierZeroFieldAlgorithm)
+}
+
+// SetEncoding sets the Encoding field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierZero) SetEncoding(encoding SignatureEncoding) {
+	a.Encoding = encoding
+	a.require(authVerifierZeroFieldEncoding)
+}
+
+// SetPrefix sets the Prefix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierZero) SetPrefix(prefix *string) {
+	a.Prefix = prefix
+	a.require(authVerifierZeroFieldPrefix)
+}
+
+// SetSecret sets the Secret field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierZero) SetSecret(secret *IncomingWebhookSecret) {
+	a.Secret = secret
+	a.require(authVerifierZeroFieldSecret)
+}
+
+// SetSignature sets the Signature field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierZero) SetSignature(signature *ValueSource) {
+	a.Signature = signature
+	a.require(authVerifierZeroFieldSignature)
+}
+
+// SetSignedPayload sets the SignedPayload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierZero) SetSignedPayload(signedPayload *SignedPayload) {
+	a.SignedPayload = signedPayload
+	a.require(authVerifierZeroFieldSignedPayload)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierZero) SetTimestamp(timestamp *TimestampCheck) {
+	a.Timestamp = timestamp
+	a.require(authVerifierZeroFieldTimestamp)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AuthVerifierZero) SetType(type_ AuthVerifierZeroType) {
+	a.Type = type_
+	a.require(authVerifierZeroFieldType)
 }
 
 func (a *AuthVerifierZero) UnmarshalJSON(data []byte) error {
@@ -1419,7 +2423,21 @@ func (a *AuthVerifierZero) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AuthVerifierZero) MarshalJSON() ([]byte, error) {
+	type embed AuthVerifierZero
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AuthVerifierZero) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1450,9 +2468,17 @@ func (a AuthVerifierZeroType) Ptr() *AuthVerifierZeroType {
 	return &a
 }
 
+var (
+	basicAuthVerifierFieldPassword = big.NewInt(1 << 0)
+	basicAuthVerifierFieldUsername = big.NewInt(1 << 1)
+)
+
 type BasicAuthVerifier struct {
 	Password *IncomingWebhookSecret `json:"password" url:"password"`
 	Username *IncomingWebhookSecret `json:"username" url:"username"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1473,7 +2499,33 @@ func (b *BasicAuthVerifier) GetUsername() *IncomingWebhookSecret {
 }
 
 func (b *BasicAuthVerifier) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
 	return b.extraProperties
+}
+
+func (b *BasicAuthVerifier) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+// SetPassword sets the Password field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BasicAuthVerifier) SetPassword(password *IncomingWebhookSecret) {
+	b.Password = password
+	b.require(basicAuthVerifierFieldPassword)
+}
+
+// SetUsername sets the Username field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BasicAuthVerifier) SetUsername(username *IncomingWebhookSecret) {
+	b.Username = username
+	b.require(basicAuthVerifierFieldUsername)
 }
 
 func (b *BasicAuthVerifier) UnmarshalJSON(data []byte) error {
@@ -1492,7 +2544,21 @@ func (b *BasicAuthVerifier) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (b *BasicAuthVerifier) MarshalJSON() ([]byte, error) {
+	type embed BasicAuthVerifier
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (b *BasicAuthVerifier) String() string {
+	if b == nil {
+		return "<nil>"
+	}
 	if len(b.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
 			return value
@@ -1504,8 +2570,15 @@ func (b *BasicAuthVerifier) String() string {
 	return fmt.Sprintf("%#v", b)
 }
 
+var (
+	bearerStaticVerifierFieldToken = big.NewInt(1 << 0)
+)
+
 type BearerStaticVerifier struct {
 	Token *IncomingWebhookSecret `json:"token" url:"token"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1519,7 +2592,26 @@ func (b *BearerStaticVerifier) GetToken() *IncomingWebhookSecret {
 }
 
 func (b *BearerStaticVerifier) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
 	return b.extraProperties
+}
+
+func (b *BearerStaticVerifier) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+// SetToken sets the Token field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BearerStaticVerifier) SetToken(token *IncomingWebhookSecret) {
+	b.Token = token
+	b.require(bearerStaticVerifierFieldToken)
 }
 
 func (b *BearerStaticVerifier) UnmarshalJSON(data []byte) error {
@@ -1538,7 +2630,21 @@ func (b *BearerStaticVerifier) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (b *BearerStaticVerifier) MarshalJSON() ([]byte, error) {
+	type embed BearerStaticVerifier
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (b *BearerStaticVerifier) String() string {
+	if b == nil {
+		return "<nil>"
+	}
 	if len(b.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
 			return value
@@ -1550,9 +2656,17 @@ func (b *BearerStaticVerifier) String() string {
 	return fmt.Sprintf("%#v", b)
 }
 
+var (
+	headerEqualsVerifierFieldHeader = big.NewInt(1 << 0)
+	headerEqualsVerifierFieldValue  = big.NewInt(1 << 1)
+)
+
 type HeaderEqualsVerifier struct {
 	Header string                 `json:"header" url:"header"`
 	Value  *IncomingWebhookSecret `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1573,7 +2687,33 @@ func (h *HeaderEqualsVerifier) GetValue() *IncomingWebhookSecret {
 }
 
 func (h *HeaderEqualsVerifier) GetExtraProperties() map[string]interface{} {
+	if h == nil {
+		return nil
+	}
 	return h.extraProperties
+}
+
+func (h *HeaderEqualsVerifier) require(field *big.Int) {
+	next := new(big.Int)
+	if h.explicitFields != nil {
+		next.Set(h.explicitFields)
+	}
+	next.Or(next, field)
+	h.explicitFields = next
+}
+
+// SetHeader sets the Header field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HeaderEqualsVerifier) SetHeader(header string) {
+	h.Header = header
+	h.require(headerEqualsVerifierFieldHeader)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HeaderEqualsVerifier) SetValue(value *IncomingWebhookSecret) {
+	h.Value = value
+	h.require(headerEqualsVerifierFieldValue)
 }
 
 func (h *HeaderEqualsVerifier) UnmarshalJSON(data []byte) error {
@@ -1592,7 +2732,21 @@ func (h *HeaderEqualsVerifier) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (h *HeaderEqualsVerifier) MarshalJSON() ([]byte, error) {
+	type embed HeaderEqualsVerifier
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*h),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, h.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (h *HeaderEqualsVerifier) String() string {
+	if h == nil {
+		return "<nil>"
+	}
 	if len(h.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(h.rawJSON); err == nil {
 			return value
@@ -1623,6 +2777,16 @@ func (h HmacAlgorithm) Ptr() *HmacAlgorithm {
 	return &h
 }
 
+var (
+	hmacVerifierFieldAlgorithm     = big.NewInt(1 << 0)
+	hmacVerifierFieldEncoding      = big.NewInt(1 << 1)
+	hmacVerifierFieldPrefix        = big.NewInt(1 << 2)
+	hmacVerifierFieldSecret        = big.NewInt(1 << 3)
+	hmacVerifierFieldSignature     = big.NewInt(1 << 4)
+	hmacVerifierFieldSignedPayload = big.NewInt(1 << 5)
+	hmacVerifierFieldTimestamp     = big.NewInt(1 << 6)
+)
+
 type HmacVerifier struct {
 	Algorithm     HmacAlgorithm          `json:"algorithm" url:"algorithm"`
 	Encoding      SignatureEncoding      `json:"encoding" url:"encoding"`
@@ -1631,6 +2795,9 @@ type HmacVerifier struct {
 	Signature     *ValueSource           `json:"signature" url:"signature"`
 	SignedPayload *SignedPayload         `json:"signed_payload" url:"signed_payload"`
 	Timestamp     *TimestampCheck        `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1686,7 +2853,68 @@ func (h *HmacVerifier) GetTimestamp() *TimestampCheck {
 }
 
 func (h *HmacVerifier) GetExtraProperties() map[string]interface{} {
+	if h == nil {
+		return nil
+	}
 	return h.extraProperties
+}
+
+func (h *HmacVerifier) require(field *big.Int) {
+	next := new(big.Int)
+	if h.explicitFields != nil {
+		next.Set(h.explicitFields)
+	}
+	next.Or(next, field)
+	h.explicitFields = next
+}
+
+// SetAlgorithm sets the Algorithm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HmacVerifier) SetAlgorithm(algorithm HmacAlgorithm) {
+	h.Algorithm = algorithm
+	h.require(hmacVerifierFieldAlgorithm)
+}
+
+// SetEncoding sets the Encoding field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HmacVerifier) SetEncoding(encoding SignatureEncoding) {
+	h.Encoding = encoding
+	h.require(hmacVerifierFieldEncoding)
+}
+
+// SetPrefix sets the Prefix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HmacVerifier) SetPrefix(prefix *string) {
+	h.Prefix = prefix
+	h.require(hmacVerifierFieldPrefix)
+}
+
+// SetSecret sets the Secret field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HmacVerifier) SetSecret(secret *IncomingWebhookSecret) {
+	h.Secret = secret
+	h.require(hmacVerifierFieldSecret)
+}
+
+// SetSignature sets the Signature field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HmacVerifier) SetSignature(signature *ValueSource) {
+	h.Signature = signature
+	h.require(hmacVerifierFieldSignature)
+}
+
+// SetSignedPayload sets the SignedPayload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HmacVerifier) SetSignedPayload(signedPayload *SignedPayload) {
+	h.SignedPayload = signedPayload
+	h.require(hmacVerifierFieldSignedPayload)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HmacVerifier) SetTimestamp(timestamp *TimestampCheck) {
+	h.Timestamp = timestamp
+	h.require(hmacVerifierFieldTimestamp)
 }
 
 func (h *HmacVerifier) UnmarshalJSON(data []byte) error {
@@ -1705,7 +2933,21 @@ func (h *HmacVerifier) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (h *HmacVerifier) MarshalJSON() ([]byte, error) {
+	type embed HmacVerifier
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*h),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, h.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (h *HmacVerifier) String() string {
+	if h == nil {
+		return "<nil>"
+	}
 	if len(h.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(h.rawJSON); err == nil {
 			return value
@@ -1723,6 +2965,8 @@ type IdempotencyConfig struct {
 	HeaderParam *IdempotencyConfigHeaderParam
 	JSONPath    *IdempotencyConfigJSONPath
 	BodySha256  *IdempotencyConfigBodySha256
+
+	rawJSON json.RawMessage
 }
 
 func (i *IdempotencyConfig) GetSource() string {
@@ -1797,6 +3041,7 @@ func (i *IdempotencyConfig) UnmarshalJSON(data []byte) error {
 		}
 		i.BodySha256 = value
 	}
+	i.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -1815,6 +3060,9 @@ func (i IdempotencyConfig) MarshalJSON() ([]byte, error) {
 	}
 	if i.BodySha256 != nil {
 		return internal.MarshalJSONWithExtraProperty(i.BodySha256, "source", "body_sha256")
+	}
+	if len(i.rawJSON) > 0 {
+		return i.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", i)
 }
@@ -1861,6 +3109,9 @@ func (i *IdempotencyConfig) validate() error {
 	}
 	if len(fields) == 0 {
 		if i.Source != "" {
+			if len(i.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", i, i.Source)
 		}
 		return fmt.Errorf("type %T is empty", i)
@@ -1883,12 +3134,28 @@ func (i *IdempotencyConfig) validate() error {
 }
 
 type IdempotencyConfigBodySha256 struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (i *IdempotencyConfigBodySha256) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IdempotencyConfigBodySha256) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
 }
 
 func (i *IdempotencyConfigBodySha256) UnmarshalJSON(data []byte) error {
@@ -1907,7 +3174,21 @@ func (i *IdempotencyConfigBodySha256) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IdempotencyConfigBodySha256) MarshalJSON() ([]byte, error) {
+	type embed IdempotencyConfigBodySha256
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IdempotencyConfigBodySha256) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -1919,8 +3200,15 @@ func (i *IdempotencyConfigBodySha256) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	idempotencyConfigHeaderFieldName = big.NewInt(1 << 0)
+)
+
 type IdempotencyConfigHeader struct {
 	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1934,7 +3222,26 @@ func (i *IdempotencyConfigHeader) GetName() string {
 }
 
 func (i *IdempotencyConfigHeader) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IdempotencyConfigHeader) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IdempotencyConfigHeader) SetName(name string) {
+	i.Name = name
+	i.require(idempotencyConfigHeaderFieldName)
 }
 
 func (i *IdempotencyConfigHeader) UnmarshalJSON(data []byte) error {
@@ -1953,7 +3260,21 @@ func (i *IdempotencyConfigHeader) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IdempotencyConfigHeader) MarshalJSON() ([]byte, error) {
+	type embed IdempotencyConfigHeader
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IdempotencyConfigHeader) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -1965,9 +3286,17 @@ func (i *IdempotencyConfigHeader) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	idempotencyConfigHeaderParamFieldHeader = big.NewInt(1 << 0)
+	idempotencyConfigHeaderParamFieldParam  = big.NewInt(1 << 1)
+)
+
 type IdempotencyConfigHeaderParam struct {
 	Header string `json:"header" url:"header"`
 	Param  string `json:"param" url:"param"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1988,7 +3317,33 @@ func (i *IdempotencyConfigHeaderParam) GetParam() string {
 }
 
 func (i *IdempotencyConfigHeaderParam) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IdempotencyConfigHeaderParam) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetHeader sets the Header field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IdempotencyConfigHeaderParam) SetHeader(header string) {
+	i.Header = header
+	i.require(idempotencyConfigHeaderParamFieldHeader)
+}
+
+// SetParam sets the Param field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IdempotencyConfigHeaderParam) SetParam(param string) {
+	i.Param = param
+	i.require(idempotencyConfigHeaderParamFieldParam)
 }
 
 func (i *IdempotencyConfigHeaderParam) UnmarshalJSON(data []byte) error {
@@ -2007,7 +3362,21 @@ func (i *IdempotencyConfigHeaderParam) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IdempotencyConfigHeaderParam) MarshalJSON() ([]byte, error) {
+	type embed IdempotencyConfigHeaderParam
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IdempotencyConfigHeaderParam) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2019,8 +3388,15 @@ func (i *IdempotencyConfigHeaderParam) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	idempotencyConfigJSONPathFieldPath = big.NewInt(1 << 0)
+)
+
 type IdempotencyConfigJSONPath struct {
 	Path string `json:"path" url:"path"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2034,7 +3410,26 @@ func (i *IdempotencyConfigJSONPath) GetPath() string {
 }
 
 func (i *IdempotencyConfigJSONPath) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IdempotencyConfigJSONPath) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetPath sets the Path field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IdempotencyConfigJSONPath) SetPath(path string) {
+	i.Path = path
+	i.require(idempotencyConfigJSONPathFieldPath)
 }
 
 func (i *IdempotencyConfigJSONPath) UnmarshalJSON(data []byte) error {
@@ -2053,7 +3448,21 @@ func (i *IdempotencyConfigJSONPath) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IdempotencyConfigJSONPath) MarshalJSON() ([]byte, error) {
+	type embed IdempotencyConfigJSONPath
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IdempotencyConfigJSONPath) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2065,6 +3474,18 @@ func (i *IdempotencyConfigJSONPath) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookFieldAuth        = big.NewInt(1 << 0)
+	incomingWebhookFieldCreatedAt   = big.NewInt(1 << 1)
+	incomingWebhookFieldID          = big.NewInt(1 << 2)
+	incomingWebhookFieldIdempotency = big.NewInt(1 << 3)
+	incomingWebhookFieldName        = big.NewInt(1 << 4)
+	incomingWebhookFieldReceiverURL = big.NewInt(1 << 5)
+	incomingWebhookFieldRules       = big.NewInt(1 << 6)
+	incomingWebhookFieldStatus      = big.NewInt(1 << 7)
+	incomingWebhookFieldTarget      = big.NewInt(1 << 8)
+)
+
 type IncomingWebhook struct {
 	Auth        *IncomingWebhookAuthResponse `json:"auth" url:"auth"`
 	CreatedAt   string                       `json:"created_at" url:"created_at"`
@@ -2075,6 +3496,9 @@ type IncomingWebhook struct {
 	Rules       []*IncomingWebhookRule       `json:"rules" url:"rules"`
 	Status      IncomingWebhookStatus        `json:"status" url:"status"`
 	Target      *IncomingWebhookTarget       `json:"target" url:"target"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2144,7 +3568,82 @@ func (i *IncomingWebhook) GetTarget() *IncomingWebhookTarget {
 }
 
 func (i *IncomingWebhook) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhook) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAuth sets the Auth field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhook) SetAuth(auth *IncomingWebhookAuthResponse) {
+	i.Auth = auth
+	i.require(incomingWebhookFieldAuth)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhook) SetCreatedAt(createdAt string) {
+	i.CreatedAt = createdAt
+	i.require(incomingWebhookFieldCreatedAt)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhook) SetID(id string) {
+	i.ID = id
+	i.require(incomingWebhookFieldID)
+}
+
+// SetIdempotency sets the Idempotency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhook) SetIdempotency(idempotency *IdempotencyConfig) {
+	i.Idempotency = idempotency
+	i.require(incomingWebhookFieldIdempotency)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhook) SetName(name string) {
+	i.Name = name
+	i.require(incomingWebhookFieldName)
+}
+
+// SetReceiverURL sets the ReceiverURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhook) SetReceiverURL(receiverURL string) {
+	i.ReceiverURL = receiverURL
+	i.require(incomingWebhookFieldReceiverURL)
+}
+
+// SetRules sets the Rules field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhook) SetRules(rules []*IncomingWebhookRule) {
+	i.Rules = rules
+	i.require(incomingWebhookFieldRules)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhook) SetStatus(status IncomingWebhookStatus) {
+	i.Status = status
+	i.require(incomingWebhookFieldStatus)
+}
+
+// SetTarget sets the Target field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhook) SetTarget(target *IncomingWebhookTarget) {
+	i.Target = target
+	i.require(incomingWebhookFieldTarget)
 }
 
 func (i *IncomingWebhook) UnmarshalJSON(data []byte) error {
@@ -2163,7 +3662,21 @@ func (i *IncomingWebhook) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhook) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhook
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhook) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2183,6 +3696,8 @@ type IncomingWebhookAction struct {
 	DeleteSandbox *IncomingWebhookActionDeleteSandbox
 	DeliverToPort *IncomingWebhookActionDeliverToPort
 	TriggerJob    *IncomingWebhookActionTriggerJob
+
+	rawJSON json.RawMessage
 }
 
 func (i *IncomingWebhookAction) GetActionType() string {
@@ -2283,6 +3798,7 @@ func (i *IncomingWebhookAction) UnmarshalJSON(data []byte) error {
 		}
 		i.TriggerJob = value
 	}
+	i.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -2307,6 +3823,9 @@ func (i IncomingWebhookAction) MarshalJSON() ([]byte, error) {
 	}
 	if i.TriggerJob != nil {
 		return internal.MarshalJSONWithExtraProperty(i.TriggerJob, "action_type", "trigger_job")
+	}
+	if len(i.rawJSON) > 0 {
+		return i.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", i)
 }
@@ -2367,6 +3886,9 @@ func (i *IncomingWebhookAction) validate() error {
 	}
 	if len(fields) == 0 {
 		if i.ActionType != "" {
+			if len(i.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", i, i.ActionType)
 		}
 		return fmt.Errorf("type %T is empty", i)
@@ -2389,12 +3911,28 @@ func (i *IncomingWebhookAction) validate() error {
 }
 
 type IncomingWebhookActionDeleteSandbox struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (i *IncomingWebhookActionDeleteSandbox) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookActionDeleteSandbox) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
 }
 
 func (i *IncomingWebhookActionDeleteSandbox) UnmarshalJSON(data []byte) error {
@@ -2413,7 +3951,21 @@ func (i *IncomingWebhookActionDeleteSandbox) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookActionDeleteSandbox) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookActionDeleteSandbox
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookActionDeleteSandbox) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2425,11 +3977,21 @@ func (i *IncomingWebhookActionDeleteSandbox) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookActionDeliverToPortFieldAutoResume = big.NewInt(1 << 0)
+	incomingWebhookActionDeliverToPortFieldPath       = big.NewInt(1 << 1)
+	incomingWebhookActionDeliverToPortFieldPayload    = big.NewInt(1 << 2)
+	incomingWebhookActionDeliverToPortFieldPort       = big.NewInt(1 << 3)
+)
+
 type IncomingWebhookActionDeliverToPort struct {
 	AutoResume *IncomingWebhookAutoResumePolicy `json:"auto_resume,omitempty" url:"auto_resume,omitempty"`
 	Path       *string                          `json:"path,omitempty" url:"path,omitempty"`
 	Payload    *PayloadMapping                  `json:"payload,omitempty" url:"payload,omitempty"`
 	Port       int                              `json:"port" url:"port"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2464,7 +4026,47 @@ func (i *IncomingWebhookActionDeliverToPort) GetPort() int {
 }
 
 func (i *IncomingWebhookActionDeliverToPort) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookActionDeliverToPort) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAutoResume sets the AutoResume field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookActionDeliverToPort) SetAutoResume(autoResume *IncomingWebhookAutoResumePolicy) {
+	i.AutoResume = autoResume
+	i.require(incomingWebhookActionDeliverToPortFieldAutoResume)
+}
+
+// SetPath sets the Path field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookActionDeliverToPort) SetPath(path *string) {
+	i.Path = path
+	i.require(incomingWebhookActionDeliverToPortFieldPath)
+}
+
+// SetPayload sets the Payload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookActionDeliverToPort) SetPayload(payload *PayloadMapping) {
+	i.Payload = payload
+	i.require(incomingWebhookActionDeliverToPortFieldPayload)
+}
+
+// SetPort sets the Port field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookActionDeliverToPort) SetPort(port int) {
+	i.Port = port
+	i.require(incomingWebhookActionDeliverToPortFieldPort)
 }
 
 func (i *IncomingWebhookActionDeliverToPort) UnmarshalJSON(data []byte) error {
@@ -2483,7 +4085,21 @@ func (i *IncomingWebhookActionDeliverToPort) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookActionDeliverToPort) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookActionDeliverToPort
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookActionDeliverToPort) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2495,8 +4111,15 @@ func (i *IncomingWebhookActionDeliverToPort) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookActionEnsureSandboxFieldTemplate = big.NewInt(1 << 0)
+)
+
 type IncomingWebhookActionEnsureSandbox struct {
 	Template *IncomingWebhookSandboxTemplate `json:"template" url:"template"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2510,7 +4133,26 @@ func (i *IncomingWebhookActionEnsureSandbox) GetTemplate() *IncomingWebhookSandb
 }
 
 func (i *IncomingWebhookActionEnsureSandbox) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookActionEnsureSandbox) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetTemplate sets the Template field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookActionEnsureSandbox) SetTemplate(template *IncomingWebhookSandboxTemplate) {
+	i.Template = template
+	i.require(incomingWebhookActionEnsureSandboxFieldTemplate)
 }
 
 func (i *IncomingWebhookActionEnsureSandbox) UnmarshalJSON(data []byte) error {
@@ -2529,7 +4171,21 @@ func (i *IncomingWebhookActionEnsureSandbox) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookActionEnsureSandbox) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookActionEnsureSandbox
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookActionEnsureSandbox) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2542,12 +4198,28 @@ func (i *IncomingWebhookActionEnsureSandbox) String() string {
 }
 
 type IncomingWebhookActionPauseSandbox struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (i *IncomingWebhookActionPauseSandbox) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookActionPauseSandbox) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
 }
 
 func (i *IncomingWebhookActionPauseSandbox) UnmarshalJSON(data []byte) error {
@@ -2566,7 +4238,21 @@ func (i *IncomingWebhookActionPauseSandbox) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookActionPauseSandbox) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookActionPauseSandbox
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookActionPauseSandbox) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2579,12 +4265,28 @@ func (i *IncomingWebhookActionPauseSandbox) String() string {
 }
 
 type IncomingWebhookActionResumeSandbox struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (i *IncomingWebhookActionResumeSandbox) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookActionResumeSandbox) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
 }
 
 func (i *IncomingWebhookActionResumeSandbox) UnmarshalJSON(data []byte) error {
@@ -2603,7 +4305,21 @@ func (i *IncomingWebhookActionResumeSandbox) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookActionResumeSandbox) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookActionResumeSandbox
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookActionResumeSandbox) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2615,11 +4331,21 @@ func (i *IncomingWebhookActionResumeSandbox) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookActionTriggerJobFieldJobName   = big.NewInt(1 << 0)
+	incomingWebhookActionTriggerJobFieldParams    = big.NewInt(1 << 1)
+	incomingWebhookActionTriggerJobFieldRegion    = big.NewInt(1 << 2)
+	incomingWebhookActionTriggerJobFieldVersionID = big.NewInt(1 << 3)
+)
+
 type IncomingWebhookActionTriggerJob struct {
 	JobName   string                      `json:"job_name" url:"job_name"`
 	Params    map[string]*JobParamMapping `json:"params,omitempty" url:"params,omitempty"`
 	Region    *string                     `json:"region,omitempty" url:"region,omitempty"`
 	VersionID *string                     `json:"version_id,omitempty" url:"version_id,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2654,7 +4380,47 @@ func (i *IncomingWebhookActionTriggerJob) GetVersionID() *string {
 }
 
 func (i *IncomingWebhookActionTriggerJob) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookActionTriggerJob) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetJobName sets the JobName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookActionTriggerJob) SetJobName(jobName string) {
+	i.JobName = jobName
+	i.require(incomingWebhookActionTriggerJobFieldJobName)
+}
+
+// SetParams sets the Params field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookActionTriggerJob) SetParams(params map[string]*JobParamMapping) {
+	i.Params = params
+	i.require(incomingWebhookActionTriggerJobFieldParams)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookActionTriggerJob) SetRegion(region *string) {
+	i.Region = region
+	i.require(incomingWebhookActionTriggerJobFieldRegion)
+}
+
+// SetVersionID sets the VersionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookActionTriggerJob) SetVersionID(versionID *string) {
+	i.VersionID = versionID
+	i.require(incomingWebhookActionTriggerJobFieldVersionID)
 }
 
 func (i *IncomingWebhookActionTriggerJob) UnmarshalJSON(data []byte) error {
@@ -2673,7 +4439,21 @@ func (i *IncomingWebhookActionTriggerJob) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookActionTriggerJob) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookActionTriggerJob
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookActionTriggerJob) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2915,9 +4695,17 @@ func (i *IncomingWebhookAuth) Accept(visitor IncomingWebhookAuthVisitor) error {
 	return fmt.Errorf("type %T does not include a non-empty union type", i)
 }
 
+var (
+	incomingWebhookAuthAuthTypeFieldAuthType  = big.NewInt(1 << 0)
+	incomingWebhookAuthAuthTypeFieldVerifiers = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookAuthAuthType struct {
 	AuthType  IncomingWebhookAuthAuthTypeAuthType `json:"auth_type" url:"auth_type"`
 	Verifiers []*AuthVerifier                     `json:"verifiers" url:"verifiers"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2938,7 +4726,33 @@ func (i *IncomingWebhookAuthAuthType) GetVerifiers() []*AuthVerifier {
 }
 
 func (i *IncomingWebhookAuthAuthType) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthAuthType) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthAuthType) SetAuthType(authType IncomingWebhookAuthAuthTypeAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthAuthTypeFieldAuthType)
+}
+
+// SetVerifiers sets the Verifiers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthAuthType) SetVerifiers(verifiers []*AuthVerifier) {
+	i.Verifiers = verifiers
+	i.require(incomingWebhookAuthAuthTypeFieldVerifiers)
 }
 
 func (i *IncomingWebhookAuthAuthType) UnmarshalJSON(data []byte) error {
@@ -2957,7 +4771,21 @@ func (i *IncomingWebhookAuthAuthType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthAuthType) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthAuthType
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthAuthType) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2988,11 +4816,21 @@ func (i IncomingWebhookAuthAuthTypeAuthType) Ptr() *IncomingWebhookAuthAuthTypeA
 	return &i
 }
 
+var (
+	incomingWebhookAuthEightFieldAudience = big.NewInt(1 << 0)
+	incomingWebhookAuthEightFieldIssuer   = big.NewInt(1 << 1)
+	incomingWebhookAuthEightFieldJwksURL  = big.NewInt(1 << 2)
+	incomingWebhookAuthEightFieldAuthType = big.NewInt(1 << 3)
+)
+
 type IncomingWebhookAuthEight struct {
 	Audience *string                          `json:"audience,omitempty" url:"audience,omitempty"`
 	Issuer   *string                          `json:"issuer,omitempty" url:"issuer,omitempty"`
 	JwksURL  string                           `json:"jwks_url" url:"jwks_url"`
 	AuthType IncomingWebhookAuthEightAuthType `json:"auth_type" url:"auth_type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3027,7 +4865,47 @@ func (i *IncomingWebhookAuthEight) GetAuthType() IncomingWebhookAuthEightAuthTyp
 }
 
 func (i *IncomingWebhookAuthEight) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthEight) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAudience sets the Audience field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthEight) SetAudience(audience *string) {
+	i.Audience = audience
+	i.require(incomingWebhookAuthEightFieldAudience)
+}
+
+// SetIssuer sets the Issuer field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthEight) SetIssuer(issuer *string) {
+	i.Issuer = issuer
+	i.require(incomingWebhookAuthEightFieldIssuer)
+}
+
+// SetJwksURL sets the JwksURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthEight) SetJwksURL(jwksURL string) {
+	i.JwksURL = jwksURL
+	i.require(incomingWebhookAuthEightFieldJwksURL)
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthEight) SetAuthType(authType IncomingWebhookAuthEightAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthEightFieldAuthType)
 }
 
 func (i *IncomingWebhookAuthEight) UnmarshalJSON(data []byte) error {
@@ -3046,7 +4924,21 @@ func (i *IncomingWebhookAuthEight) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthEight) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthEight
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthEight) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3077,10 +4969,19 @@ func (i IncomingWebhookAuthEightAuthType) Ptr() *IncomingWebhookAuthEightAuthTyp
 	return &i
 }
 
+var (
+	incomingWebhookAuthFiveFieldQuery    = big.NewInt(1 << 0)
+	incomingWebhookAuthFiveFieldValue    = big.NewInt(1 << 1)
+	incomingWebhookAuthFiveFieldAuthType = big.NewInt(1 << 2)
+)
+
 type IncomingWebhookAuthFive struct {
 	Query    string                          `json:"query" url:"query"`
 	Value    *IncomingWebhookSecret          `json:"value" url:"value"`
 	AuthType IncomingWebhookAuthFiveAuthType `json:"auth_type" url:"auth_type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3108,7 +5009,40 @@ func (i *IncomingWebhookAuthFive) GetAuthType() IncomingWebhookAuthFiveAuthType 
 }
 
 func (i *IncomingWebhookAuthFive) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthFive) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetQuery sets the Query field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthFive) SetQuery(query string) {
+	i.Query = query
+	i.require(incomingWebhookAuthFiveFieldQuery)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthFive) SetValue(value *IncomingWebhookSecret) {
+	i.Value = value
+	i.require(incomingWebhookAuthFiveFieldValue)
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthFive) SetAuthType(authType IncomingWebhookAuthFiveAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthFiveFieldAuthType)
 }
 
 func (i *IncomingWebhookAuthFive) UnmarshalJSON(data []byte) error {
@@ -3127,7 +5061,21 @@ func (i *IncomingWebhookAuthFive) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthFive) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthFive
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthFive) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3158,10 +5106,19 @@ func (i IncomingWebhookAuthFiveAuthType) Ptr() *IncomingWebhookAuthFiveAuthType 
 	return &i
 }
 
+var (
+	incomingWebhookAuthFourFieldHeader   = big.NewInt(1 << 0)
+	incomingWebhookAuthFourFieldValue    = big.NewInt(1 << 1)
+	incomingWebhookAuthFourFieldAuthType = big.NewInt(1 << 2)
+)
+
 type IncomingWebhookAuthFour struct {
 	Header   string                          `json:"header" url:"header"`
 	Value    *IncomingWebhookSecret          `json:"value" url:"value"`
 	AuthType IncomingWebhookAuthFourAuthType `json:"auth_type" url:"auth_type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3189,7 +5146,40 @@ func (i *IncomingWebhookAuthFour) GetAuthType() IncomingWebhookAuthFourAuthType 
 }
 
 func (i *IncomingWebhookAuthFour) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthFour) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetHeader sets the Header field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthFour) SetHeader(header string) {
+	i.Header = header
+	i.require(incomingWebhookAuthFourFieldHeader)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthFour) SetValue(value *IncomingWebhookSecret) {
+	i.Value = value
+	i.require(incomingWebhookAuthFourFieldValue)
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthFour) SetAuthType(authType IncomingWebhookAuthFourAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthFourFieldAuthType)
 }
 
 func (i *IncomingWebhookAuthFour) UnmarshalJSON(data []byte) error {
@@ -3208,7 +5198,21 @@ func (i *IncomingWebhookAuthFour) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthFour) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthFour
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthFour) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3239,9 +5243,17 @@ func (i IncomingWebhookAuthFourAuthType) Ptr() *IncomingWebhookAuthFourAuthType 
 	return &i
 }
 
+var (
+	incomingWebhookAuthNineFieldCidrs    = big.NewInt(1 << 0)
+	incomingWebhookAuthNineFieldAuthType = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookAuthNine struct {
 	Cidrs    []string                        `json:"cidrs" url:"cidrs"`
 	AuthType IncomingWebhookAuthNineAuthType `json:"auth_type" url:"auth_type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3262,7 +5274,33 @@ func (i *IncomingWebhookAuthNine) GetAuthType() IncomingWebhookAuthNineAuthType 
 }
 
 func (i *IncomingWebhookAuthNine) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthNine) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetCidrs sets the Cidrs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthNine) SetCidrs(cidrs []string) {
+	i.Cidrs = cidrs
+	i.require(incomingWebhookAuthNineFieldCidrs)
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthNine) SetAuthType(authType IncomingWebhookAuthNineAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthNineFieldAuthType)
 }
 
 func (i *IncomingWebhookAuthNine) UnmarshalJSON(data []byte) error {
@@ -3281,7 +5319,21 @@ func (i *IncomingWebhookAuthNine) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthNine) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthNine
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthNine) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3312,9 +5364,17 @@ func (i IncomingWebhookAuthNineAuthType) Ptr() *IncomingWebhookAuthNineAuthType 
 	return &i
 }
 
+var (
+	incomingWebhookAuthOneFieldAuthType  = big.NewInt(1 << 0)
+	incomingWebhookAuthOneFieldVerifiers = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookAuthOne struct {
 	AuthType  IncomingWebhookAuthOneAuthType `json:"auth_type" url:"auth_type"`
 	Verifiers []*AuthVerifier                `json:"verifiers" url:"verifiers"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3335,7 +5395,33 @@ func (i *IncomingWebhookAuthOne) GetVerifiers() []*AuthVerifier {
 }
 
 func (i *IncomingWebhookAuthOne) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthOne) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthOne) SetAuthType(authType IncomingWebhookAuthOneAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthOneFieldAuthType)
+}
+
+// SetVerifiers sets the Verifiers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthOne) SetVerifiers(verifiers []*AuthVerifier) {
+	i.Verifiers = verifiers
+	i.require(incomingWebhookAuthOneFieldVerifiers)
 }
 
 func (i *IncomingWebhookAuthOne) UnmarshalJSON(data []byte) error {
@@ -3354,7 +5440,21 @@ func (i *IncomingWebhookAuthOne) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthOne) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthOne
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthOne) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3397,6 +5497,8 @@ type IncomingWebhookAuthResponse struct {
 	BearerStatic *IncomingWebhookAuthResponseBearerStatic
 	Jwt          *IncomingWebhookAuthResponseJwt
 	IPAllowlist  *IncomingWebhookAuthResponseIPAllowlist
+
+	rawJSON json.RawMessage
 }
 
 func (i *IncomingWebhookAuthResponse) GetAuthType() string {
@@ -3549,6 +5651,7 @@ func (i *IncomingWebhookAuthResponse) UnmarshalJSON(data []byte) error {
 		}
 		i.IPAllowlist = value
 	}
+	i.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -3585,6 +5688,9 @@ func (i IncomingWebhookAuthResponse) MarshalJSON() ([]byte, error) {
 	}
 	if i.IPAllowlist != nil {
 		return internal.MarshalJSONWithExtraProperty(i.IPAllowlist, "auth_type", "ip_allowlist")
+	}
+	if len(i.rawJSON) > 0 {
+		return i.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", i)
 }
@@ -3673,6 +5779,9 @@ func (i *IncomingWebhookAuthResponse) validate() error {
 	}
 	if len(fields) == 0 {
 		if i.AuthType != "" {
+			if len(i.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", i, i.AuthType)
 		}
 		return fmt.Errorf("type %T is empty", i)
@@ -3694,8 +5803,15 @@ func (i *IncomingWebhookAuthResponse) validate() error {
 	return nil
 }
 
+var (
+	incomingWebhookAuthResponseAllFieldVerifiers = big.NewInt(1 << 0)
+)
+
 type IncomingWebhookAuthResponseAll struct {
 	Verifiers []*AuthVerifierResponse `json:"verifiers" url:"verifiers"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3709,7 +5825,26 @@ func (i *IncomingWebhookAuthResponseAll) GetVerifiers() []*AuthVerifierResponse 
 }
 
 func (i *IncomingWebhookAuthResponseAll) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseAll) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetVerifiers sets the Verifiers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseAll) SetVerifiers(verifiers []*AuthVerifierResponse) {
+	i.Verifiers = verifiers
+	i.require(incomingWebhookAuthResponseAllFieldVerifiers)
 }
 
 func (i *IncomingWebhookAuthResponseAll) UnmarshalJSON(data []byte) error {
@@ -3728,7 +5863,21 @@ func (i *IncomingWebhookAuthResponseAll) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseAll) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseAll
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseAll) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3740,8 +5889,15 @@ func (i *IncomingWebhookAuthResponseAll) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookAuthResponseAnyFieldVerifiers = big.NewInt(1 << 0)
+)
+
 type IncomingWebhookAuthResponseAny struct {
 	Verifiers []*AuthVerifierResponse `json:"verifiers" url:"verifiers"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3755,7 +5911,26 @@ func (i *IncomingWebhookAuthResponseAny) GetVerifiers() []*AuthVerifierResponse 
 }
 
 func (i *IncomingWebhookAuthResponseAny) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseAny) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetVerifiers sets the Verifiers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseAny) SetVerifiers(verifiers []*AuthVerifierResponse) {
+	i.Verifiers = verifiers
+	i.require(incomingWebhookAuthResponseAnyFieldVerifiers)
 }
 
 func (i *IncomingWebhookAuthResponseAny) UnmarshalJSON(data []byte) error {
@@ -3774,7 +5949,21 @@ func (i *IncomingWebhookAuthResponseAny) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseAny) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseAny
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseAny) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3786,8 +5975,15 @@ func (i *IncomingWebhookAuthResponseAny) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookAuthResponseBasicFieldSecretRedacted = big.NewInt(1 << 0)
+)
+
 type IncomingWebhookAuthResponseBasic struct {
 	SecretRedacted bool `json:"secret_redacted" url:"secret_redacted"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3801,7 +5997,26 @@ func (i *IncomingWebhookAuthResponseBasic) GetSecretRedacted() bool {
 }
 
 func (i *IncomingWebhookAuthResponseBasic) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseBasic) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetSecretRedacted sets the SecretRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseBasic) SetSecretRedacted(secretRedacted bool) {
+	i.SecretRedacted = secretRedacted
+	i.require(incomingWebhookAuthResponseBasicFieldSecretRedacted)
 }
 
 func (i *IncomingWebhookAuthResponseBasic) UnmarshalJSON(data []byte) error {
@@ -3820,7 +6035,21 @@ func (i *IncomingWebhookAuthResponseBasic) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseBasic) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseBasic
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseBasic) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3832,8 +6061,15 @@ func (i *IncomingWebhookAuthResponseBasic) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookAuthResponseBearerStaticFieldSecretRedacted = big.NewInt(1 << 0)
+)
+
 type IncomingWebhookAuthResponseBearerStatic struct {
 	SecretRedacted bool `json:"secret_redacted" url:"secret_redacted"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3847,7 +6083,26 @@ func (i *IncomingWebhookAuthResponseBearerStatic) GetSecretRedacted() bool {
 }
 
 func (i *IncomingWebhookAuthResponseBearerStatic) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseBearerStatic) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetSecretRedacted sets the SecretRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseBearerStatic) SetSecretRedacted(secretRedacted bool) {
+	i.SecretRedacted = secretRedacted
+	i.require(incomingWebhookAuthResponseBearerStaticFieldSecretRedacted)
 }
 
 func (i *IncomingWebhookAuthResponseBearerStatic) UnmarshalJSON(data []byte) error {
@@ -3866,7 +6121,21 @@ func (i *IncomingWebhookAuthResponseBearerStatic) UnmarshalJSON(data []byte) err
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseBearerStatic) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseBearerStatic
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseBearerStatic) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3878,9 +6147,17 @@ func (i *IncomingWebhookAuthResponseBearerStatic) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookAuthResponseHeaderEqualsFieldHeader        = big.NewInt(1 << 0)
+	incomingWebhookAuthResponseHeaderEqualsFieldValueRedacted = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookAuthResponseHeaderEquals struct {
 	Header        string `json:"header" url:"header"`
 	ValueRedacted bool   `json:"value_redacted" url:"value_redacted"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3901,7 +6178,33 @@ func (i *IncomingWebhookAuthResponseHeaderEquals) GetValueRedacted() bool {
 }
 
 func (i *IncomingWebhookAuthResponseHeaderEquals) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseHeaderEquals) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetHeader sets the Header field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseHeaderEquals) SetHeader(header string) {
+	i.Header = header
+	i.require(incomingWebhookAuthResponseHeaderEqualsFieldHeader)
+}
+
+// SetValueRedacted sets the ValueRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseHeaderEquals) SetValueRedacted(valueRedacted bool) {
+	i.ValueRedacted = valueRedacted
+	i.require(incomingWebhookAuthResponseHeaderEqualsFieldValueRedacted)
 }
 
 func (i *IncomingWebhookAuthResponseHeaderEquals) UnmarshalJSON(data []byte) error {
@@ -3920,7 +6223,21 @@ func (i *IncomingWebhookAuthResponseHeaderEquals) UnmarshalJSON(data []byte) err
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseHeaderEquals) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseHeaderEquals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseHeaderEquals) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -3932,6 +6249,16 @@ func (i *IncomingWebhookAuthResponseHeaderEquals) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookAuthResponseHmacFieldAlgorithm      = big.NewInt(1 << 0)
+	incomingWebhookAuthResponseHmacFieldEncoding       = big.NewInt(1 << 1)
+	incomingWebhookAuthResponseHmacFieldPrefix         = big.NewInt(1 << 2)
+	incomingWebhookAuthResponseHmacFieldSecretRedacted = big.NewInt(1 << 3)
+	incomingWebhookAuthResponseHmacFieldSecretRef      = big.NewInt(1 << 4)
+	incomingWebhookAuthResponseHmacFieldSignature      = big.NewInt(1 << 5)
+	incomingWebhookAuthResponseHmacFieldSignedPayload  = big.NewInt(1 << 6)
+)
+
 type IncomingWebhookAuthResponseHmac struct {
 	Algorithm      HmacAlgorithm             `json:"algorithm" url:"algorithm"`
 	Encoding       SignatureEncoding         `json:"encoding" url:"encoding"`
@@ -3940,6 +6267,9 @@ type IncomingWebhookAuthResponseHmac struct {
 	SecretRef      *IncomingWebhookSecretRef `json:"secret_ref" url:"secret_ref"`
 	Signature      *ValueSource              `json:"signature" url:"signature"`
 	SignedPayload  *SignedPayload            `json:"signed_payload" url:"signed_payload"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3995,7 +6325,68 @@ func (i *IncomingWebhookAuthResponseHmac) GetSignedPayload() *SignedPayload {
 }
 
 func (i *IncomingWebhookAuthResponseHmac) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseHmac) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAlgorithm sets the Algorithm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseHmac) SetAlgorithm(algorithm HmacAlgorithm) {
+	i.Algorithm = algorithm
+	i.require(incomingWebhookAuthResponseHmacFieldAlgorithm)
+}
+
+// SetEncoding sets the Encoding field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseHmac) SetEncoding(encoding SignatureEncoding) {
+	i.Encoding = encoding
+	i.require(incomingWebhookAuthResponseHmacFieldEncoding)
+}
+
+// SetPrefix sets the Prefix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseHmac) SetPrefix(prefix *string) {
+	i.Prefix = prefix
+	i.require(incomingWebhookAuthResponseHmacFieldPrefix)
+}
+
+// SetSecretRedacted sets the SecretRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseHmac) SetSecretRedacted(secretRedacted bool) {
+	i.SecretRedacted = secretRedacted
+	i.require(incomingWebhookAuthResponseHmacFieldSecretRedacted)
+}
+
+// SetSecretRef sets the SecretRef field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseHmac) SetSecretRef(secretRef *IncomingWebhookSecretRef) {
+	i.SecretRef = secretRef
+	i.require(incomingWebhookAuthResponseHmacFieldSecretRef)
+}
+
+// SetSignature sets the Signature field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseHmac) SetSignature(signature *ValueSource) {
+	i.Signature = signature
+	i.require(incomingWebhookAuthResponseHmacFieldSignature)
+}
+
+// SetSignedPayload sets the SignedPayload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseHmac) SetSignedPayload(signedPayload *SignedPayload) {
+	i.SignedPayload = signedPayload
+	i.require(incomingWebhookAuthResponseHmacFieldSignedPayload)
 }
 
 func (i *IncomingWebhookAuthResponseHmac) UnmarshalJSON(data []byte) error {
@@ -4014,7 +6405,21 @@ func (i *IncomingWebhookAuthResponseHmac) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseHmac) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseHmac
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseHmac) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4026,8 +6431,15 @@ func (i *IncomingWebhookAuthResponseHmac) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookAuthResponseIPAllowlistFieldCidrs = big.NewInt(1 << 0)
+)
+
 type IncomingWebhookAuthResponseIPAllowlist struct {
 	Cidrs []string `json:"cidrs" url:"cidrs"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4041,7 +6453,26 @@ func (i *IncomingWebhookAuthResponseIPAllowlist) GetCidrs() []string {
 }
 
 func (i *IncomingWebhookAuthResponseIPAllowlist) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseIPAllowlist) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetCidrs sets the Cidrs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseIPAllowlist) SetCidrs(cidrs []string) {
+	i.Cidrs = cidrs
+	i.require(incomingWebhookAuthResponseIPAllowlistFieldCidrs)
 }
 
 func (i *IncomingWebhookAuthResponseIPAllowlist) UnmarshalJSON(data []byte) error {
@@ -4060,7 +6491,21 @@ func (i *IncomingWebhookAuthResponseIPAllowlist) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseIPAllowlist) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseIPAllowlist
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseIPAllowlist) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4072,10 +6517,19 @@ func (i *IncomingWebhookAuthResponseIPAllowlist) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookAuthResponseJwtFieldAudience = big.NewInt(1 << 0)
+	incomingWebhookAuthResponseJwtFieldIssuer   = big.NewInt(1 << 1)
+	incomingWebhookAuthResponseJwtFieldJwksURL  = big.NewInt(1 << 2)
+)
+
 type IncomingWebhookAuthResponseJwt struct {
 	Audience *string `json:"audience,omitempty" url:"audience,omitempty"`
 	Issuer   *string `json:"issuer,omitempty" url:"issuer,omitempty"`
 	JwksURL  string  `json:"jwks_url" url:"jwks_url"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4103,7 +6557,40 @@ func (i *IncomingWebhookAuthResponseJwt) GetJwksURL() string {
 }
 
 func (i *IncomingWebhookAuthResponseJwt) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseJwt) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAudience sets the Audience field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseJwt) SetAudience(audience *string) {
+	i.Audience = audience
+	i.require(incomingWebhookAuthResponseJwtFieldAudience)
+}
+
+// SetIssuer sets the Issuer field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseJwt) SetIssuer(issuer *string) {
+	i.Issuer = issuer
+	i.require(incomingWebhookAuthResponseJwtFieldIssuer)
+}
+
+// SetJwksURL sets the JwksURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseJwt) SetJwksURL(jwksURL string) {
+	i.JwksURL = jwksURL
+	i.require(incomingWebhookAuthResponseJwtFieldJwksURL)
 }
 
 func (i *IncomingWebhookAuthResponseJwt) UnmarshalJSON(data []byte) error {
@@ -4122,7 +6609,21 @@ func (i *IncomingWebhookAuthResponseJwt) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseJwt) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseJwt
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseJwt) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4135,12 +6636,28 @@ func (i *IncomingWebhookAuthResponseJwt) String() string {
 }
 
 type IncomingWebhookAuthResponseNone struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (i *IncomingWebhookAuthResponseNone) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseNone) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
 }
 
 func (i *IncomingWebhookAuthResponseNone) UnmarshalJSON(data []byte) error {
@@ -4159,7 +6676,21 @@ func (i *IncomingWebhookAuthResponseNone) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseNone) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseNone
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseNone) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4171,9 +6702,17 @@ func (i *IncomingWebhookAuthResponseNone) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookAuthResponseQueryEqualsFieldQuery         = big.NewInt(1 << 0)
+	incomingWebhookAuthResponseQueryEqualsFieldValueRedacted = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookAuthResponseQueryEquals struct {
 	Query         string `json:"query" url:"query"`
 	ValueRedacted bool   `json:"value_redacted" url:"value_redacted"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4194,7 +6733,33 @@ func (i *IncomingWebhookAuthResponseQueryEquals) GetValueRedacted() bool {
 }
 
 func (i *IncomingWebhookAuthResponseQueryEquals) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthResponseQueryEquals) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetQuery sets the Query field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseQueryEquals) SetQuery(query string) {
+	i.Query = query
+	i.require(incomingWebhookAuthResponseQueryEqualsFieldQuery)
+}
+
+// SetValueRedacted sets the ValueRedacted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthResponseQueryEquals) SetValueRedacted(valueRedacted bool) {
+	i.ValueRedacted = valueRedacted
+	i.require(incomingWebhookAuthResponseQueryEqualsFieldValueRedacted)
 }
 
 func (i *IncomingWebhookAuthResponseQueryEquals) UnmarshalJSON(data []byte) error {
@@ -4213,7 +6778,21 @@ func (i *IncomingWebhookAuthResponseQueryEquals) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
+func (i *IncomingWebhookAuthResponseQueryEquals) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthResponseQueryEquals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthResponseQueryEquals) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4225,9 +6804,17 @@ func (i *IncomingWebhookAuthResponseQueryEquals) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookAuthSevenFieldToken    = big.NewInt(1 << 0)
+	incomingWebhookAuthSevenFieldAuthType = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookAuthSeven struct {
 	Token    *IncomingWebhookSecret           `json:"token" url:"token"`
 	AuthType IncomingWebhookAuthSevenAuthType `json:"auth_type" url:"auth_type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4248,7 +6835,33 @@ func (i *IncomingWebhookAuthSeven) GetAuthType() IncomingWebhookAuthSevenAuthTyp
 }
 
 func (i *IncomingWebhookAuthSeven) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthSeven) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetToken sets the Token field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthSeven) SetToken(token *IncomingWebhookSecret) {
+	i.Token = token
+	i.require(incomingWebhookAuthSevenFieldToken)
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthSeven) SetAuthType(authType IncomingWebhookAuthSevenAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthSevenFieldAuthType)
 }
 
 func (i *IncomingWebhookAuthSeven) UnmarshalJSON(data []byte) error {
@@ -4267,7 +6880,21 @@ func (i *IncomingWebhookAuthSeven) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthSeven) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthSeven
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthSeven) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4298,10 +6925,19 @@ func (i IncomingWebhookAuthSevenAuthType) Ptr() *IncomingWebhookAuthSevenAuthTyp
 	return &i
 }
 
+var (
+	incomingWebhookAuthSixFieldPassword = big.NewInt(1 << 0)
+	incomingWebhookAuthSixFieldUsername = big.NewInt(1 << 1)
+	incomingWebhookAuthSixFieldAuthType = big.NewInt(1 << 2)
+)
+
 type IncomingWebhookAuthSix struct {
 	Password *IncomingWebhookSecret         `json:"password" url:"password"`
 	Username *IncomingWebhookSecret         `json:"username" url:"username"`
 	AuthType IncomingWebhookAuthSixAuthType `json:"auth_type" url:"auth_type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4329,7 +6965,40 @@ func (i *IncomingWebhookAuthSix) GetAuthType() IncomingWebhookAuthSixAuthType {
 }
 
 func (i *IncomingWebhookAuthSix) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthSix) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetPassword sets the Password field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthSix) SetPassword(password *IncomingWebhookSecret) {
+	i.Password = password
+	i.require(incomingWebhookAuthSixFieldPassword)
+}
+
+// SetUsername sets the Username field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthSix) SetUsername(username *IncomingWebhookSecret) {
+	i.Username = username
+	i.require(incomingWebhookAuthSixFieldUsername)
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthSix) SetAuthType(authType IncomingWebhookAuthSixAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthSixFieldAuthType)
 }
 
 func (i *IncomingWebhookAuthSix) UnmarshalJSON(data []byte) error {
@@ -4348,7 +7017,21 @@ func (i *IncomingWebhookAuthSix) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthSix) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthSix
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthSix) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4379,6 +7062,17 @@ func (i IncomingWebhookAuthSixAuthType) Ptr() *IncomingWebhookAuthSixAuthType {
 	return &i
 }
 
+var (
+	incomingWebhookAuthThreeFieldAlgorithm     = big.NewInt(1 << 0)
+	incomingWebhookAuthThreeFieldEncoding      = big.NewInt(1 << 1)
+	incomingWebhookAuthThreeFieldPrefix        = big.NewInt(1 << 2)
+	incomingWebhookAuthThreeFieldSecret        = big.NewInt(1 << 3)
+	incomingWebhookAuthThreeFieldSignature     = big.NewInt(1 << 4)
+	incomingWebhookAuthThreeFieldSignedPayload = big.NewInt(1 << 5)
+	incomingWebhookAuthThreeFieldTimestamp     = big.NewInt(1 << 6)
+	incomingWebhookAuthThreeFieldAuthType      = big.NewInt(1 << 7)
+)
+
 type IncomingWebhookAuthThree struct {
 	Algorithm     HmacAlgorithm                    `json:"algorithm" url:"algorithm"`
 	Encoding      SignatureEncoding                `json:"encoding" url:"encoding"`
@@ -4388,6 +7082,9 @@ type IncomingWebhookAuthThree struct {
 	SignedPayload *SignedPayload                   `json:"signed_payload" url:"signed_payload"`
 	Timestamp     *TimestampCheck                  `json:"timestamp,omitempty" url:"timestamp,omitempty"`
 	AuthType      IncomingWebhookAuthThreeAuthType `json:"auth_type" url:"auth_type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4450,7 +7147,75 @@ func (i *IncomingWebhookAuthThree) GetAuthType() IncomingWebhookAuthThreeAuthTyp
 }
 
 func (i *IncomingWebhookAuthThree) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthThree) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAlgorithm sets the Algorithm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthThree) SetAlgorithm(algorithm HmacAlgorithm) {
+	i.Algorithm = algorithm
+	i.require(incomingWebhookAuthThreeFieldAlgorithm)
+}
+
+// SetEncoding sets the Encoding field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthThree) SetEncoding(encoding SignatureEncoding) {
+	i.Encoding = encoding
+	i.require(incomingWebhookAuthThreeFieldEncoding)
+}
+
+// SetPrefix sets the Prefix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthThree) SetPrefix(prefix *string) {
+	i.Prefix = prefix
+	i.require(incomingWebhookAuthThreeFieldPrefix)
+}
+
+// SetSecret sets the Secret field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthThree) SetSecret(secret *IncomingWebhookSecret) {
+	i.Secret = secret
+	i.require(incomingWebhookAuthThreeFieldSecret)
+}
+
+// SetSignature sets the Signature field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthThree) SetSignature(signature *ValueSource) {
+	i.Signature = signature
+	i.require(incomingWebhookAuthThreeFieldSignature)
+}
+
+// SetSignedPayload sets the SignedPayload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthThree) SetSignedPayload(signedPayload *SignedPayload) {
+	i.SignedPayload = signedPayload
+	i.require(incomingWebhookAuthThreeFieldSignedPayload)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthThree) SetTimestamp(timestamp *TimestampCheck) {
+	i.Timestamp = timestamp
+	i.require(incomingWebhookAuthThreeFieldTimestamp)
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthThree) SetAuthType(authType IncomingWebhookAuthThreeAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthThreeFieldAuthType)
 }
 
 func (i *IncomingWebhookAuthThree) UnmarshalJSON(data []byte) error {
@@ -4469,7 +7234,21 @@ func (i *IncomingWebhookAuthThree) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthThree) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthThree
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthThree) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4500,8 +7279,15 @@ func (i IncomingWebhookAuthThreeAuthType) Ptr() *IncomingWebhookAuthThreeAuthTyp
 	return &i
 }
 
+var (
+	incomingWebhookAuthZeroFieldAuthType = big.NewInt(1 << 0)
+)
+
 type IncomingWebhookAuthZero struct {
 	AuthType IncomingWebhookAuthZeroAuthType `json:"auth_type" url:"auth_type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4515,7 +7301,26 @@ func (i *IncomingWebhookAuthZero) GetAuthType() IncomingWebhookAuthZeroAuthType 
 }
 
 func (i *IncomingWebhookAuthZero) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookAuthZero) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAuthType sets the AuthType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookAuthZero) SetAuthType(authType IncomingWebhookAuthZeroAuthType) {
+	i.AuthType = authType
+	i.require(incomingWebhookAuthZeroFieldAuthType)
 }
 
 func (i *IncomingWebhookAuthZero) UnmarshalJSON(data []byte) error {
@@ -4534,7 +7339,21 @@ func (i *IncomingWebhookAuthZero) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookAuthZero) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookAuthZero
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookAuthZero) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4649,15 +7468,23 @@ func (i *IncomingWebhookCondition) Accept(visitor IncomingWebhookConditionVisito
 	return fmt.Errorf("type %T does not include a non-empty union type", i)
 }
 
+var (
+	incomingWebhookConditionEqualsFieldEquals   = big.NewInt(1 << 0)
+	incomingWebhookConditionEqualsFieldJSONPath = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookConditionEquals struct {
-	Equals   interface{} `json:"equals" url:"equals"`
-	JSONPath string      `json:"json_path" url:"json_path"`
+	Equals   any    `json:"equals" url:"equals"`
+	JSONPath string `json:"json_path" url:"json_path"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (i *IncomingWebhookConditionEquals) GetEquals() interface{} {
+func (i *IncomingWebhookConditionEquals) GetEquals() any {
 	if i == nil {
 		return nil
 	}
@@ -4672,7 +7499,33 @@ func (i *IncomingWebhookConditionEquals) GetJSONPath() string {
 }
 
 func (i *IncomingWebhookConditionEquals) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookConditionEquals) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetEquals sets the Equals field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookConditionEquals) SetEquals(equals any) {
+	i.Equals = equals
+	i.require(incomingWebhookConditionEqualsFieldEquals)
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookConditionEquals) SetJSONPath(jsonPath string) {
+	i.JSONPath = jsonPath
+	i.require(incomingWebhookConditionEqualsFieldJSONPath)
 }
 
 func (i *IncomingWebhookConditionEquals) UnmarshalJSON(data []byte) error {
@@ -4691,7 +7544,21 @@ func (i *IncomingWebhookConditionEquals) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookConditionEquals) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookConditionEquals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookConditionEquals) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4703,10 +7570,19 @@ func (i *IncomingWebhookConditionEquals) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookGitSourceFieldBranch     = big.NewInt(1 << 0)
+	incomingWebhookGitSourceFieldRepoURL    = big.NewInt(1 << 1)
+	incomingWebhookGitSourceFieldTargetPath = big.NewInt(1 << 2)
+)
+
 type IncomingWebhookGitSource struct {
 	Branch     *string `json:"branch,omitempty" url:"branch,omitempty"`
 	RepoURL    string  `json:"repo_url" url:"repo_url"`
 	TargetPath *string `json:"target_path,omitempty" url:"target_path,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4734,7 +7610,40 @@ func (i *IncomingWebhookGitSource) GetTargetPath() *string {
 }
 
 func (i *IncomingWebhookGitSource) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookGitSource) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetBranch sets the Branch field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookGitSource) SetBranch(branch *string) {
+	i.Branch = branch
+	i.require(incomingWebhookGitSourceFieldBranch)
+}
+
+// SetRepoURL sets the RepoURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookGitSource) SetRepoURL(repoURL string) {
+	i.RepoURL = repoURL
+	i.require(incomingWebhookGitSourceFieldRepoURL)
+}
+
+// SetTargetPath sets the TargetPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookGitSource) SetTargetPath(targetPath *string) {
+	i.TargetPath = targetPath
+	i.require(incomingWebhookGitSourceFieldTargetPath)
 }
 
 func (i *IncomingWebhookGitSource) UnmarshalJSON(data []byte) error {
@@ -4753,7 +7662,21 @@ func (i *IncomingWebhookGitSource) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookGitSource) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookGitSource
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookGitSource) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4765,9 +7688,17 @@ func (i *IncomingWebhookGitSource) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookRuleFieldActions = big.NewInt(1 << 0)
+	incomingWebhookRuleFieldWhen    = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookRule struct {
 	Actions []*IncomingWebhookAction  `json:"actions" url:"actions"`
 	When    *IncomingWebhookCondition `json:"when,omitempty" url:"when,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4788,7 +7719,33 @@ func (i *IncomingWebhookRule) GetWhen() *IncomingWebhookCondition {
 }
 
 func (i *IncomingWebhookRule) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookRule) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetActions sets the Actions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookRule) SetActions(actions []*IncomingWebhookAction) {
+	i.Actions = actions
+	i.require(incomingWebhookRuleFieldActions)
+}
+
+// SetWhen sets the When field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookRule) SetWhen(when *IncomingWebhookCondition) {
+	i.When = when
+	i.require(incomingWebhookRuleFieldWhen)
 }
 
 func (i *IncomingWebhookRule) UnmarshalJSON(data []byte) error {
@@ -4807,7 +7764,21 @@ func (i *IncomingWebhookRule) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookRule) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookRule
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookRule) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4819,11 +7790,21 @@ func (i *IncomingWebhookRule) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookSandboxLifecycleFieldAutoResume     = big.NewInt(1 << 0)
+	incomingWebhookSandboxLifecycleFieldDeleteAfter    = big.NewInt(1 << 1)
+	incomingWebhookSandboxLifecycleFieldPauseAfter     = big.NewInt(1 << 2)
+	incomingWebhookSandboxLifecycleFieldPauseAfterIdle = big.NewInt(1 << 3)
+)
+
 type IncomingWebhookSandboxLifecycle struct {
 	AutoResume     *IncomingWebhookAutoResumePolicy `json:"auto_resume,omitempty" url:"auto_resume,omitempty"`
 	DeleteAfter    *int64                           `json:"delete_after,omitempty" url:"delete_after,omitempty"`
 	PauseAfter     *int64                           `json:"pause_after,omitempty" url:"pause_after,omitempty"`
 	PauseAfterIdle *int64                           `json:"pause_after_idle,omitempty" url:"pause_after_idle,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4858,7 +7839,47 @@ func (i *IncomingWebhookSandboxLifecycle) GetPauseAfterIdle() *int64 {
 }
 
 func (i *IncomingWebhookSandboxLifecycle) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookSandboxLifecycle) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAutoResume sets the AutoResume field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxLifecycle) SetAutoResume(autoResume *IncomingWebhookAutoResumePolicy) {
+	i.AutoResume = autoResume
+	i.require(incomingWebhookSandboxLifecycleFieldAutoResume)
+}
+
+// SetDeleteAfter sets the DeleteAfter field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxLifecycle) SetDeleteAfter(deleteAfter *int64) {
+	i.DeleteAfter = deleteAfter
+	i.require(incomingWebhookSandboxLifecycleFieldDeleteAfter)
+}
+
+// SetPauseAfter sets the PauseAfter field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxLifecycle) SetPauseAfter(pauseAfter *int64) {
+	i.PauseAfter = pauseAfter
+	i.require(incomingWebhookSandboxLifecycleFieldPauseAfter)
+}
+
+// SetPauseAfterIdle sets the PauseAfterIdle field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxLifecycle) SetPauseAfterIdle(pauseAfterIdle *int64) {
+	i.PauseAfterIdle = pauseAfterIdle
+	i.require(incomingWebhookSandboxLifecycleFieldPauseAfterIdle)
 }
 
 func (i *IncomingWebhookSandboxLifecycle) UnmarshalJSON(data []byte) error {
@@ -4877,7 +7898,21 @@ func (i *IncomingWebhookSandboxLifecycle) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookSandboxLifecycle) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookSandboxLifecycle
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookSandboxLifecycle) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -4888,6 +7923,23 @@ func (i *IncomingWebhookSandboxLifecycle) String() string {
 	}
 	return fmt.Sprintf("%#v", i)
 }
+
+var (
+	incomingWebhookSandboxTemplateFieldCacheKey         = big.NewInt(1 << 0)
+	incomingWebhookSandboxTemplateFieldDiskGb           = big.NewInt(1 << 1)
+	incomingWebhookSandboxTemplateFieldEnv              = big.NewInt(1 << 2)
+	incomingWebhookSandboxTemplateFieldGatewayProfile   = big.NewInt(1 << 3)
+	incomingWebhookSandboxTemplateFieldImage            = big.NewInt(1 << 4)
+	incomingWebhookSandboxTemplateFieldInit             = big.NewInt(1 << 5)
+	incomingWebhookSandboxTemplateFieldInitCapabilities = big.NewInt(1 << 6)
+	incomingWebhookSandboxTemplateFieldLifecycle        = big.NewInt(1 << 7)
+	incomingWebhookSandboxTemplateFieldMemoryMb         = big.NewInt(1 << 8)
+	incomingWebhookSandboxTemplateFieldSetupScripts     = big.NewInt(1 << 9)
+	incomingWebhookSandboxTemplateFieldSnapshotName     = big.NewInt(1 << 10)
+	incomingWebhookSandboxTemplateFieldSources          = big.NewInt(1 << 11)
+	incomingWebhookSandboxTemplateFieldVcpus            = big.NewInt(1 << 12)
+	incomingWebhookSandboxTemplateFieldWorkdir          = big.NewInt(1 << 13)
+)
 
 type IncomingWebhookSandboxTemplate struct {
 	CacheKey         *string                          `json:"cache_key,omitempty" url:"cache_key,omitempty"`
@@ -4904,6 +7956,9 @@ type IncomingWebhookSandboxTemplate struct {
 	Sources          []*IncomingWebhookGitSource      `json:"sources,omitempty" url:"sources,omitempty"`
 	Vcpus            int                              `json:"vcpus" url:"vcpus"`
 	Workdir          *string                          `json:"workdir,omitempty" url:"workdir,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5008,7 +8063,117 @@ func (i *IncomingWebhookSandboxTemplate) GetWorkdir() *string {
 }
 
 func (i *IncomingWebhookSandboxTemplate) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookSandboxTemplate) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetCacheKey sets the CacheKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetCacheKey(cacheKey *string) {
+	i.CacheKey = cacheKey
+	i.require(incomingWebhookSandboxTemplateFieldCacheKey)
+}
+
+// SetDiskGb sets the DiskGb field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetDiskGb(diskGb int) {
+	i.DiskGb = diskGb
+	i.require(incomingWebhookSandboxTemplateFieldDiskGb)
+}
+
+// SetEnv sets the Env field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetEnv(env map[string]*string) {
+	i.Env = env
+	i.require(incomingWebhookSandboxTemplateFieldEnv)
+}
+
+// SetGatewayProfile sets the GatewayProfile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetGatewayProfile(gatewayProfile *string) {
+	i.GatewayProfile = gatewayProfile
+	i.require(incomingWebhookSandboxTemplateFieldGatewayProfile)
+}
+
+// SetImage sets the Image field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetImage(image string) {
+	i.Image = image
+	i.require(incomingWebhookSandboxTemplateFieldImage)
+}
+
+// SetInit sets the Init field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetInit(init *SandboxInit) {
+	i.Init = init
+	i.require(incomingWebhookSandboxTemplateFieldInit)
+}
+
+// SetInitCapabilities sets the InitCapabilities field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetInitCapabilities(initCapabilities []LegacyInitCapability) {
+	i.InitCapabilities = initCapabilities
+	i.require(incomingWebhookSandboxTemplateFieldInitCapabilities)
+}
+
+// SetLifecycle sets the Lifecycle field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetLifecycle(lifecycle *IncomingWebhookSandboxLifecycle) {
+	i.Lifecycle = lifecycle
+	i.require(incomingWebhookSandboxTemplateFieldLifecycle)
+}
+
+// SetMemoryMb sets the MemoryMb field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetMemoryMb(memoryMb int) {
+	i.MemoryMb = memoryMb
+	i.require(incomingWebhookSandboxTemplateFieldMemoryMb)
+}
+
+// SetSetupScripts sets the SetupScripts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetSetupScripts(setupScripts []*IncomingWebhookSetupScript) {
+	i.SetupScripts = setupScripts
+	i.require(incomingWebhookSandboxTemplateFieldSetupScripts)
+}
+
+// SetSnapshotName sets the SnapshotName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetSnapshotName(snapshotName *string) {
+	i.SnapshotName = snapshotName
+	i.require(incomingWebhookSandboxTemplateFieldSnapshotName)
+}
+
+// SetSources sets the Sources field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetSources(sources []*IncomingWebhookGitSource) {
+	i.Sources = sources
+	i.require(incomingWebhookSandboxTemplateFieldSources)
+}
+
+// SetVcpus sets the Vcpus field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetVcpus(vcpus int) {
+	i.Vcpus = vcpus
+	i.require(incomingWebhookSandboxTemplateFieldVcpus)
+}
+
+// SetWorkdir sets the Workdir field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSandboxTemplate) SetWorkdir(workdir *string) {
+	i.Workdir = workdir
+	i.require(incomingWebhookSandboxTemplateFieldWorkdir)
 }
 
 func (i *IncomingWebhookSandboxTemplate) UnmarshalJSON(data []byte) error {
@@ -5027,7 +8192,21 @@ func (i *IncomingWebhookSandboxTemplate) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookSandboxTemplate) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookSandboxTemplate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookSandboxTemplate) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5039,9 +8218,17 @@ func (i *IncomingWebhookSandboxTemplate) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookSecretFieldName  = big.NewInt(1 << 0)
+	incomingWebhookSecretFieldValue = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookSecret struct {
 	Name  string `json:"name" url:"name"`
 	Value string `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5062,7 +8249,33 @@ func (i *IncomingWebhookSecret) GetValue() string {
 }
 
 func (i *IncomingWebhookSecret) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookSecret) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSecret) SetName(name string) {
+	i.Name = name
+	i.require(incomingWebhookSecretFieldName)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSecret) SetValue(value string) {
+	i.Value = value
+	i.require(incomingWebhookSecretFieldValue)
 }
 
 func (i *IncomingWebhookSecret) UnmarshalJSON(data []byte) error {
@@ -5081,7 +8294,21 @@ func (i *IncomingWebhookSecret) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookSecret) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookSecret
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookSecret) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5093,8 +8320,15 @@ func (i *IncomingWebhookSecret) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookSecretRefFieldName = big.NewInt(1 << 0)
+)
+
 type IncomingWebhookSecretRef struct {
 	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5108,7 +8342,26 @@ func (i *IncomingWebhookSecretRef) GetName() string {
 }
 
 func (i *IncomingWebhookSecretRef) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookSecretRef) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSecretRef) SetName(name string) {
+	i.Name = name
+	i.require(incomingWebhookSecretRefFieldName)
 }
 
 func (i *IncomingWebhookSecretRef) UnmarshalJSON(data []byte) error {
@@ -5127,7 +8380,21 @@ func (i *IncomingWebhookSecretRef) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookSecretRef) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookSecretRef
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookSecretRef) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5139,9 +8406,17 @@ func (i *IncomingWebhookSecretRef) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookSetupScriptFieldName   = big.NewInt(1 << 0)
+	incomingWebhookSetupScriptFieldScript = big.NewInt(1 << 1)
+)
+
 type IncomingWebhookSetupScript struct {
 	Name   *string `json:"name,omitempty" url:"name,omitempty"`
 	Script string  `json:"script" url:"script"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5162,7 +8437,33 @@ func (i *IncomingWebhookSetupScript) GetScript() string {
 }
 
 func (i *IncomingWebhookSetupScript) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookSetupScript) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSetupScript) SetName(name *string) {
+	i.Name = name
+	i.require(incomingWebhookSetupScriptFieldName)
+}
+
+// SetScript sets the Script field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookSetupScript) SetScript(script string) {
+	i.Script = script
+	i.require(incomingWebhookSetupScriptFieldScript)
 }
 
 func (i *IncomingWebhookSetupScript) UnmarshalJSON(data []byte) error {
@@ -5181,7 +8482,21 @@ func (i *IncomingWebhookSetupScript) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IncomingWebhookSetupScript) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookSetupScript
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookSetupScript) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5219,6 +8534,8 @@ type IncomingWebhookTarget struct {
 	TargetType           string
 	FixedSandboxName     *IncomingWebhookTargetFixedSandboxName
 	SandboxNameFromEvent *IncomingWebhookTargetSandboxNameFromEvent
+
+	rawJSON json.RawMessage
 }
 
 func (i *IncomingWebhookTarget) GetTargetType() string {
@@ -5267,6 +8584,7 @@ func (i *IncomingWebhookTarget) UnmarshalJSON(data []byte) error {
 		}
 		i.SandboxNameFromEvent = value
 	}
+	i.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -5279,6 +8597,9 @@ func (i IncomingWebhookTarget) MarshalJSON() ([]byte, error) {
 	}
 	if i.SandboxNameFromEvent != nil {
 		return internal.MarshalJSONWithExtraProperty(i.SandboxNameFromEvent, "target_type", "sandbox_name_from_event")
+	}
+	if len(i.rawJSON) > 0 {
+		return i.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", i)
 }
@@ -5311,6 +8632,9 @@ func (i *IncomingWebhookTarget) validate() error {
 	}
 	if len(fields) == 0 {
 		if i.TargetType != "" {
+			if len(i.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", i, i.TargetType)
 		}
 		return fmt.Errorf("type %T is empty", i)
@@ -5332,8 +8656,15 @@ func (i *IncomingWebhookTarget) validate() error {
 	return nil
 }
 
+var (
+	incomingWebhookTargetFixedSandboxNameFieldSandboxName = big.NewInt(1 << 0)
+)
+
 type IncomingWebhookTargetFixedSandboxName struct {
 	SandboxName string `json:"sandbox_name" url:"sandbox_name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5347,7 +8678,26 @@ func (i *IncomingWebhookTargetFixedSandboxName) GetSandboxName() string {
 }
 
 func (i *IncomingWebhookTargetFixedSandboxName) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookTargetFixedSandboxName) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetSandboxName sets the SandboxName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookTargetFixedSandboxName) SetSandboxName(sandboxName string) {
+	i.SandboxName = sandboxName
+	i.require(incomingWebhookTargetFixedSandboxNameFieldSandboxName)
 }
 
 func (i *IncomingWebhookTargetFixedSandboxName) UnmarshalJSON(data []byte) error {
@@ -5366,7 +8716,21 @@ func (i *IncomingWebhookTargetFixedSandboxName) UnmarshalJSON(data []byte) error
 	return nil
 }
 
+func (i *IncomingWebhookTargetFixedSandboxName) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookTargetFixedSandboxName
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookTargetFixedSandboxName) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5378,11 +8742,21 @@ func (i *IncomingWebhookTargetFixedSandboxName) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	incomingWebhookTargetSandboxNameFromEventFieldAllowedNames   = big.NewInt(1 << 0)
+	incomingWebhookTargetSandboxNameFromEventFieldAllowedPattern = big.NewInt(1 << 1)
+	incomingWebhookTargetSandboxNameFromEventFieldRequiredPrefix = big.NewInt(1 << 2)
+	incomingWebhookTargetSandboxNameFromEventFieldSource         = big.NewInt(1 << 3)
+)
+
 type IncomingWebhookTargetSandboxNameFromEvent struct {
 	AllowedNames   []string     `json:"allowed_names,omitempty" url:"allowed_names,omitempty"`
 	AllowedPattern *string      `json:"allowed_pattern,omitempty" url:"allowed_pattern,omitempty"`
 	RequiredPrefix *string      `json:"required_prefix,omitempty" url:"required_prefix,omitempty"`
 	Source         *ValueSource `json:"source" url:"source"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5417,7 +8791,47 @@ func (i *IncomingWebhookTargetSandboxNameFromEvent) GetSource() *ValueSource {
 }
 
 func (i *IncomingWebhookTargetSandboxNameFromEvent) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IncomingWebhookTargetSandboxNameFromEvent) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetAllowedNames sets the AllowedNames field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookTargetSandboxNameFromEvent) SetAllowedNames(allowedNames []string) {
+	i.AllowedNames = allowedNames
+	i.require(incomingWebhookTargetSandboxNameFromEventFieldAllowedNames)
+}
+
+// SetAllowedPattern sets the AllowedPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookTargetSandboxNameFromEvent) SetAllowedPattern(allowedPattern *string) {
+	i.AllowedPattern = allowedPattern
+	i.require(incomingWebhookTargetSandboxNameFromEventFieldAllowedPattern)
+}
+
+// SetRequiredPrefix sets the RequiredPrefix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookTargetSandboxNameFromEvent) SetRequiredPrefix(requiredPrefix *string) {
+	i.RequiredPrefix = requiredPrefix
+	i.require(incomingWebhookTargetSandboxNameFromEventFieldRequiredPrefix)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookTargetSandboxNameFromEvent) SetSource(source *ValueSource) {
+	i.Source = source
+	i.require(incomingWebhookTargetSandboxNameFromEventFieldSource)
 }
 
 func (i *IncomingWebhookTargetSandboxNameFromEvent) UnmarshalJSON(data []byte) error {
@@ -5436,7 +8850,21 @@ func (i *IncomingWebhookTargetSandboxNameFromEvent) UnmarshalJSON(data []byte) e
 	return nil
 }
 
+func (i *IncomingWebhookTargetSandboxNameFromEvent) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookTargetSandboxNameFromEvent
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IncomingWebhookTargetSandboxNameFromEvent) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5504,8 +8932,15 @@ func (i IngressEventStatus) Ptr() *IngressEventStatus {
 	return &i
 }
 
+var (
+	iPAllowlistVerifierFieldCidrs = big.NewInt(1 << 0)
+)
+
 type IPAllowlistVerifier struct {
 	Cidrs []string `json:"cidrs" url:"cidrs"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5519,7 +8954,26 @@ func (i *IPAllowlistVerifier) GetCidrs() []string {
 }
 
 func (i *IPAllowlistVerifier) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IPAllowlistVerifier) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetCidrs sets the Cidrs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IPAllowlistVerifier) SetCidrs(cidrs []string) {
+	i.Cidrs = cidrs
+	i.require(iPAllowlistVerifierFieldCidrs)
 }
 
 func (i *IPAllowlistVerifier) UnmarshalJSON(data []byte) error {
@@ -5538,7 +8992,21 @@ func (i *IPAllowlistVerifier) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IPAllowlistVerifier) MarshalJSON() ([]byte, error) {
+	type embed IPAllowlistVerifier
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IPAllowlistVerifier) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -5612,8 +9080,15 @@ func (j *JobParamMapping) Accept(visitor JobParamMappingVisitor) error {
 	return fmt.Errorf("type %T does not include a non-empty union type", j)
 }
 
+var (
+	jobParamMappingPartsFieldParts = big.NewInt(1 << 0)
+)
+
 type JobParamMappingParts struct {
 	Parts []*MappingPart `json:"parts" url:"parts"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5627,7 +9102,26 @@ func (j *JobParamMappingParts) GetParts() []*MappingPart {
 }
 
 func (j *JobParamMappingParts) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JobParamMappingParts) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetParts sets the Parts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JobParamMappingParts) SetParts(parts []*MappingPart) {
+	j.Parts = parts
+	j.require(jobParamMappingPartsFieldParts)
 }
 
 func (j *JobParamMappingParts) UnmarshalJSON(data []byte) error {
@@ -5646,7 +9140,21 @@ func (j *JobParamMappingParts) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JobParamMappingParts) MarshalJSON() ([]byte, error) {
+	type embed JobParamMappingParts
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JobParamMappingParts) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -5658,8 +9166,15 @@ func (j *JobParamMappingParts) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jobParamMappingSourceFieldSource = big.NewInt(1 << 0)
+)
+
 type JobParamMappingSource struct {
 	Source *ValueSource `json:"source" url:"source"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5673,7 +9188,26 @@ func (j *JobParamMappingSource) GetSource() *ValueSource {
 }
 
 func (j *JobParamMappingSource) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JobParamMappingSource) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JobParamMappingSource) SetSource(source *ValueSource) {
+	j.Source = source
+	j.require(jobParamMappingSourceFieldSource)
 }
 
 func (j *JobParamMappingSource) UnmarshalJSON(data []byte) error {
@@ -5692,7 +9226,21 @@ func (j *JobParamMappingSource) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JobParamMappingSource) MarshalJSON() ([]byte, error) {
+	type embed JobParamMappingSource
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JobParamMappingSource) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -5719,6 +9267,8 @@ type JSONPathCondition struct {
 	GreaterThanOrEqual *JSONPathConditionGreaterThanOrEqual
 	LessThan           *JSONPathConditionLessThan
 	LessThanOrEqual    *JSONPathConditionLessThanOrEqual
+
+	rawJSON json.RawMessage
 }
 
 func (j *JSONPathCondition) GetOp() string {
@@ -5910,6 +9460,7 @@ func (j *JSONPathCondition) UnmarshalJSON(data []byte) error {
 		}
 		j.LessThanOrEqual = value
 	}
+	j.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -5955,6 +9506,9 @@ func (j JSONPathCondition) MarshalJSON() ([]byte, error) {
 	}
 	if j.LessThanOrEqual != nil {
 		return internal.MarshalJSONWithExtraProperty(j.LessThanOrEqual, "op", "less_than_or_equal")
+	}
+	if len(j.rawJSON) > 0 {
+		return j.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", j)
 }
@@ -6064,6 +9618,9 @@ func (j *JSONPathCondition) validate() error {
 	}
 	if len(fields) == 0 {
 		if j.Op != "" {
+			if len(j.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", j, j.Op)
 		}
 		return fmt.Errorf("type %T is empty", j)
@@ -6085,8 +9642,15 @@ func (j *JSONPathCondition) validate() error {
 	return nil
 }
 
+var (
+	jSONPathConditionAllFieldConditions = big.NewInt(1 << 0)
+)
+
 type JSONPathConditionAll struct {
 	Conditions []*IncomingWebhookCondition `json:"conditions" url:"conditions"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6100,7 +9664,26 @@ func (j *JSONPathConditionAll) GetConditions() []*IncomingWebhookCondition {
 }
 
 func (j *JSONPathConditionAll) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionAll) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetConditions sets the Conditions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionAll) SetConditions(conditions []*IncomingWebhookCondition) {
+	j.Conditions = conditions
+	j.require(jSONPathConditionAllFieldConditions)
 }
 
 func (j *JSONPathConditionAll) UnmarshalJSON(data []byte) error {
@@ -6119,7 +9702,21 @@ func (j *JSONPathConditionAll) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionAll) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionAll
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionAll) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6131,8 +9728,15 @@ func (j *JSONPathConditionAll) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionAnyFieldConditions = big.NewInt(1 << 0)
+)
+
 type JSONPathConditionAny struct {
 	Conditions []*IncomingWebhookCondition `json:"conditions" url:"conditions"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6146,7 +9750,26 @@ func (j *JSONPathConditionAny) GetConditions() []*IncomingWebhookCondition {
 }
 
 func (j *JSONPathConditionAny) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionAny) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetConditions sets the Conditions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionAny) SetConditions(conditions []*IncomingWebhookCondition) {
+	j.Conditions = conditions
+	j.require(jSONPathConditionAnyFieldConditions)
 }
 
 func (j *JSONPathConditionAny) UnmarshalJSON(data []byte) error {
@@ -6165,7 +9788,21 @@ func (j *JSONPathConditionAny) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionAny) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionAny
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionAny) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6177,9 +9814,17 @@ func (j *JSONPathConditionAny) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionContainsFieldJSONPath = big.NewInt(1 << 0)
+	jSONPathConditionContainsFieldValue    = big.NewInt(1 << 1)
+)
+
 type JSONPathConditionContains struct {
-	JSONPath string      `json:"json_path" url:"json_path"`
-	Value    interface{} `json:"value" url:"value"`
+	JSONPath string `json:"json_path" url:"json_path"`
+	Value    any    `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6192,7 +9837,7 @@ func (j *JSONPathConditionContains) GetJSONPath() string {
 	return j.JSONPath
 }
 
-func (j *JSONPathConditionContains) GetValue() interface{} {
+func (j *JSONPathConditionContains) GetValue() any {
 	if j == nil {
 		return nil
 	}
@@ -6200,7 +9845,33 @@ func (j *JSONPathConditionContains) GetValue() interface{} {
 }
 
 func (j *JSONPathConditionContains) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionContains) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionContains) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionContainsFieldJSONPath)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionContains) SetValue(value any) {
+	j.Value = value
+	j.require(jSONPathConditionContainsFieldValue)
 }
 
 func (j *JSONPathConditionContains) UnmarshalJSON(data []byte) error {
@@ -6219,7 +9890,21 @@ func (j *JSONPathConditionContains) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionContains) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionContains
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionContains) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6231,9 +9916,17 @@ func (j *JSONPathConditionContains) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionEqualsFieldJSONPath = big.NewInt(1 << 0)
+	jSONPathConditionEqualsFieldValue    = big.NewInt(1 << 1)
+)
+
 type JSONPathConditionEquals struct {
-	JSONPath string      `json:"json_path" url:"json_path"`
-	Value    interface{} `json:"value" url:"value"`
+	JSONPath string `json:"json_path" url:"json_path"`
+	Value    any    `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6246,7 +9939,7 @@ func (j *JSONPathConditionEquals) GetJSONPath() string {
 	return j.JSONPath
 }
 
-func (j *JSONPathConditionEquals) GetValue() interface{} {
+func (j *JSONPathConditionEquals) GetValue() any {
 	if j == nil {
 		return nil
 	}
@@ -6254,7 +9947,33 @@ func (j *JSONPathConditionEquals) GetValue() interface{} {
 }
 
 func (j *JSONPathConditionEquals) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionEquals) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionEquals) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionEqualsFieldJSONPath)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionEquals) SetValue(value any) {
+	j.Value = value
+	j.require(jSONPathConditionEqualsFieldValue)
 }
 
 func (j *JSONPathConditionEquals) UnmarshalJSON(data []byte) error {
@@ -6273,7 +9992,21 @@ func (j *JSONPathConditionEquals) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionEquals) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionEquals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionEquals) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6285,8 +10018,15 @@ func (j *JSONPathConditionEquals) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionExistsFieldJSONPath = big.NewInt(1 << 0)
+)
+
 type JSONPathConditionExists struct {
 	JSONPath string `json:"json_path" url:"json_path"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6300,7 +10040,26 @@ func (j *JSONPathConditionExists) GetJSONPath() string {
 }
 
 func (j *JSONPathConditionExists) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionExists) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionExists) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionExistsFieldJSONPath)
 }
 
 func (j *JSONPathConditionExists) UnmarshalJSON(data []byte) error {
@@ -6319,7 +10078,21 @@ func (j *JSONPathConditionExists) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionExists) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionExists
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionExists) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6331,9 +10104,17 @@ func (j *JSONPathConditionExists) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionGreaterThanFieldJSONPath = big.NewInt(1 << 0)
+	jSONPathConditionGreaterThanFieldValue    = big.NewInt(1 << 1)
+)
+
 type JSONPathConditionGreaterThan struct {
 	JSONPath string  `json:"json_path" url:"json_path"`
 	Value    float64 `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6354,7 +10135,33 @@ func (j *JSONPathConditionGreaterThan) GetValue() float64 {
 }
 
 func (j *JSONPathConditionGreaterThan) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionGreaterThan) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionGreaterThan) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionGreaterThanFieldJSONPath)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionGreaterThan) SetValue(value float64) {
+	j.Value = value
+	j.require(jSONPathConditionGreaterThanFieldValue)
 }
 
 func (j *JSONPathConditionGreaterThan) UnmarshalJSON(data []byte) error {
@@ -6373,7 +10180,21 @@ func (j *JSONPathConditionGreaterThan) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionGreaterThan) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionGreaterThan
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionGreaterThan) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6385,9 +10206,17 @@ func (j *JSONPathConditionGreaterThan) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionGreaterThanOrEqualFieldJSONPath = big.NewInt(1 << 0)
+	jSONPathConditionGreaterThanOrEqualFieldValue    = big.NewInt(1 << 1)
+)
+
 type JSONPathConditionGreaterThanOrEqual struct {
 	JSONPath string  `json:"json_path" url:"json_path"`
 	Value    float64 `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6408,7 +10237,33 @@ func (j *JSONPathConditionGreaterThanOrEqual) GetValue() float64 {
 }
 
 func (j *JSONPathConditionGreaterThanOrEqual) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionGreaterThanOrEqual) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionGreaterThanOrEqual) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionGreaterThanOrEqualFieldJSONPath)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionGreaterThanOrEqual) SetValue(value float64) {
+	j.Value = value
+	j.require(jSONPathConditionGreaterThanOrEqualFieldValue)
 }
 
 func (j *JSONPathConditionGreaterThanOrEqual) UnmarshalJSON(data []byte) error {
@@ -6427,7 +10282,21 @@ func (j *JSONPathConditionGreaterThanOrEqual) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionGreaterThanOrEqual) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionGreaterThanOrEqual
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionGreaterThanOrEqual) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6439,9 +10308,17 @@ func (j *JSONPathConditionGreaterThanOrEqual) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionLessThanFieldJSONPath = big.NewInt(1 << 0)
+	jSONPathConditionLessThanFieldValue    = big.NewInt(1 << 1)
+)
+
 type JSONPathConditionLessThan struct {
 	JSONPath string  `json:"json_path" url:"json_path"`
 	Value    float64 `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6462,7 +10339,33 @@ func (j *JSONPathConditionLessThan) GetValue() float64 {
 }
 
 func (j *JSONPathConditionLessThan) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionLessThan) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionLessThan) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionLessThanFieldJSONPath)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionLessThan) SetValue(value float64) {
+	j.Value = value
+	j.require(jSONPathConditionLessThanFieldValue)
 }
 
 func (j *JSONPathConditionLessThan) UnmarshalJSON(data []byte) error {
@@ -6481,7 +10384,21 @@ func (j *JSONPathConditionLessThan) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionLessThan) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionLessThan
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionLessThan) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6493,9 +10410,17 @@ func (j *JSONPathConditionLessThan) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionLessThanOrEqualFieldJSONPath = big.NewInt(1 << 0)
+	jSONPathConditionLessThanOrEqualFieldValue    = big.NewInt(1 << 1)
+)
+
 type JSONPathConditionLessThanOrEqual struct {
 	JSONPath string  `json:"json_path" url:"json_path"`
 	Value    float64 `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6516,7 +10441,33 @@ func (j *JSONPathConditionLessThanOrEqual) GetValue() float64 {
 }
 
 func (j *JSONPathConditionLessThanOrEqual) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionLessThanOrEqual) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionLessThanOrEqual) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionLessThanOrEqualFieldJSONPath)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionLessThanOrEqual) SetValue(value float64) {
+	j.Value = value
+	j.require(jSONPathConditionLessThanOrEqualFieldValue)
 }
 
 func (j *JSONPathConditionLessThanOrEqual) UnmarshalJSON(data []byte) error {
@@ -6535,7 +10486,21 @@ func (j *JSONPathConditionLessThanOrEqual) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionLessThanOrEqual) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionLessThanOrEqual
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionLessThanOrEqual) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6547,9 +10512,17 @@ func (j *JSONPathConditionLessThanOrEqual) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionMatchesFieldJSONPath = big.NewInt(1 << 0)
+	jSONPathConditionMatchesFieldPattern  = big.NewInt(1 << 1)
+)
+
 type JSONPathConditionMatches struct {
 	JSONPath string `json:"json_path" url:"json_path"`
 	Pattern  string `json:"pattern" url:"pattern"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6570,7 +10543,33 @@ func (j *JSONPathConditionMatches) GetPattern() string {
 }
 
 func (j *JSONPathConditionMatches) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionMatches) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionMatches) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionMatchesFieldJSONPath)
+}
+
+// SetPattern sets the Pattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionMatches) SetPattern(pattern string) {
+	j.Pattern = pattern
+	j.require(jSONPathConditionMatchesFieldPattern)
 }
 
 func (j *JSONPathConditionMatches) UnmarshalJSON(data []byte) error {
@@ -6589,7 +10588,21 @@ func (j *JSONPathConditionMatches) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionMatches) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionMatches
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionMatches) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6601,8 +10614,15 @@ func (j *JSONPathConditionMatches) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionNotFieldCondition = big.NewInt(1 << 0)
+)
+
 type JSONPathConditionNot struct {
 	Condition *IncomingWebhookCondition `json:"condition" url:"condition"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6616,7 +10636,26 @@ func (j *JSONPathConditionNot) GetCondition() *IncomingWebhookCondition {
 }
 
 func (j *JSONPathConditionNot) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionNot) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetCondition sets the Condition field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionNot) SetCondition(condition *IncomingWebhookCondition) {
+	j.Condition = condition
+	j.require(jSONPathConditionNotFieldCondition)
 }
 
 func (j *JSONPathConditionNot) UnmarshalJSON(data []byte) error {
@@ -6635,7 +10674,21 @@ func (j *JSONPathConditionNot) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionNot) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionNot
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionNot) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6647,9 +10700,17 @@ func (j *JSONPathConditionNot) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionNotEqualsFieldJSONPath = big.NewInt(1 << 0)
+	jSONPathConditionNotEqualsFieldValue    = big.NewInt(1 << 1)
+)
+
 type JSONPathConditionNotEquals struct {
-	JSONPath string      `json:"json_path" url:"json_path"`
-	Value    interface{} `json:"value" url:"value"`
+	JSONPath string `json:"json_path" url:"json_path"`
+	Value    any    `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6662,7 +10723,7 @@ func (j *JSONPathConditionNotEquals) GetJSONPath() string {
 	return j.JSONPath
 }
 
-func (j *JSONPathConditionNotEquals) GetValue() interface{} {
+func (j *JSONPathConditionNotEquals) GetValue() any {
 	if j == nil {
 		return nil
 	}
@@ -6670,7 +10731,33 @@ func (j *JSONPathConditionNotEquals) GetValue() interface{} {
 }
 
 func (j *JSONPathConditionNotEquals) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionNotEquals) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionNotEquals) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionNotEqualsFieldJSONPath)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionNotEquals) SetValue(value any) {
+	j.Value = value
+	j.require(jSONPathConditionNotEqualsFieldValue)
 }
 
 func (j *JSONPathConditionNotEquals) UnmarshalJSON(data []byte) error {
@@ -6689,7 +10776,21 @@ func (j *JSONPathConditionNotEquals) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionNotEquals) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionNotEquals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionNotEquals) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6701,8 +10802,15 @@ func (j *JSONPathConditionNotEquals) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jSONPathConditionNotExistsFieldJSONPath = big.NewInt(1 << 0)
+)
+
 type JSONPathConditionNotExists struct {
 	JSONPath string `json:"json_path" url:"json_path"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6716,7 +10824,26 @@ func (j *JSONPathConditionNotExists) GetJSONPath() string {
 }
 
 func (j *JSONPathConditionNotExists) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JSONPathConditionNotExists) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetJSONPath sets the JSONPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JSONPathConditionNotExists) SetJSONPath(jsonPath string) {
+	j.JSONPath = jsonPath
+	j.require(jSONPathConditionNotExistsFieldJSONPath)
 }
 
 func (j *JSONPathConditionNotExists) UnmarshalJSON(data []byte) error {
@@ -6735,7 +10862,21 @@ func (j *JSONPathConditionNotExists) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JSONPathConditionNotExists) MarshalJSON() ([]byte, error) {
+	type embed JSONPathConditionNotExists
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JSONPathConditionNotExists) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6747,10 +10888,19 @@ func (j *JSONPathConditionNotExists) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
+var (
+	jwtVerifierFieldAudience = big.NewInt(1 << 0)
+	jwtVerifierFieldIssuer   = big.NewInt(1 << 1)
+	jwtVerifierFieldJwksURL  = big.NewInt(1 << 2)
+)
+
 type JwtVerifier struct {
 	Audience *string `json:"audience,omitempty" url:"audience,omitempty"`
 	Issuer   *string `json:"issuer,omitempty" url:"issuer,omitempty"`
 	JwksURL  string  `json:"jwks_url" url:"jwks_url"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6778,7 +10928,40 @@ func (j *JwtVerifier) GetJwksURL() string {
 }
 
 func (j *JwtVerifier) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JwtVerifier) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetAudience sets the Audience field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JwtVerifier) SetAudience(audience *string) {
+	j.Audience = audience
+	j.require(jwtVerifierFieldAudience)
+}
+
+// SetIssuer sets the Issuer field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JwtVerifier) SetIssuer(issuer *string) {
+	j.Issuer = issuer
+	j.require(jwtVerifierFieldIssuer)
+}
+
+// SetJwksURL sets the JwksURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JwtVerifier) SetJwksURL(jwksURL string) {
+	j.JwksURL = jwksURL
+	j.require(jwtVerifierFieldJwksURL)
 }
 
 func (j *JwtVerifier) UnmarshalJSON(data []byte) error {
@@ -6797,7 +10980,21 @@ func (j *JwtVerifier) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JwtVerifier) MarshalJSON() ([]byte, error) {
+	type embed JwtVerifier
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JwtVerifier) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -6839,6 +11036,8 @@ type MappingPart struct {
 	Type    string
 	Literal *MappingPartLiteral
 	Source  *MappingPartSource
+
+	rawJSON json.RawMessage
 }
 
 func (m *MappingPart) GetType() string {
@@ -6887,6 +11086,7 @@ func (m *MappingPart) UnmarshalJSON(data []byte) error {
 		}
 		m.Source = value
 	}
+	m.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -6899,6 +11099,9 @@ func (m MappingPart) MarshalJSON() ([]byte, error) {
 	}
 	if m.Source != nil {
 		return internal.MarshalJSONWithExtraProperty(m.Source, "type", "source")
+	}
+	if len(m.rawJSON) > 0 {
+		return m.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", m)
 }
@@ -6931,6 +11134,9 @@ func (m *MappingPart) validate() error {
 	}
 	if len(fields) == 0 {
 		if m.Type != "" {
+			if len(m.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", m, m.Type)
 		}
 		return fmt.Errorf("type %T is empty", m)
@@ -6952,8 +11158,15 @@ func (m *MappingPart) validate() error {
 	return nil
 }
 
+var (
+	mappingPartLiteralFieldValue = big.NewInt(1 << 0)
+)
+
 type MappingPartLiteral struct {
 	Value string `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6967,7 +11180,26 @@ func (m *MappingPartLiteral) GetValue() string {
 }
 
 func (m *MappingPartLiteral) GetExtraProperties() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
 	return m.extraProperties
+}
+
+func (m *MappingPartLiteral) require(field *big.Int) {
+	next := new(big.Int)
+	if m.explicitFields != nil {
+		next.Set(m.explicitFields)
+	}
+	next.Or(next, field)
+	m.explicitFields = next
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *MappingPartLiteral) SetValue(value string) {
+	m.Value = value
+	m.require(mappingPartLiteralFieldValue)
 }
 
 func (m *MappingPartLiteral) UnmarshalJSON(data []byte) error {
@@ -6986,7 +11218,21 @@ func (m *MappingPartLiteral) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (m *MappingPartLiteral) MarshalJSON() ([]byte, error) {
+	type embed MappingPartLiteral
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*m),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, m.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (m *MappingPartLiteral) String() string {
+	if m == nil {
+		return "<nil>"
+	}
 	if len(m.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
 			return value
@@ -6998,8 +11244,15 @@ func (m *MappingPartLiteral) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
+var (
+	mappingPartSourceFieldSource = big.NewInt(1 << 0)
+)
+
 type MappingPartSource struct {
 	Source *ValueSource `json:"source" url:"source"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7013,7 +11266,26 @@ func (m *MappingPartSource) GetSource() *ValueSource {
 }
 
 func (m *MappingPartSource) GetExtraProperties() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
 	return m.extraProperties
+}
+
+func (m *MappingPartSource) require(field *big.Int) {
+	next := new(big.Int)
+	if m.explicitFields != nil {
+		next.Set(m.explicitFields)
+	}
+	next.Or(next, field)
+	m.explicitFields = next
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *MappingPartSource) SetSource(source *ValueSource) {
+	m.Source = source
+	m.require(mappingPartSourceFieldSource)
 }
 
 func (m *MappingPartSource) UnmarshalJSON(data []byte) error {
@@ -7032,7 +11304,21 @@ func (m *MappingPartSource) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (m *MappingPartSource) MarshalJSON() ([]byte, error) {
+	type embed MappingPartSource
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*m),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, m.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (m *MappingPartSource) String() string {
+	if m == nil {
+		return "<nil>"
+	}
 	if len(m.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
 			return value
@@ -7044,8 +11330,15 @@ func (m *MappingPartSource) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
+var (
+	payloadMappingFieldType = big.NewInt(1 << 0)
+)
+
 type PayloadMapping struct {
 	Type PayloadMappingType `json:"type" url:"type"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7059,7 +11352,26 @@ func (p *PayloadMapping) GetType() PayloadMappingType {
 }
 
 func (p *PayloadMapping) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
 	return p.extraProperties
+}
+
+func (p *PayloadMapping) require(field *big.Int) {
+	next := new(big.Int)
+	if p.explicitFields != nil {
+		next.Set(p.explicitFields)
+	}
+	next.Or(next, field)
+	p.explicitFields = next
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PayloadMapping) SetType(type_ PayloadMappingType) {
+	p.Type = type_
+	p.require(payloadMappingFieldType)
 }
 
 func (p *PayloadMapping) UnmarshalJSON(data []byte) error {
@@ -7078,7 +11390,21 @@ func (p *PayloadMapping) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (p *PayloadMapping) MarshalJSON() ([]byte, error) {
+	type embed PayloadMapping
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (p *PayloadMapping) String() string {
+	if p == nil {
+		return "<nil>"
+	}
 	if len(p.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
 			return value
@@ -7109,9 +11435,17 @@ func (p PayloadMappingType) Ptr() *PayloadMappingType {
 	return &p
 }
 
+var (
+	queryEqualsVerifierFieldQuery = big.NewInt(1 << 0)
+	queryEqualsVerifierFieldValue = big.NewInt(1 << 1)
+)
+
 type QueryEqualsVerifier struct {
 	Query string                 `json:"query" url:"query"`
 	Value *IncomingWebhookSecret `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7132,7 +11466,33 @@ func (q *QueryEqualsVerifier) GetValue() *IncomingWebhookSecret {
 }
 
 func (q *QueryEqualsVerifier) GetExtraProperties() map[string]interface{} {
+	if q == nil {
+		return nil
+	}
 	return q.extraProperties
+}
+
+func (q *QueryEqualsVerifier) require(field *big.Int) {
+	next := new(big.Int)
+	if q.explicitFields != nil {
+		next.Set(q.explicitFields)
+	}
+	next.Or(next, field)
+	q.explicitFields = next
+}
+
+// SetQuery sets the Query field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (q *QueryEqualsVerifier) SetQuery(query string) {
+	q.Query = query
+	q.require(queryEqualsVerifierFieldQuery)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (q *QueryEqualsVerifier) SetValue(value *IncomingWebhookSecret) {
+	q.Value = value
+	q.require(queryEqualsVerifierFieldValue)
 }
 
 func (q *QueryEqualsVerifier) UnmarshalJSON(data []byte) error {
@@ -7151,7 +11511,21 @@ func (q *QueryEqualsVerifier) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (q *QueryEqualsVerifier) MarshalJSON() ([]byte, error) {
+	type embed QueryEqualsVerifier
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*q),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, q.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (q *QueryEqualsVerifier) String() string {
+	if q == nil {
+		return "<nil>"
+	}
 	if len(q.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(q.rawJSON); err == nil {
 			return value
@@ -7186,6 +11560,8 @@ type SignedPart struct {
 	Type    string
 	Source  *SignedPartSource
 	Literal *SignedPartLiteral
+
+	rawJSON json.RawMessage
 }
 
 func (s *SignedPart) GetType() string {
@@ -7234,6 +11610,7 @@ func (s *SignedPart) UnmarshalJSON(data []byte) error {
 		}
 		s.Literal = value
 	}
+	s.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -7246,6 +11623,9 @@ func (s SignedPart) MarshalJSON() ([]byte, error) {
 	}
 	if s.Literal != nil {
 		return internal.MarshalJSONWithExtraProperty(s.Literal, "type", "literal")
+	}
+	if len(s.rawJSON) > 0 {
+		return s.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", s)
 }
@@ -7278,6 +11658,9 @@ func (s *SignedPart) validate() error {
 	}
 	if len(fields) == 0 {
 		if s.Type != "" {
+			if len(s.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", s, s.Type)
 		}
 		return fmt.Errorf("type %T is empty", s)
@@ -7299,8 +11682,15 @@ func (s *SignedPart) validate() error {
 	return nil
 }
 
+var (
+	signedPartLiteralFieldValue = big.NewInt(1 << 0)
+)
+
 type SignedPartLiteral struct {
 	Value string `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7314,7 +11704,26 @@ func (s *SignedPartLiteral) GetValue() string {
 }
 
 func (s *SignedPartLiteral) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *SignedPartLiteral) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SignedPartLiteral) SetValue(value string) {
+	s.Value = value
+	s.require(signedPartLiteralFieldValue)
 }
 
 func (s *SignedPartLiteral) UnmarshalJSON(data []byte) error {
@@ -7333,7 +11742,21 @@ func (s *SignedPartLiteral) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *SignedPartLiteral) MarshalJSON() ([]byte, error) {
+	type embed SignedPartLiteral
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *SignedPartLiteral) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -7345,8 +11768,15 @@ func (s *SignedPartLiteral) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
+var (
+	signedPartSourceFieldSource = big.NewInt(1 << 0)
+)
+
 type SignedPartSource struct {
 	Source *ValueSource `json:"source" url:"source"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7360,7 +11790,26 @@ func (s *SignedPartSource) GetSource() *ValueSource {
 }
 
 func (s *SignedPartSource) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *SignedPartSource) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SignedPartSource) SetSource(source *ValueSource) {
+	s.Source = source
+	s.require(signedPartSourceFieldSource)
 }
 
 func (s *SignedPartSource) UnmarshalJSON(data []byte) error {
@@ -7379,7 +11828,21 @@ func (s *SignedPartSource) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *SignedPartSource) MarshalJSON() ([]byte, error) {
+	type embed SignedPartSource
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *SignedPartSource) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -7395,6 +11858,8 @@ type SignedPayload struct {
 	Type     string
 	RawBody  *SignedPayloadRawBody
 	Template *SignedPayloadTemplate
+
+	rawJSON json.RawMessage
 }
 
 func (s *SignedPayload) GetType() string {
@@ -7443,6 +11908,7 @@ func (s *SignedPayload) UnmarshalJSON(data []byte) error {
 		}
 		s.Template = value
 	}
+	s.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -7455,6 +11921,9 @@ func (s SignedPayload) MarshalJSON() ([]byte, error) {
 	}
 	if s.Template != nil {
 		return internal.MarshalJSONWithExtraProperty(s.Template, "type", "template")
+	}
+	if len(s.rawJSON) > 0 {
+		return s.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", s)
 }
@@ -7487,6 +11956,9 @@ func (s *SignedPayload) validate() error {
 	}
 	if len(fields) == 0 {
 		if s.Type != "" {
+			if len(s.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", s, s.Type)
 		}
 		return fmt.Errorf("type %T is empty", s)
@@ -7509,12 +11981,28 @@ func (s *SignedPayload) validate() error {
 }
 
 type SignedPayloadRawBody struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (s *SignedPayloadRawBody) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *SignedPayloadRawBody) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
 }
 
 func (s *SignedPayloadRawBody) UnmarshalJSON(data []byte) error {
@@ -7533,7 +12021,21 @@ func (s *SignedPayloadRawBody) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *SignedPayloadRawBody) MarshalJSON() ([]byte, error) {
+	type embed SignedPayloadRawBody
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *SignedPayloadRawBody) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -7545,8 +12047,15 @@ func (s *SignedPayloadRawBody) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
+var (
+	signedPayloadTemplateFieldParts = big.NewInt(1 << 0)
+)
+
 type SignedPayloadTemplate struct {
 	Parts []*SignedPart `json:"parts" url:"parts"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7560,7 +12069,26 @@ func (s *SignedPayloadTemplate) GetParts() []*SignedPart {
 }
 
 func (s *SignedPayloadTemplate) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *SignedPayloadTemplate) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetParts sets the Parts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SignedPayloadTemplate) SetParts(parts []*SignedPart) {
+	s.Parts = parts
+	s.require(signedPayloadTemplateFieldParts)
 }
 
 func (s *SignedPayloadTemplate) UnmarshalJSON(data []byte) error {
@@ -7579,7 +12107,21 @@ func (s *SignedPayloadTemplate) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *SignedPayloadTemplate) MarshalJSON() ([]byte, error) {
+	type embed SignedPayloadTemplate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *SignedPayloadTemplate) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -7591,9 +12133,17 @@ func (s *SignedPayloadTemplate) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
+var (
+	timestampCheckFieldSource           = big.NewInt(1 << 0)
+	timestampCheckFieldToleranceSeconds = big.NewInt(1 << 1)
+)
+
 type TimestampCheck struct {
 	Source           *ValueSource `json:"source" url:"source"`
 	ToleranceSeconds int64        `json:"tolerance_seconds" url:"tolerance_seconds"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7614,7 +12164,33 @@ func (t *TimestampCheck) GetToleranceSeconds() int64 {
 }
 
 func (t *TimestampCheck) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
 	return t.extraProperties
+}
+
+func (t *TimestampCheck) require(field *big.Int) {
+	next := new(big.Int)
+	if t.explicitFields != nil {
+		next.Set(t.explicitFields)
+	}
+	next.Or(next, field)
+	t.explicitFields = next
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TimestampCheck) SetSource(source *ValueSource) {
+	t.Source = source
+	t.require(timestampCheckFieldSource)
+}
+
+// SetToleranceSeconds sets the ToleranceSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TimestampCheck) SetToleranceSeconds(toleranceSeconds int64) {
+	t.ToleranceSeconds = toleranceSeconds
+	t.require(timestampCheckFieldToleranceSeconds)
 }
 
 func (t *TimestampCheck) UnmarshalJSON(data []byte) error {
@@ -7633,7 +12209,21 @@ func (t *TimestampCheck) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (t *TimestampCheck) MarshalJSON() ([]byte, error) {
+	type embed TimestampCheck
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (t *TimestampCheck) String() string {
+	if t == nil {
+		return "<nil>"
+	}
 	if len(t.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
 			return value
@@ -7654,6 +12244,8 @@ type ValueSource struct {
 	RawBody     *ValueSourceRawBody
 	Method      *ValueSourceMethod
 	Path        *ValueSourcePath
+
+	rawJSON json.RawMessage
 }
 
 func (v *ValueSource) GetSource() string {
@@ -7767,6 +12359,7 @@ func (v *ValueSource) UnmarshalJSON(data []byte) error {
 		}
 		v.Path = value
 	}
+	v.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -7794,6 +12387,9 @@ func (v ValueSource) MarshalJSON() ([]byte, error) {
 	}
 	if v.Path != nil {
 		return internal.MarshalJSONWithExtraProperty(v.Path, "source", "path")
+	}
+	if len(v.rawJSON) > 0 {
+		return v.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", v)
 }
@@ -7861,6 +12457,9 @@ func (v *ValueSource) validate() error {
 	}
 	if len(fields) == 0 {
 		if v.Source != "" {
+			if len(v.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", v, v.Source)
 		}
 		return fmt.Errorf("type %T is empty", v)
@@ -7882,8 +12481,15 @@ func (v *ValueSource) validate() error {
 	return nil
 }
 
+var (
+	valueSourceHeaderFieldName = big.NewInt(1 << 0)
+)
+
 type ValueSourceHeader struct {
 	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7897,7 +12503,26 @@ func (v *ValueSourceHeader) GetName() string {
 }
 
 func (v *ValueSourceHeader) GetExtraProperties() map[string]interface{} {
+	if v == nil {
+		return nil
+	}
 	return v.extraProperties
+}
+
+func (v *ValueSourceHeader) require(field *big.Int) {
+	next := new(big.Int)
+	if v.explicitFields != nil {
+		next.Set(v.explicitFields)
+	}
+	next.Or(next, field)
+	v.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *ValueSourceHeader) SetName(name string) {
+	v.Name = name
+	v.require(valueSourceHeaderFieldName)
 }
 
 func (v *ValueSourceHeader) UnmarshalJSON(data []byte) error {
@@ -7916,7 +12541,21 @@ func (v *ValueSourceHeader) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (v *ValueSourceHeader) MarshalJSON() ([]byte, error) {
+	type embed ValueSourceHeader
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*v),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, v.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (v *ValueSourceHeader) String() string {
+	if v == nil {
+		return "<nil>"
+	}
 	if len(v.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
 			return value
@@ -7928,9 +12567,17 @@ func (v *ValueSourceHeader) String() string {
 	return fmt.Sprintf("%#v", v)
 }
 
+var (
+	valueSourceHeaderParamFieldHeader = big.NewInt(1 << 0)
+	valueSourceHeaderParamFieldParam  = big.NewInt(1 << 1)
+)
+
 type ValueSourceHeaderParam struct {
 	Header string `json:"header" url:"header"`
 	Param  string `json:"param" url:"param"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7951,7 +12598,33 @@ func (v *ValueSourceHeaderParam) GetParam() string {
 }
 
 func (v *ValueSourceHeaderParam) GetExtraProperties() map[string]interface{} {
+	if v == nil {
+		return nil
+	}
 	return v.extraProperties
+}
+
+func (v *ValueSourceHeaderParam) require(field *big.Int) {
+	next := new(big.Int)
+	if v.explicitFields != nil {
+		next.Set(v.explicitFields)
+	}
+	next.Or(next, field)
+	v.explicitFields = next
+}
+
+// SetHeader sets the Header field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *ValueSourceHeaderParam) SetHeader(header string) {
+	v.Header = header
+	v.require(valueSourceHeaderParamFieldHeader)
+}
+
+// SetParam sets the Param field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *ValueSourceHeaderParam) SetParam(param string) {
+	v.Param = param
+	v.require(valueSourceHeaderParamFieldParam)
 }
 
 func (v *ValueSourceHeaderParam) UnmarshalJSON(data []byte) error {
@@ -7970,7 +12643,21 @@ func (v *ValueSourceHeaderParam) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (v *ValueSourceHeaderParam) MarshalJSON() ([]byte, error) {
+	type embed ValueSourceHeaderParam
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*v),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, v.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (v *ValueSourceHeaderParam) String() string {
+	if v == nil {
+		return "<nil>"
+	}
 	if len(v.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
 			return value
@@ -7982,8 +12669,15 @@ func (v *ValueSourceHeaderParam) String() string {
 	return fmt.Sprintf("%#v", v)
 }
 
+var (
+	valueSourceJSONPathFieldPath = big.NewInt(1 << 0)
+)
+
 type ValueSourceJSONPath struct {
 	Path string `json:"path" url:"path"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7997,7 +12691,26 @@ func (v *ValueSourceJSONPath) GetPath() string {
 }
 
 func (v *ValueSourceJSONPath) GetExtraProperties() map[string]interface{} {
+	if v == nil {
+		return nil
+	}
 	return v.extraProperties
+}
+
+func (v *ValueSourceJSONPath) require(field *big.Int) {
+	next := new(big.Int)
+	if v.explicitFields != nil {
+		next.Set(v.explicitFields)
+	}
+	next.Or(next, field)
+	v.explicitFields = next
+}
+
+// SetPath sets the Path field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *ValueSourceJSONPath) SetPath(path string) {
+	v.Path = path
+	v.require(valueSourceJSONPathFieldPath)
 }
 
 func (v *ValueSourceJSONPath) UnmarshalJSON(data []byte) error {
@@ -8016,7 +12729,21 @@ func (v *ValueSourceJSONPath) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (v *ValueSourceJSONPath) MarshalJSON() ([]byte, error) {
+	type embed ValueSourceJSONPath
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*v),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, v.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (v *ValueSourceJSONPath) String() string {
+	if v == nil {
+		return "<nil>"
+	}
 	if len(v.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
 			return value
@@ -8029,12 +12756,28 @@ func (v *ValueSourceJSONPath) String() string {
 }
 
 type ValueSourceMethod struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (v *ValueSourceMethod) GetExtraProperties() map[string]interface{} {
+	if v == nil {
+		return nil
+	}
 	return v.extraProperties
+}
+
+func (v *ValueSourceMethod) require(field *big.Int) {
+	next := new(big.Int)
+	if v.explicitFields != nil {
+		next.Set(v.explicitFields)
+	}
+	next.Or(next, field)
+	v.explicitFields = next
 }
 
 func (v *ValueSourceMethod) UnmarshalJSON(data []byte) error {
@@ -8053,7 +12796,21 @@ func (v *ValueSourceMethod) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (v *ValueSourceMethod) MarshalJSON() ([]byte, error) {
+	type embed ValueSourceMethod
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*v),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, v.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (v *ValueSourceMethod) String() string {
+	if v == nil {
+		return "<nil>"
+	}
 	if len(v.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
 			return value
@@ -8066,12 +12823,28 @@ func (v *ValueSourceMethod) String() string {
 }
 
 type ValueSourcePath struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (v *ValueSourcePath) GetExtraProperties() map[string]interface{} {
+	if v == nil {
+		return nil
+	}
 	return v.extraProperties
+}
+
+func (v *ValueSourcePath) require(field *big.Int) {
+	next := new(big.Int)
+	if v.explicitFields != nil {
+		next.Set(v.explicitFields)
+	}
+	next.Or(next, field)
+	v.explicitFields = next
 }
 
 func (v *ValueSourcePath) UnmarshalJSON(data []byte) error {
@@ -8090,7 +12863,21 @@ func (v *ValueSourcePath) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (v *ValueSourcePath) MarshalJSON() ([]byte, error) {
+	type embed ValueSourcePath
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*v),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, v.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (v *ValueSourcePath) String() string {
+	if v == nil {
+		return "<nil>"
+	}
 	if len(v.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
 			return value
@@ -8102,8 +12889,15 @@ func (v *ValueSourcePath) String() string {
 	return fmt.Sprintf("%#v", v)
 }
 
+var (
+	valueSourceQueryFieldName = big.NewInt(1 << 0)
+)
+
 type ValueSourceQuery struct {
 	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -8117,7 +12911,26 @@ func (v *ValueSourceQuery) GetName() string {
 }
 
 func (v *ValueSourceQuery) GetExtraProperties() map[string]interface{} {
+	if v == nil {
+		return nil
+	}
 	return v.extraProperties
+}
+
+func (v *ValueSourceQuery) require(field *big.Int) {
+	next := new(big.Int)
+	if v.explicitFields != nil {
+		next.Set(v.explicitFields)
+	}
+	next.Or(next, field)
+	v.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *ValueSourceQuery) SetName(name string) {
+	v.Name = name
+	v.require(valueSourceQueryFieldName)
 }
 
 func (v *ValueSourceQuery) UnmarshalJSON(data []byte) error {
@@ -8136,7 +12949,21 @@ func (v *ValueSourceQuery) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (v *ValueSourceQuery) MarshalJSON() ([]byte, error) {
+	type embed ValueSourceQuery
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*v),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, v.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (v *ValueSourceQuery) String() string {
+	if v == nil {
+		return "<nil>"
+	}
 	if len(v.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
 			return value
@@ -8149,12 +12976,28 @@ func (v *ValueSourceQuery) String() string {
 }
 
 type ValueSourceRawBody struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (v *ValueSourceRawBody) GetExtraProperties() map[string]interface{} {
+	if v == nil {
+		return nil
+	}
 	return v.extraProperties
+}
+
+func (v *ValueSourceRawBody) require(field *big.Int) {
+	next := new(big.Int)
+	if v.explicitFields != nil {
+		next.Set(v.explicitFields)
+	}
+	next.Or(next, field)
+	v.explicitFields = next
 }
 
 func (v *ValueSourceRawBody) UnmarshalJSON(data []byte) error {
@@ -8173,7 +13016,21 @@ func (v *ValueSourceRawBody) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (v *ValueSourceRawBody) MarshalJSON() ([]byte, error) {
+	type embed ValueSourceRawBody
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*v),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, v.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (v *ValueSourceRawBody) String() string {
+	if v == nil {
+		return "<nil>"
+	}
 	if len(v.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
 			return value
@@ -8185,6 +13042,15 @@ func (v *ValueSourceRawBody) String() string {
 	return fmt.Sprintf("%#v", v)
 }
 
+var (
+	webhookActionAttemptFieldActionIndex = big.NewInt(1 << 0)
+	webhookActionAttemptFieldActionKey   = big.NewInt(1 << 1)
+	webhookActionAttemptFieldCompletedAt = big.NewInt(1 << 2)
+	webhookActionAttemptFieldError       = big.NewInt(1 << 3)
+	webhookActionAttemptFieldStartedAt   = big.NewInt(1 << 4)
+	webhookActionAttemptFieldStatus      = big.NewInt(1 << 5)
+)
+
 type WebhookActionAttempt struct {
 	ActionIndex int                 `json:"action_index" url:"action_index"`
 	ActionKey   string              `json:"action_key" url:"action_key"`
@@ -8192,6 +13058,9 @@ type WebhookActionAttempt struct {
 	Error       *string             `json:"error,omitempty" url:"error,omitempty"`
 	StartedAt   time.Time           `json:"started_at" url:"started_at"`
 	Status      IngressActionStatus `json:"status" url:"status"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -8240,7 +13109,61 @@ func (w *WebhookActionAttempt) GetStatus() IngressActionStatus {
 }
 
 func (w *WebhookActionAttempt) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
 	return w.extraProperties
+}
+
+func (w *WebhookActionAttempt) require(field *big.Int) {
+	next := new(big.Int)
+	if w.explicitFields != nil {
+		next.Set(w.explicitFields)
+	}
+	next.Or(next, field)
+	w.explicitFields = next
+}
+
+// SetActionIndex sets the ActionIndex field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookActionAttempt) SetActionIndex(actionIndex int) {
+	w.ActionIndex = actionIndex
+	w.require(webhookActionAttemptFieldActionIndex)
+}
+
+// SetActionKey sets the ActionKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookActionAttempt) SetActionKey(actionKey string) {
+	w.ActionKey = actionKey
+	w.require(webhookActionAttemptFieldActionKey)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookActionAttempt) SetCompletedAt(completedAt *time.Time) {
+	w.CompletedAt = completedAt
+	w.require(webhookActionAttemptFieldCompletedAt)
+}
+
+// SetError sets the Error field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookActionAttempt) SetError(error_ *string) {
+	w.Error = error_
+	w.require(webhookActionAttemptFieldError)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookActionAttempt) SetStartedAt(startedAt time.Time) {
+	w.StartedAt = startedAt
+	w.require(webhookActionAttemptFieldStartedAt)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookActionAttempt) SetStatus(status IngressActionStatus) {
+	w.Status = status
+	w.require(webhookActionAttemptFieldStatus)
 }
 
 func (w *WebhookActionAttempt) UnmarshalJSON(data []byte) error {
@@ -8278,10 +13201,14 @@ func (w *WebhookActionAttempt) MarshalJSON() ([]byte, error) {
 		CompletedAt: internal.NewOptionalDateTime(w.CompletedAt),
 		StartedAt:   internal.NewDateTime(w.StartedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (w *WebhookActionAttempt) String() string {
+	if w == nil {
+		return "<nil>"
+	}
 	if len(w.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
 			return value
@@ -8292,6 +13219,27 @@ func (w *WebhookActionAttempt) String() string {
 	}
 	return fmt.Sprintf("%#v", w)
 }
+
+var (
+	webhookDeliveryDetailFieldActionAttempts      = big.NewInt(1 << 0)
+	webhookDeliveryDetailFieldAttempts            = big.NewInt(1 << 1)
+	webhookDeliveryDetailFieldBodyPreview         = big.NewInt(1 << 2)
+	webhookDeliveryDetailFieldBodyTruncated       = big.NewInt(1 << 3)
+	webhookDeliveryDetailFieldCompletedAt         = big.NewInt(1 << 4)
+	webhookDeliveryDetailFieldEventID             = big.NewInt(1 << 5)
+	webhookDeliveryDetailFieldExternalEventID     = big.NewInt(1 << 6)
+	webhookDeliveryDetailFieldIdempotencyKey      = big.NewInt(1 << 7)
+	webhookDeliveryDetailFieldLastError           = big.NewInt(1 << 8)
+	webhookDeliveryDetailFieldMethod              = big.NewInt(1 << 9)
+	webhookDeliveryDetailFieldNextAttemptAt       = big.NewInt(1 << 10)
+	webhookDeliveryDetailFieldQuery               = big.NewInt(1 << 11)
+	webhookDeliveryDetailFieldResolvedSandboxID   = big.NewInt(1 << 12)
+	webhookDeliveryDetailFieldResolvedSandboxName = big.NewInt(1 << 13)
+	webhookDeliveryDetailFieldSourceLabel         = big.NewInt(1 << 14)
+	webhookDeliveryDetailFieldStatus              = big.NewInt(1 << 15)
+	webhookDeliveryDetailFieldVerifiedAt          = big.NewInt(1 << 16)
+	webhookDeliveryDetailFieldWebhookID           = big.NewInt(1 << 17)
+)
 
 type WebhookDeliveryDetail struct {
 	ActionAttempts      []*WebhookActionAttempt `json:"action_attempts" url:"action_attempts"`
@@ -8312,6 +13260,9 @@ type WebhookDeliveryDetail struct {
 	Status              IngressEventStatus      `json:"status" url:"status"`
 	VerifiedAt          time.Time               `json:"verified_at" url:"verified_at"`
 	WebhookID           string                  `json:"webhook_id" url:"webhook_id"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -8444,7 +13395,145 @@ func (w *WebhookDeliveryDetail) GetWebhookID() string {
 }
 
 func (w *WebhookDeliveryDetail) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
 	return w.extraProperties
+}
+
+func (w *WebhookDeliveryDetail) require(field *big.Int) {
+	next := new(big.Int)
+	if w.explicitFields != nil {
+		next.Set(w.explicitFields)
+	}
+	next.Or(next, field)
+	w.explicitFields = next
+}
+
+// SetActionAttempts sets the ActionAttempts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetActionAttempts(actionAttempts []*WebhookActionAttempt) {
+	w.ActionAttempts = actionAttempts
+	w.require(webhookDeliveryDetailFieldActionAttempts)
+}
+
+// SetAttempts sets the Attempts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetAttempts(attempts int) {
+	w.Attempts = attempts
+	w.require(webhookDeliveryDetailFieldAttempts)
+}
+
+// SetBodyPreview sets the BodyPreview field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetBodyPreview(bodyPreview *string) {
+	w.BodyPreview = bodyPreview
+	w.require(webhookDeliveryDetailFieldBodyPreview)
+}
+
+// SetBodyTruncated sets the BodyTruncated field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetBodyTruncated(bodyTruncated bool) {
+	w.BodyTruncated = bodyTruncated
+	w.require(webhookDeliveryDetailFieldBodyTruncated)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetCompletedAt(completedAt *time.Time) {
+	w.CompletedAt = completedAt
+	w.require(webhookDeliveryDetailFieldCompletedAt)
+}
+
+// SetEventID sets the EventID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetEventID(eventID string) {
+	w.EventID = eventID
+	w.require(webhookDeliveryDetailFieldEventID)
+}
+
+// SetExternalEventID sets the ExternalEventID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetExternalEventID(externalEventID *string) {
+	w.ExternalEventID = externalEventID
+	w.require(webhookDeliveryDetailFieldExternalEventID)
+}
+
+// SetIdempotencyKey sets the IdempotencyKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetIdempotencyKey(idempotencyKey string) {
+	w.IdempotencyKey = idempotencyKey
+	w.require(webhookDeliveryDetailFieldIdempotencyKey)
+}
+
+// SetLastError sets the LastError field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetLastError(lastError *string) {
+	w.LastError = lastError
+	w.require(webhookDeliveryDetailFieldLastError)
+}
+
+// SetMethod sets the Method field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetMethod(method string) {
+	w.Method = method
+	w.require(webhookDeliveryDetailFieldMethod)
+}
+
+// SetNextAttemptAt sets the NextAttemptAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetNextAttemptAt(nextAttemptAt time.Time) {
+	w.NextAttemptAt = nextAttemptAt
+	w.require(webhookDeliveryDetailFieldNextAttemptAt)
+}
+
+// SetQuery sets the Query field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetQuery(query *string) {
+	w.Query = query
+	w.require(webhookDeliveryDetailFieldQuery)
+}
+
+// SetResolvedSandboxID sets the ResolvedSandboxID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetResolvedSandboxID(resolvedSandboxID *string) {
+	w.ResolvedSandboxID = resolvedSandboxID
+	w.require(webhookDeliveryDetailFieldResolvedSandboxID)
+}
+
+// SetResolvedSandboxName sets the ResolvedSandboxName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetResolvedSandboxName(resolvedSandboxName string) {
+	w.ResolvedSandboxName = resolvedSandboxName
+	w.require(webhookDeliveryDetailFieldResolvedSandboxName)
+}
+
+// SetSourceLabel sets the SourceLabel field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetSourceLabel(sourceLabel *string) {
+	w.SourceLabel = sourceLabel
+	w.require(webhookDeliveryDetailFieldSourceLabel)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetStatus(status IngressEventStatus) {
+	w.Status = status
+	w.require(webhookDeliveryDetailFieldStatus)
+}
+
+// SetVerifiedAt sets the VerifiedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetVerifiedAt(verifiedAt time.Time) {
+	w.VerifiedAt = verifiedAt
+	w.require(webhookDeliveryDetailFieldVerifiedAt)
+}
+
+// SetWebhookID sets the WebhookID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliveryDetail) SetWebhookID(webhookID string) {
+	w.WebhookID = webhookID
+	w.require(webhookDeliveryDetailFieldWebhookID)
 }
 
 func (w *WebhookDeliveryDetail) UnmarshalJSON(data []byte) error {
@@ -8486,10 +13575,14 @@ func (w *WebhookDeliveryDetail) MarshalJSON() ([]byte, error) {
 		NextAttemptAt: internal.NewDateTime(w.NextAttemptAt),
 		VerifiedAt:    internal.NewDateTime(w.VerifiedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (w *WebhookDeliveryDetail) String() string {
+	if w == nil {
+		return "<nil>"
+	}
 	if len(w.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
 			return value
@@ -8500,6 +13593,20 @@ func (w *WebhookDeliveryDetail) String() string {
 	}
 	return fmt.Sprintf("%#v", w)
 }
+
+var (
+	webhookDeliverySummaryFieldAttempts        = big.NewInt(1 << 0)
+	webhookDeliverySummaryFieldCompletedAt     = big.NewInt(1 << 1)
+	webhookDeliverySummaryFieldEventID         = big.NewInt(1 << 2)
+	webhookDeliverySummaryFieldExternalEventID = big.NewInt(1 << 3)
+	webhookDeliverySummaryFieldIdempotencyKey  = big.NewInt(1 << 4)
+	webhookDeliverySummaryFieldLastError       = big.NewInt(1 << 5)
+	webhookDeliverySummaryFieldMethod          = big.NewInt(1 << 6)
+	webhookDeliverySummaryFieldNextAttemptAt   = big.NewInt(1 << 7)
+	webhookDeliverySummaryFieldStatus          = big.NewInt(1 << 8)
+	webhookDeliverySummaryFieldVerifiedAt      = big.NewInt(1 << 9)
+	webhookDeliverySummaryFieldWebhookID       = big.NewInt(1 << 10)
+)
 
 type WebhookDeliverySummary struct {
 	Attempts        int                `json:"attempts" url:"attempts"`
@@ -8513,6 +13620,9 @@ type WebhookDeliverySummary struct {
 	Status          IngressEventStatus `json:"status" url:"status"`
 	VerifiedAt      time.Time          `json:"verified_at" url:"verified_at"`
 	WebhookID       string             `json:"webhook_id" url:"webhook_id"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -8596,7 +13706,96 @@ func (w *WebhookDeliverySummary) GetWebhookID() string {
 }
 
 func (w *WebhookDeliverySummary) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
 	return w.extraProperties
+}
+
+func (w *WebhookDeliverySummary) require(field *big.Int) {
+	next := new(big.Int)
+	if w.explicitFields != nil {
+		next.Set(w.explicitFields)
+	}
+	next.Or(next, field)
+	w.explicitFields = next
+}
+
+// SetAttempts sets the Attempts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetAttempts(attempts int) {
+	w.Attempts = attempts
+	w.require(webhookDeliverySummaryFieldAttempts)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetCompletedAt(completedAt *time.Time) {
+	w.CompletedAt = completedAt
+	w.require(webhookDeliverySummaryFieldCompletedAt)
+}
+
+// SetEventID sets the EventID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetEventID(eventID string) {
+	w.EventID = eventID
+	w.require(webhookDeliverySummaryFieldEventID)
+}
+
+// SetExternalEventID sets the ExternalEventID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetExternalEventID(externalEventID *string) {
+	w.ExternalEventID = externalEventID
+	w.require(webhookDeliverySummaryFieldExternalEventID)
+}
+
+// SetIdempotencyKey sets the IdempotencyKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetIdempotencyKey(idempotencyKey string) {
+	w.IdempotencyKey = idempotencyKey
+	w.require(webhookDeliverySummaryFieldIdempotencyKey)
+}
+
+// SetLastError sets the LastError field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetLastError(lastError *string) {
+	w.LastError = lastError
+	w.require(webhookDeliverySummaryFieldLastError)
+}
+
+// SetMethod sets the Method field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetMethod(method string) {
+	w.Method = method
+	w.require(webhookDeliverySummaryFieldMethod)
+}
+
+// SetNextAttemptAt sets the NextAttemptAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetNextAttemptAt(nextAttemptAt time.Time) {
+	w.NextAttemptAt = nextAttemptAt
+	w.require(webhookDeliverySummaryFieldNextAttemptAt)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetStatus(status IngressEventStatus) {
+	w.Status = status
+	w.require(webhookDeliverySummaryFieldStatus)
+}
+
+// SetVerifiedAt sets the VerifiedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetVerifiedAt(verifiedAt time.Time) {
+	w.VerifiedAt = verifiedAt
+	w.require(webhookDeliverySummaryFieldVerifiedAt)
+}
+
+// SetWebhookID sets the WebhookID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookDeliverySummary) SetWebhookID(webhookID string) {
+	w.WebhookID = webhookID
+	w.require(webhookDeliverySummaryFieldWebhookID)
 }
 
 func (w *WebhookDeliverySummary) UnmarshalJSON(data []byte) error {
@@ -8638,10 +13837,14 @@ func (w *WebhookDeliverySummary) MarshalJSON() ([]byte, error) {
 		NextAttemptAt: internal.NewDateTime(w.NextAttemptAt),
 		VerifiedAt:    internal.NewDateTime(w.VerifiedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (w *WebhookDeliverySummary) String() string {
+	if w == nil {
+		return "<nil>"
+	}
 	if len(w.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
 			return value
@@ -8653,6 +13856,16 @@ func (w *WebhookDeliverySummary) String() string {
 	return fmt.Sprintf("%#v", w)
 }
 
+var (
+	incomingWebhookUpdateFieldWebhookID   = big.NewInt(1 << 0)
+	incomingWebhookUpdateFieldAuth        = big.NewInt(1 << 1)
+	incomingWebhookUpdateFieldIdempotency = big.NewInt(1 << 2)
+	incomingWebhookUpdateFieldName        = big.NewInt(1 << 3)
+	incomingWebhookUpdateFieldRules       = big.NewInt(1 << 4)
+	incomingWebhookUpdateFieldStatus      = big.NewInt(1 << 5)
+	incomingWebhookUpdateFieldTarget      = big.NewInt(1 << 6)
+)
+
 type IncomingWebhookUpdate struct {
 	// Incoming webhook ID
 	WebhookID   string                 `json:"-" url:"-"`
@@ -8662,4 +13875,86 @@ type IncomingWebhookUpdate struct {
 	Rules       []*IncomingWebhookRule `json:"rules,omitempty" url:"-"`
 	Status      *IncomingWebhookStatus `json:"status,omitempty" url:"-"`
 	Target      *IncomingWebhookTarget `json:"target,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (i *IncomingWebhookUpdate) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetWebhookID sets the WebhookID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookUpdate) SetWebhookID(webhookID string) {
+	i.WebhookID = webhookID
+	i.require(incomingWebhookUpdateFieldWebhookID)
+}
+
+// SetAuth sets the Auth field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookUpdate) SetAuth(auth *IncomingWebhookAuth) {
+	i.Auth = auth
+	i.require(incomingWebhookUpdateFieldAuth)
+}
+
+// SetIdempotency sets the Idempotency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookUpdate) SetIdempotency(idempotency *IdempotencyConfig) {
+	i.Idempotency = idempotency
+	i.require(incomingWebhookUpdateFieldIdempotency)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookUpdate) SetName(name *string) {
+	i.Name = name
+	i.require(incomingWebhookUpdateFieldName)
+}
+
+// SetRules sets the Rules field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookUpdate) SetRules(rules []*IncomingWebhookRule) {
+	i.Rules = rules
+	i.require(incomingWebhookUpdateFieldRules)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookUpdate) SetStatus(status *IncomingWebhookStatus) {
+	i.Status = status
+	i.require(incomingWebhookUpdateFieldStatus)
+}
+
+// SetTarget sets the Target field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IncomingWebhookUpdate) SetTarget(target *IncomingWebhookTarget) {
+	i.Target = target
+	i.require(incomingWebhookUpdateFieldTarget)
+}
+
+func (i *IncomingWebhookUpdate) UnmarshalJSON(data []byte) error {
+	type unmarshaler IncomingWebhookUpdate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*i = IncomingWebhookUpdate(body)
+	return nil
+}
+
+func (i *IncomingWebhookUpdate) MarshalJSON() ([]byte, error) {
+	type embed IncomingWebhookUpdate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }

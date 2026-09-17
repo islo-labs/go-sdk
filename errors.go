@@ -106,11 +106,11 @@ func (f *ForbiddenError) Unwrap() error {
 // Not Found
 type NotFoundError struct {
 	*core.APIError
-	Body interface{}
+	Body any
 }
 
 func (n *NotFoundError) UnmarshalJSON(data []byte) error {
-	var body interface{}
+	var body any
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
@@ -202,11 +202,11 @@ func (u *UnauthorizedError) Unwrap() error {
 // Validation Error
 type UnprocessableEntityError struct {
 	*core.APIError
-	Body interface{}
+	Body any
 }
 
 func (u *UnprocessableEntityError) UnmarshalJSON(data []byte) error {
-	var body interface{}
+	var body any
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}

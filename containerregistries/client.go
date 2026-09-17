@@ -4,318 +4,161 @@ package containerregistries
 
 import (
 	context "context"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
+// Example:
+//
+//	client.ContainerRegistries.ListContainerRegistries(
+//	    context.TODO(),
+//	)
 func (c *Client) ListContainerRegistries(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) ([]*gosdk.ContainerRegistryResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/container-registries"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.ContainerRegistryResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ListContainerRegistries(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.ContainerRegistryCreate{
+//	    Provider: gosdk.RegistryProviderEcr,
+//	    RegistryHost: "registry_host",
+//	    CloudRoleID: "cloud_role_id",
+//	    Region: "region",
+//	}
+//	client.ContainerRegistries.CreateContainerRegistry(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) CreateContainerRegistry(
 	ctx context.Context,
 	request *gosdk.ContainerRegistryCreate,
 	opts ...option.RequestOption,
 ) (*gosdk.ContainerRegistryResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/container-registries"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		409: func(apiError *core.APIError) error {
-			return &gosdk.ConflictError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.ContainerRegistryResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.CreateContainerRegistry(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.GetContainerRegistryRequest{
+//	    ID: "id",
+//	}
+//	client.ContainerRegistries.GetContainerRegistry(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetContainerRegistry(
 	ctx context.Context,
 	request *gosdk.GetContainerRegistryRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.ContainerRegistryResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/container-registries/%v",
-		request.ID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.ContainerRegistryResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetContainerRegistry(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.DeleteContainerRegistryRequest{
+//	    ID: "id",
+//	}
+//	client.ContainerRegistries.DeleteContainerRegistry(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DeleteContainerRegistry(
 	ctx context.Context,
 	request *gosdk.DeleteContainerRegistryRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/container-registries/%v",
-		request.ID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.DeleteContainerRegistry(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// Example:
+//
+//	request := &gosdk.ContainerRegistryUpdate{
+//	    ID: "id",
+//	}
+//	client.ContainerRegistries.UpdateContainerRegistry(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) UpdateContainerRegistry(
 	ctx context.Context,
 	request *gosdk.ContainerRegistryUpdate,
 	opts ...option.RequestOption,
 ) (*gosdk.ContainerRegistryResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/container-registries/%v",
-		request.ID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.ContainerRegistryResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.UpdateContainerRegistry(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPatch,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }

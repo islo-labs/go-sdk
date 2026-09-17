@@ -6,16 +6,63 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
 	time "time"
+)
+
+var (
+	deleteFactoryLineScheduleRequestFieldName = big.NewInt(1 << 0)
 )
 
 type DeleteFactoryLineScheduleRequest struct {
 	Name string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteFactoryLineScheduleRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteFactoryLineScheduleRequest) SetName(name string) {
+	d.Name = name
+	d.require(deleteFactoryLineScheduleRequestFieldName)
+}
+
+var (
+	deployFactoryLineRequestFieldName = big.NewInt(1 << 0)
+)
 
 type DeployFactoryLineRequest struct {
 	Name string             `json:"-" url:"-"`
 	Body *LineDeployRequest `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (d *DeployFactoryLineRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeployFactoryLineRequest) SetName(name string) {
+	d.Name = name
+	d.require(deployFactoryLineRequestFieldName)
 }
 
 func (d *DeployFactoryLineRequest) UnmarshalJSON(data []byte) error {
@@ -31,57 +78,499 @@ func (d *DeployFactoryLineRequest) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.Body)
 }
 
+var (
+	getFactoryLineRequestFieldName = big.NewInt(1 << 0)
+)
+
 type GetFactoryLineRequest struct {
 	Name string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetFactoryLineRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetFactoryLineRequest) SetName(name string) {
+	g.Name = name
+	g.require(getFactoryLineRequestFieldName)
+}
+
+var (
+	getFactoryLineRunRequestFieldRunID = big.NewInt(1 << 0)
+)
 
 type GetFactoryLineRunRequest struct {
 	RunID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetFactoryLineRunRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetRunID sets the RunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetFactoryLineRunRequest) SetRunID(runID string) {
+	g.RunID = runID
+	g.require(getFactoryLineRunRequestFieldRunID)
+}
+
+var (
+	getFactoryLineRunDebugRequestFieldRunID = big.NewInt(1 << 0)
+)
 
 type GetFactoryLineRunDebugRequest struct {
 	RunID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetFactoryLineRunDebugRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetRunID sets the RunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetFactoryLineRunDebugRequest) SetRunID(runID string) {
+	g.RunID = runID
+	g.require(getFactoryLineRunDebugRequestFieldRunID)
+}
+
+var (
+	getFactoryLineScheduleRequestFieldName = big.NewInt(1 << 0)
+)
 
 type GetFactoryLineScheduleRequest struct {
 	Name string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
 
-type ListFactoryLineRunsRequest struct {
-	Limit  *int `json:"-" url:"limit,omitempty"`
-	Offset *int `json:"-" url:"offset,omitempty"`
-	// Filter by run status
-	Status *string `json:"-" url:"status,omitempty"`
-	// Filter by line name
-	LineName *string `json:"-" url:"line_name,omitempty"`
+func (g *GetFactoryLineScheduleRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
 }
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetFactoryLineScheduleRequest) SetName(name string) {
+	g.Name = name
+	g.require(getFactoryLineScheduleRequestFieldName)
+}
+
+var (
+	listFactoryLineRunFacetsRequestFieldFields    = big.NewInt(1 << 0)
+	listFactoryLineRunFacetsRequestFieldStatus    = big.NewInt(1 << 1)
+	listFactoryLineRunFacetsRequestFieldLineName  = big.NewInt(1 << 2)
+	listFactoryLineRunFacetsRequestFieldCreatedAt = big.NewInt(1 << 3)
+	listFactoryLineRunFacetsRequestFieldQ         = big.NewInt(1 << 4)
+)
+
+type ListFactoryLineRunFacetsRequest struct {
+	// Facet fields to return (e.g. line_name, status)
+	Fields   []*string `json:"-" url:"fields,omitempty"`
+	Status   []*string `json:"-" url:"status,omitempty"`
+	LineName []*string `json:"-" url:"line_name,omitempty"`
+	// created_at range. Operators: gte, gt, lte, lt. Serialized as created_at[gte]=…&created_at[lt]=…
+	CreatedAt *TimestampRange `json:"-" url:"created_at,omitempty"`
+	Q         *string         `json:"-" url:"q,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (l *ListFactoryLineRunFacetsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetFields sets the Fields field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunFacetsRequest) SetFields(fields []*string) {
+	l.Fields = fields
+	l.require(listFactoryLineRunFacetsRequestFieldFields)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunFacetsRequest) SetStatus(status []*string) {
+	l.Status = status
+	l.require(listFactoryLineRunFacetsRequestFieldStatus)
+}
+
+// SetLineName sets the LineName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunFacetsRequest) SetLineName(lineName []*string) {
+	l.LineName = lineName
+	l.require(listFactoryLineRunFacetsRequestFieldLineName)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunFacetsRequest) SetCreatedAt(createdAt *TimestampRange) {
+	l.CreatedAt = createdAt
+	l.require(listFactoryLineRunFacetsRequestFieldCreatedAt)
+}
+
+// SetQ sets the Q field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunFacetsRequest) SetQ(q *string) {
+	l.Q = q
+	l.require(listFactoryLineRunFacetsRequestFieldQ)
+}
+
+var (
+	listFactoryLineRunsRequestFieldLimit     = big.NewInt(1 << 0)
+	listFactoryLineRunsRequestFieldOffset    = big.NewInt(1 << 1)
+	listFactoryLineRunsRequestFieldCursor    = big.NewInt(1 << 2)
+	listFactoryLineRunsRequestFieldSort      = big.NewInt(1 << 3)
+	listFactoryLineRunsRequestFieldInclude   = big.NewInt(1 << 4)
+	listFactoryLineRunsRequestFieldStatus    = big.NewInt(1 << 5)
+	listFactoryLineRunsRequestFieldLineName  = big.NewInt(1 << 6)
+	listFactoryLineRunsRequestFieldCreatedAt = big.NewInt(1 << 7)
+	listFactoryLineRunsRequestFieldQ         = big.NewInt(1 << 8)
+)
+
+type ListFactoryLineRunsRequest struct {
+	Limit  *int    `json:"-" url:"limit,omitempty"`
+	Offset *int    `json:"-" url:"offset,omitempty"`
+	Cursor *string `json:"-" url:"cursor,omitempty"`
+	// Sort order. Allowed: -created_at, created_at
+	Sort     *string   `json:"-" url:"sort,omitempty"`
+	Include  []*string `json:"-" url:"include,omitempty"`
+	Status   []*string `json:"-" url:"status,omitempty"`
+	LineName []*string `json:"-" url:"line_name,omitempty"`
+	// created_at range. Operators: gte, gt, lte, lt. Serialized as created_at[gte]=…&created_at[lt]=…
+	CreatedAt *TimestampRange `json:"-" url:"created_at,omitempty"`
+	Q         *string         `json:"-" url:"q,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (l *ListFactoryLineRunsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listFactoryLineRunsRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listFactoryLineRunsRequestFieldOffset)
+}
+
+// SetCursor sets the Cursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsRequest) SetCursor(cursor *string) {
+	l.Cursor = cursor
+	l.require(listFactoryLineRunsRequestFieldCursor)
+}
+
+// SetSort sets the Sort field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsRequest) SetSort(sort *string) {
+	l.Sort = sort
+	l.require(listFactoryLineRunsRequestFieldSort)
+}
+
+// SetInclude sets the Include field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsRequest) SetInclude(include []*string) {
+	l.Include = include
+	l.require(listFactoryLineRunsRequestFieldInclude)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsRequest) SetStatus(status []*string) {
+	l.Status = status
+	l.require(listFactoryLineRunsRequestFieldStatus)
+}
+
+// SetLineName sets the LineName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsRequest) SetLineName(lineName []*string) {
+	l.LineName = lineName
+	l.require(listFactoryLineRunsRequestFieldLineName)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsRequest) SetCreatedAt(createdAt *TimestampRange) {
+	l.CreatedAt = createdAt
+	l.require(listFactoryLineRunsRequestFieldCreatedAt)
+}
+
+// SetQ sets the Q field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsRequest) SetQ(q *string) {
+	l.Q = q
+	l.require(listFactoryLineRunsRequestFieldQ)
+}
+
+var (
+	listFactoryLineRunsForLineRequestFieldName   = big.NewInt(1 << 0)
+	listFactoryLineRunsForLineRequestFieldLimit  = big.NewInt(1 << 1)
+	listFactoryLineRunsForLineRequestFieldOffset = big.NewInt(1 << 2)
+)
 
 type ListFactoryLineRunsForLineRequest struct {
 	Name   string `json:"-" url:"-"`
 	Limit  *int   `json:"-" url:"limit,omitempty"`
 	Offset *int   `json:"-" url:"offset,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListFactoryLineRunsForLineRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsForLineRequest) SetName(name string) {
+	l.Name = name
+	l.require(listFactoryLineRunsForLineRequestFieldName)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsForLineRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listFactoryLineRunsForLineRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineRunsForLineRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listFactoryLineRunsForLineRequestFieldOffset)
+}
+
+var (
+	listFactoryLineVersionsRequestFieldName   = big.NewInt(1 << 0)
+	listFactoryLineVersionsRequestFieldLimit  = big.NewInt(1 << 1)
+	listFactoryLineVersionsRequestFieldOffset = big.NewInt(1 << 2)
+)
 
 type ListFactoryLineVersionsRequest struct {
 	Name   string `json:"-" url:"-"`
 	Limit  *int   `json:"-" url:"limit,omitempty"`
 	Offset *int   `json:"-" url:"offset,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListFactoryLineVersionsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineVersionsRequest) SetName(name string) {
+	l.Name = name
+	l.require(listFactoryLineVersionsRequestFieldName)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineVersionsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listFactoryLineVersionsRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLineVersionsRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listFactoryLineVersionsRequestFieldOffset)
+}
+
+var (
+	listFactoryLinesRequestFieldLimit  = big.NewInt(1 << 0)
+	listFactoryLinesRequestFieldOffset = big.NewInt(1 << 1)
+)
 
 type ListFactoryLinesRequest struct {
 	Limit  *int `json:"-" url:"limit,omitempty"`
 	Offset *int `json:"-" url:"offset,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListFactoryLinesRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLinesRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listFactoryLinesRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListFactoryLinesRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listFactoryLinesRequestFieldOffset)
+}
+
+var (
+	lineRunCreateFieldName           = big.NewInt(1 << 0)
+	lineRunCreateFieldVersionID      = big.NewInt(1 << 1)
+	lineRunCreateFieldRegion         = big.NewInt(1 << 2)
+	lineRunCreateFieldParams         = big.NewInt(1 << 3)
+	lineRunCreateFieldTriggerPayload = big.NewInt(1 << 4)
+)
 
 type LineRunCreate struct {
 	Name string `json:"-" url:"-"`
 	// Deployed line version to run; defaults to latest
 	VersionID *string `json:"version_id,omitempty" url:"-"`
 	// Compute region override
-	Region         *string                `json:"region,omitempty" url:"-"`
-	Params         map[string]interface{} `json:"params,omitempty" url:"-"`
-	TriggerPayload map[string]interface{} `json:"trigger_payload,omitempty" url:"-"`
+	Region         *string        `json:"region,omitempty" url:"-"`
+	Params         map[string]any `json:"params,omitempty" url:"-"`
+	TriggerPayload map[string]any `json:"trigger_payload,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *LineRunCreate) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunCreate) SetName(name string) {
+	l.Name = name
+	l.require(lineRunCreateFieldName)
+}
+
+// SetVersionID sets the VersionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunCreate) SetVersionID(versionID *string) {
+	l.VersionID = versionID
+	l.require(lineRunCreateFieldVersionID)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunCreate) SetRegion(region *string) {
+	l.Region = region
+	l.require(lineRunCreateFieldRegion)
+}
+
+// SetParams sets the Params field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunCreate) SetParams(params map[string]any) {
+	l.Params = params
+	l.require(lineRunCreateFieldParams)
+}
+
+// SetTriggerPayload sets the TriggerPayload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunCreate) SetTriggerPayload(triggerPayload map[string]any) {
+	l.TriggerPayload = triggerPayload
+	l.require(lineRunCreateFieldTriggerPayload)
+}
+
+func (l *LineRunCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler LineRunCreate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*l = LineRunCreate(body)
+	return nil
+}
+
+func (l *LineRunCreate) MarshalJSON() ([]byte, error) {
+	type embed LineRunCreate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	agenticTransitionInputFieldID           = big.NewInt(1 << 0)
+	agenticTransitionInputFieldFrom         = big.NewInt(1 << 1)
+	agenticTransitionInputFieldInstructions = big.NewInt(1 << 2)
+	agenticTransitionInputFieldOptions      = big.NewInt(1 << 3)
+	agenticTransitionInputFieldLabel        = big.NewInt(1 << 4)
+)
 
 type AgenticTransitionInput struct {
 	ID           string                              `json:"id" url:"id"`
@@ -89,6 +578,9 @@ type AgenticTransitionInput struct {
 	Instructions *AgenticTransitionInputInstructions `json:"instructions" url:"instructions"`
 	Options      []*AgenticTransitionOption          `json:"options,omitempty" url:"options,omitempty"`
 	Label        *string                             `json:"label,omitempty" url:"label,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -130,7 +622,54 @@ func (a *AgenticTransitionInput) GetLabel() *string {
 }
 
 func (a *AgenticTransitionInput) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AgenticTransitionInput) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionInput) SetID(id string) {
+	a.ID = id
+	a.require(agenticTransitionInputFieldID)
+}
+
+// SetFrom sets the From field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionInput) SetFrom(from string) {
+	a.From = from
+	a.require(agenticTransitionInputFieldFrom)
+}
+
+// SetInstructions sets the Instructions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionInput) SetInstructions(instructions *AgenticTransitionInputInstructions) {
+	a.Instructions = instructions
+	a.require(agenticTransitionInputFieldInstructions)
+}
+
+// SetOptions sets the Options field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionInput) SetOptions(options []*AgenticTransitionOption) {
+	a.Options = options
+	a.require(agenticTransitionInputFieldOptions)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionInput) SetLabel(label *string) {
+	a.Label = label
+	a.require(agenticTransitionInputFieldLabel)
 }
 
 func (a *AgenticTransitionInput) UnmarshalJSON(data []byte) error {
@@ -149,7 +688,21 @@ func (a *AgenticTransitionInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AgenticTransitionInput) MarshalJSON() ([]byte, error) {
+	type embed AgenticTransitionInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AgenticTransitionInput) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -165,6 +718,8 @@ type AgenticTransitionInputInstructions struct {
 	Type      string
 	Knowledge *KnowledgeBinding
 	Literal   *LiteralBinding
+
+	rawJSON json.RawMessage
 }
 
 func (a *AgenticTransitionInputInstructions) GetType() string {
@@ -213,6 +768,7 @@ func (a *AgenticTransitionInputInstructions) UnmarshalJSON(data []byte) error {
 		}
 		a.Literal = value
 	}
+	a.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -225,6 +781,9 @@ func (a AgenticTransitionInputInstructions) MarshalJSON() ([]byte, error) {
 	}
 	if a.Literal != nil {
 		return internal.MarshalJSONWithExtraProperty(a.Literal, "type", "literal")
+	}
+	if len(a.rawJSON) > 0 {
+		return a.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", a)
 }
@@ -257,6 +816,9 @@ func (a *AgenticTransitionInputInstructions) validate() error {
 	}
 	if len(fields) == 0 {
 		if a.Type != "" {
+			if len(a.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", a, a.Type)
 		}
 		return fmt.Errorf("type %T is empty", a)
@@ -278,11 +840,21 @@ func (a *AgenticTransitionInputInstructions) validate() error {
 	return nil
 }
 
+var (
+	agenticTransitionOptionFieldName   = big.NewInt(1 << 0)
+	agenticTransitionOptionFieldTo     = big.NewInt(1 << 1)
+	agenticTransitionOptionFieldLabel  = big.NewInt(1 << 2)
+	agenticTransitionOptionFieldParams = big.NewInt(1 << 3)
+)
+
 type AgenticTransitionOption struct {
 	Name   string                                         `json:"name" url:"name"`
 	To     string                                         `json:"to" url:"to"`
 	Label  *string                                        `json:"label,omitempty" url:"label,omitempty"`
 	Params map[string]*AgenticTransitionOptionParamsValue `json:"params,omitempty" url:"params,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -317,7 +889,47 @@ func (a *AgenticTransitionOption) GetParams() map[string]*AgenticTransitionOptio
 }
 
 func (a *AgenticTransitionOption) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AgenticTransitionOption) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionOption) SetName(name string) {
+	a.Name = name
+	a.require(agenticTransitionOptionFieldName)
+}
+
+// SetTo sets the To field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionOption) SetTo(to string) {
+	a.To = to
+	a.require(agenticTransitionOptionFieldTo)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionOption) SetLabel(label *string) {
+	a.Label = label
+	a.require(agenticTransitionOptionFieldLabel)
+}
+
+// SetParams sets the Params field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionOption) SetParams(params map[string]*AgenticTransitionOptionParamsValue) {
+	a.Params = params
+	a.require(agenticTransitionOptionFieldParams)
 }
 
 func (a *AgenticTransitionOption) UnmarshalJSON(data []byte) error {
@@ -336,7 +948,21 @@ func (a *AgenticTransitionOption) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AgenticTransitionOption) MarshalJSON() ([]byte, error) {
+	type embed AgenticTransitionOption
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AgenticTransitionOption) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -353,6 +979,8 @@ type AgenticTransitionOptionParamsValue struct {
 	Input   *InputBinding
 	Literal *LiteralBinding
 	Output  *OutputBinding
+
+	rawJSON json.RawMessage
 }
 
 func (a *AgenticTransitionOptionParamsValue) GetType() string {
@@ -414,6 +1042,7 @@ func (a *AgenticTransitionOptionParamsValue) UnmarshalJSON(data []byte) error {
 		}
 		a.Output = value
 	}
+	a.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -429,6 +1058,9 @@ func (a AgenticTransitionOptionParamsValue) MarshalJSON() ([]byte, error) {
 	}
 	if a.Output != nil {
 		return internal.MarshalJSONWithExtraProperty(a.Output, "type", "output")
+	}
+	if len(a.rawJSON) > 0 {
+		return a.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", a)
 }
@@ -468,6 +1100,9 @@ func (a *AgenticTransitionOptionParamsValue) validate() error {
 	}
 	if len(fields) == 0 {
 		if a.Type != "" {
+			if len(a.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", a, a.Type)
 		}
 		return fmt.Errorf("type %T is empty", a)
@@ -489,12 +1124,23 @@ func (a *AgenticTransitionOptionParamsValue) validate() error {
 	return nil
 }
 
+var (
+	agenticTransitionOutputFieldID           = big.NewInt(1 << 0)
+	agenticTransitionOutputFieldFrom         = big.NewInt(1 << 1)
+	agenticTransitionOutputFieldInstructions = big.NewInt(1 << 2)
+	agenticTransitionOutputFieldOptions      = big.NewInt(1 << 3)
+	agenticTransitionOutputFieldLabel        = big.NewInt(1 << 4)
+)
+
 type AgenticTransitionOutput struct {
 	ID           string                               `json:"id" url:"id"`
 	From         string                               `json:"from" url:"from"`
 	Instructions *AgenticTransitionOutputInstructions `json:"instructions" url:"instructions"`
 	Options      []*AgenticTransitionOption           `json:"options,omitempty" url:"options,omitempty"`
 	Label        *string                              `json:"label,omitempty" url:"label,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -536,7 +1182,54 @@ func (a *AgenticTransitionOutput) GetLabel() *string {
 }
 
 func (a *AgenticTransitionOutput) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AgenticTransitionOutput) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionOutput) SetID(id string) {
+	a.ID = id
+	a.require(agenticTransitionOutputFieldID)
+}
+
+// SetFrom sets the From field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionOutput) SetFrom(from string) {
+	a.From = from
+	a.require(agenticTransitionOutputFieldFrom)
+}
+
+// SetInstructions sets the Instructions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionOutput) SetInstructions(instructions *AgenticTransitionOutputInstructions) {
+	a.Instructions = instructions
+	a.require(agenticTransitionOutputFieldInstructions)
+}
+
+// SetOptions sets the Options field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionOutput) SetOptions(options []*AgenticTransitionOption) {
+	a.Options = options
+	a.require(agenticTransitionOutputFieldOptions)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgenticTransitionOutput) SetLabel(label *string) {
+	a.Label = label
+	a.require(agenticTransitionOutputFieldLabel)
 }
 
 func (a *AgenticTransitionOutput) UnmarshalJSON(data []byte) error {
@@ -555,7 +1248,21 @@ func (a *AgenticTransitionOutput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AgenticTransitionOutput) MarshalJSON() ([]byte, error) {
+	type embed AgenticTransitionOutput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AgenticTransitionOutput) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -571,6 +1278,8 @@ type AgenticTransitionOutputInstructions struct {
 	Type      string
 	Knowledge *KnowledgeBinding
 	Literal   *LiteralBinding
+
+	rawJSON json.RawMessage
 }
 
 func (a *AgenticTransitionOutputInstructions) GetType() string {
@@ -619,6 +1328,7 @@ func (a *AgenticTransitionOutputInstructions) UnmarshalJSON(data []byte) error {
 		}
 		a.Literal = value
 	}
+	a.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -631,6 +1341,9 @@ func (a AgenticTransitionOutputInstructions) MarshalJSON() ([]byte, error) {
 	}
 	if a.Literal != nil {
 		return internal.MarshalJSONWithExtraProperty(a.Literal, "type", "literal")
+	}
+	if len(a.rawJSON) > 0 {
+		return a.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", a)
 }
@@ -663,6 +1376,9 @@ func (a *AgenticTransitionOutputInstructions) validate() error {
 	}
 	if len(fields) == 0 {
 		if a.Type != "" {
+			if len(a.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", a, a.Type)
 		}
 		return fmt.Errorf("type %T is empty", a)
@@ -685,12 +1401,28 @@ func (a *AgenticTransitionOutputInstructions) validate() error {
 }
 
 type AlwaysCondition struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (a *AlwaysCondition) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AlwaysCondition) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
 }
 
 func (a *AlwaysCondition) UnmarshalJSON(data []byte) error {
@@ -709,7 +1441,21 @@ func (a *AlwaysCondition) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AlwaysCondition) MarshalJSON() ([]byte, error) {
+	type embed AlwaysCondition
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AlwaysCondition) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -722,12 +1468,23 @@ func (a *AlwaysCondition) String() string {
 }
 
 // Identity-only view of an artifact, without provider-specific metadata.
+var (
+	artifactSummaryFieldType        = big.NewInt(1 << 0)
+	artifactSummaryFieldProvider    = big.NewInt(1 << 1)
+	artifactSummaryFieldURL         = big.NewInt(1 << 2)
+	artifactSummaryFieldTitle       = big.NewInt(1 << 3)
+	artifactSummaryFieldExternalRef = big.NewInt(1 << 4)
+)
+
 type ArtifactSummary struct {
-	Type        *string                `json:"type,omitempty" url:"type,omitempty"`
-	Provider    *string                `json:"provider,omitempty" url:"provider,omitempty"`
-	URL         *string                `json:"url,omitempty" url:"url,omitempty"`
-	Title       *string                `json:"title,omitempty" url:"title,omitempty"`
-	ExternalRef map[string]interface{} `json:"external_ref,omitempty" url:"external_ref,omitempty"`
+	Type        *string        `json:"type,omitempty" url:"type,omitempty"`
+	Provider    *string        `json:"provider,omitempty" url:"provider,omitempty"`
+	URL         *string        `json:"url,omitempty" url:"url,omitempty"`
+	Title       *string        `json:"title,omitempty" url:"title,omitempty"`
+	ExternalRef map[string]any `json:"external_ref,omitempty" url:"external_ref,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -761,7 +1518,7 @@ func (a *ArtifactSummary) GetTitle() *string {
 	return a.Title
 }
 
-func (a *ArtifactSummary) GetExternalRef() map[string]interface{} {
+func (a *ArtifactSummary) GetExternalRef() map[string]any {
 	if a == nil {
 		return nil
 	}
@@ -769,7 +1526,54 @@ func (a *ArtifactSummary) GetExternalRef() map[string]interface{} {
 }
 
 func (a *ArtifactSummary) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *ArtifactSummary) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *ArtifactSummary) SetType(type_ *string) {
+	a.Type = type_
+	a.require(artifactSummaryFieldType)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *ArtifactSummary) SetProvider(provider *string) {
+	a.Provider = provider
+	a.require(artifactSummaryFieldProvider)
+}
+
+// SetURL sets the URL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *ArtifactSummary) SetURL(url *string) {
+	a.URL = url
+	a.require(artifactSummaryFieldURL)
+}
+
+// SetTitle sets the Title field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *ArtifactSummary) SetTitle(title *string) {
+	a.Title = title
+	a.require(artifactSummaryFieldTitle)
+}
+
+// SetExternalRef sets the ExternalRef field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *ArtifactSummary) SetExternalRef(externalRef map[string]any) {
+	a.ExternalRef = externalRef
+	a.require(artifactSummaryFieldExternalRef)
 }
 
 func (a *ArtifactSummary) UnmarshalJSON(data []byte) error {
@@ -788,7 +1592,21 @@ func (a *ArtifactSummary) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *ArtifactSummary) MarshalJSON() ([]byte, error) {
+	type embed ArtifactSummary
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *ArtifactSummary) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -800,9 +1618,17 @@ func (a *ArtifactSummary) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	binaryConditionInputFieldLeft  = big.NewInt(1 << 0)
+	binaryConditionInputFieldRight = big.NewInt(1 << 1)
+)
+
 type BinaryConditionInput struct {
 	Left  *ConditionOperand `json:"left" url:"left"`
 	Right *ConditionOperand `json:"right" url:"right"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -823,7 +1649,33 @@ func (b *BinaryConditionInput) GetRight() *ConditionOperand {
 }
 
 func (b *BinaryConditionInput) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
 	return b.extraProperties
+}
+
+func (b *BinaryConditionInput) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+// SetLeft sets the Left field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BinaryConditionInput) SetLeft(left *ConditionOperand) {
+	b.Left = left
+	b.require(binaryConditionInputFieldLeft)
+}
+
+// SetRight sets the Right field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BinaryConditionInput) SetRight(right *ConditionOperand) {
+	b.Right = right
+	b.require(binaryConditionInputFieldRight)
 }
 
 func (b *BinaryConditionInput) UnmarshalJSON(data []byte) error {
@@ -842,7 +1694,21 @@ func (b *BinaryConditionInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (b *BinaryConditionInput) MarshalJSON() ([]byte, error) {
+	type embed BinaryConditionInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (b *BinaryConditionInput) String() string {
+	if b == nil {
+		return "<nil>"
+	}
 	if len(b.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
 			return value
@@ -854,9 +1720,17 @@ func (b *BinaryConditionInput) String() string {
 	return fmt.Sprintf("%#v", b)
 }
 
+var (
+	binaryConditionOutputFieldLeft  = big.NewInt(1 << 0)
+	binaryConditionOutputFieldRight = big.NewInt(1 << 1)
+)
+
 type BinaryConditionOutput struct {
 	Left  *ConditionOperand `json:"left" url:"left"`
 	Right *ConditionOperand `json:"right" url:"right"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -877,7 +1751,33 @@ func (b *BinaryConditionOutput) GetRight() *ConditionOperand {
 }
 
 func (b *BinaryConditionOutput) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
 	return b.extraProperties
+}
+
+func (b *BinaryConditionOutput) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+// SetLeft sets the Left field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BinaryConditionOutput) SetLeft(left *ConditionOperand) {
+	b.Left = left
+	b.require(binaryConditionOutputFieldLeft)
+}
+
+// SetRight sets the Right field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BinaryConditionOutput) SetRight(right *ConditionOperand) {
+	b.Right = right
+	b.require(binaryConditionOutputFieldRight)
 }
 
 func (b *BinaryConditionOutput) UnmarshalJSON(data []byte) error {
@@ -896,7 +1796,21 @@ func (b *BinaryConditionOutput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (b *BinaryConditionOutput) MarshalJSON() ([]byte, error) {
+	type embed BinaryConditionOutput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (b *BinaryConditionOutput) String() string {
+	if b == nil {
+		return "<nil>"
+	}
 	if len(b.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
 			return value
@@ -908,8 +1822,15 @@ func (b *BinaryConditionOutput) String() string {
 	return fmt.Sprintf("%#v", b)
 }
 
+var (
+	compoundConditionInputFieldConditions = big.NewInt(1 << 0)
+)
+
 type CompoundConditionInput struct {
 	Conditions []*LineConditionInput `json:"conditions" url:"conditions"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -923,7 +1844,26 @@ func (c *CompoundConditionInput) GetConditions() []*LineConditionInput {
 }
 
 func (c *CompoundConditionInput) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *CompoundConditionInput) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetConditions sets the Conditions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CompoundConditionInput) SetConditions(conditions []*LineConditionInput) {
+	c.Conditions = conditions
+	c.require(compoundConditionInputFieldConditions)
 }
 
 func (c *CompoundConditionInput) UnmarshalJSON(data []byte) error {
@@ -942,7 +1882,21 @@ func (c *CompoundConditionInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *CompoundConditionInput) MarshalJSON() ([]byte, error) {
+	type embed CompoundConditionInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *CompoundConditionInput) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -954,8 +1908,15 @@ func (c *CompoundConditionInput) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
+var (
+	compoundConditionOutputFieldConditions = big.NewInt(1 << 0)
+)
+
 type CompoundConditionOutput struct {
 	Conditions []*LineConditionOutput `json:"conditions" url:"conditions"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -969,7 +1930,26 @@ func (c *CompoundConditionOutput) GetConditions() []*LineConditionOutput {
 }
 
 func (c *CompoundConditionOutput) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *CompoundConditionOutput) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetConditions sets the Conditions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CompoundConditionOutput) SetConditions(conditions []*LineConditionOutput) {
+	c.Conditions = conditions
+	c.require(compoundConditionOutputFieldConditions)
 }
 
 func (c *CompoundConditionOutput) UnmarshalJSON(data []byte) error {
@@ -988,7 +1968,21 @@ func (c *CompoundConditionOutput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *CompoundConditionOutput) MarshalJSON() ([]byte, error) {
+	type embed CompoundConditionOutput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *CompoundConditionOutput) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -1006,6 +2000,8 @@ type ConditionOperand struct {
 	Stage      *StageOperand
 	Transition *TransitionOperand
 	Trigger    *TriggerOperand
+
+	rawJSON json.RawMessage
 }
 
 func (c *ConditionOperand) GetType() string {
@@ -1080,6 +2076,7 @@ func (c *ConditionOperand) UnmarshalJSON(data []byte) error {
 		}
 		c.Trigger = value
 	}
+	c.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -1098,6 +2095,9 @@ func (c ConditionOperand) MarshalJSON() ([]byte, error) {
 	}
 	if c.Trigger != nil {
 		return internal.MarshalJSONWithExtraProperty(c.Trigger, "type", "trigger")
+	}
+	if len(c.rawJSON) > 0 {
+		return c.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", c)
 }
@@ -1144,6 +2144,9 @@ func (c *ConditionOperand) validate() error {
 	}
 	if len(fields) == 0 {
 		if c.Type != "" {
+			if len(c.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", c, c.Type)
 		}
 		return fmt.Errorf("type %T is empty", c)
@@ -1165,6 +2168,16 @@ func (c *ConditionOperand) validate() error {
 	return nil
 }
 
+var (
+	conditionalTransitionInputFieldID            = big.NewInt(1 << 0)
+	conditionalTransitionInputFieldFrom          = big.NewInt(1 << 1)
+	conditionalTransitionInputFieldTo            = big.NewInt(1 << 2)
+	conditionalTransitionInputFieldWhen          = big.NewInt(1 << 3)
+	conditionalTransitionInputFieldLabel         = big.NewInt(1 << 4)
+	conditionalTransitionInputFieldMaxIterations = big.NewInt(1 << 5)
+	conditionalTransitionInputFieldParams        = big.NewInt(1 << 6)
+)
+
 type ConditionalTransitionInput struct {
 	ID            string                                            `json:"id" url:"id"`
 	From          string                                            `json:"from" url:"from"`
@@ -1173,6 +2186,9 @@ type ConditionalTransitionInput struct {
 	Label         *string                                           `json:"label,omitempty" url:"label,omitempty"`
 	MaxIterations *int                                              `json:"max_iterations,omitempty" url:"max_iterations,omitempty"`
 	Params        map[string]*ConditionalTransitionInputParamsValue `json:"params,omitempty" url:"params,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1228,7 +2244,68 @@ func (c *ConditionalTransitionInput) GetParams() map[string]*ConditionalTransiti
 }
 
 func (c *ConditionalTransitionInput) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *ConditionalTransitionInput) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionInput) SetID(id string) {
+	c.ID = id
+	c.require(conditionalTransitionInputFieldID)
+}
+
+// SetFrom sets the From field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionInput) SetFrom(from string) {
+	c.From = from
+	c.require(conditionalTransitionInputFieldFrom)
+}
+
+// SetTo sets the To field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionInput) SetTo(to string) {
+	c.To = to
+	c.require(conditionalTransitionInputFieldTo)
+}
+
+// SetWhen sets the When field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionInput) SetWhen(when *LineConditionInput) {
+	c.When = when
+	c.require(conditionalTransitionInputFieldWhen)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionInput) SetLabel(label *string) {
+	c.Label = label
+	c.require(conditionalTransitionInputFieldLabel)
+}
+
+// SetMaxIterations sets the MaxIterations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionInput) SetMaxIterations(maxIterations *int) {
+	c.MaxIterations = maxIterations
+	c.require(conditionalTransitionInputFieldMaxIterations)
+}
+
+// SetParams sets the Params field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionInput) SetParams(params map[string]*ConditionalTransitionInputParamsValue) {
+	c.Params = params
+	c.require(conditionalTransitionInputFieldParams)
 }
 
 func (c *ConditionalTransitionInput) UnmarshalJSON(data []byte) error {
@@ -1247,7 +2324,21 @@ func (c *ConditionalTransitionInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *ConditionalTransitionInput) MarshalJSON() ([]byte, error) {
+	type embed ConditionalTransitionInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *ConditionalTransitionInput) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -1264,6 +2355,8 @@ type ConditionalTransitionInputParamsValue struct {
 	Input   *InputBinding
 	Literal *LiteralBinding
 	Output  *OutputBinding
+
+	rawJSON json.RawMessage
 }
 
 func (c *ConditionalTransitionInputParamsValue) GetType() string {
@@ -1325,6 +2418,7 @@ func (c *ConditionalTransitionInputParamsValue) UnmarshalJSON(data []byte) error
 		}
 		c.Output = value
 	}
+	c.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -1340,6 +2434,9 @@ func (c ConditionalTransitionInputParamsValue) MarshalJSON() ([]byte, error) {
 	}
 	if c.Output != nil {
 		return internal.MarshalJSONWithExtraProperty(c.Output, "type", "output")
+	}
+	if len(c.rawJSON) > 0 {
+		return c.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", c)
 }
@@ -1379,6 +2476,9 @@ func (c *ConditionalTransitionInputParamsValue) validate() error {
 	}
 	if len(fields) == 0 {
 		if c.Type != "" {
+			if len(c.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", c, c.Type)
 		}
 		return fmt.Errorf("type %T is empty", c)
@@ -1400,6 +2500,16 @@ func (c *ConditionalTransitionInputParamsValue) validate() error {
 	return nil
 }
 
+var (
+	conditionalTransitionOutputFieldID            = big.NewInt(1 << 0)
+	conditionalTransitionOutputFieldFrom          = big.NewInt(1 << 1)
+	conditionalTransitionOutputFieldTo            = big.NewInt(1 << 2)
+	conditionalTransitionOutputFieldWhen          = big.NewInt(1 << 3)
+	conditionalTransitionOutputFieldLabel         = big.NewInt(1 << 4)
+	conditionalTransitionOutputFieldMaxIterations = big.NewInt(1 << 5)
+	conditionalTransitionOutputFieldParams        = big.NewInt(1 << 6)
+)
+
 type ConditionalTransitionOutput struct {
 	ID            string                                             `json:"id" url:"id"`
 	From          string                                             `json:"from" url:"from"`
@@ -1408,6 +2518,9 @@ type ConditionalTransitionOutput struct {
 	Label         *string                                            `json:"label,omitempty" url:"label,omitempty"`
 	MaxIterations *int                                               `json:"max_iterations,omitempty" url:"max_iterations,omitempty"`
 	Params        map[string]*ConditionalTransitionOutputParamsValue `json:"params,omitempty" url:"params,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1463,7 +2576,68 @@ func (c *ConditionalTransitionOutput) GetParams() map[string]*ConditionalTransit
 }
 
 func (c *ConditionalTransitionOutput) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *ConditionalTransitionOutput) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionOutput) SetID(id string) {
+	c.ID = id
+	c.require(conditionalTransitionOutputFieldID)
+}
+
+// SetFrom sets the From field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionOutput) SetFrom(from string) {
+	c.From = from
+	c.require(conditionalTransitionOutputFieldFrom)
+}
+
+// SetTo sets the To field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionOutput) SetTo(to string) {
+	c.To = to
+	c.require(conditionalTransitionOutputFieldTo)
+}
+
+// SetWhen sets the When field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionOutput) SetWhen(when *LineConditionOutput) {
+	c.When = when
+	c.require(conditionalTransitionOutputFieldWhen)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionOutput) SetLabel(label *string) {
+	c.Label = label
+	c.require(conditionalTransitionOutputFieldLabel)
+}
+
+// SetMaxIterations sets the MaxIterations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionOutput) SetMaxIterations(maxIterations *int) {
+	c.MaxIterations = maxIterations
+	c.require(conditionalTransitionOutputFieldMaxIterations)
+}
+
+// SetParams sets the Params field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConditionalTransitionOutput) SetParams(params map[string]*ConditionalTransitionOutputParamsValue) {
+	c.Params = params
+	c.require(conditionalTransitionOutputFieldParams)
 }
 
 func (c *ConditionalTransitionOutput) UnmarshalJSON(data []byte) error {
@@ -1482,7 +2656,21 @@ func (c *ConditionalTransitionOutput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *ConditionalTransitionOutput) MarshalJSON() ([]byte, error) {
+	type embed ConditionalTransitionOutput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *ConditionalTransitionOutput) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -1499,6 +2687,8 @@ type ConditionalTransitionOutputParamsValue struct {
 	Input   *InputBinding
 	Literal *LiteralBinding
 	Output  *OutputBinding
+
+	rawJSON json.RawMessage
 }
 
 func (c *ConditionalTransitionOutputParamsValue) GetType() string {
@@ -1560,6 +2750,7 @@ func (c *ConditionalTransitionOutputParamsValue) UnmarshalJSON(data []byte) erro
 		}
 		c.Output = value
 	}
+	c.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -1575,6 +2766,9 @@ func (c ConditionalTransitionOutputParamsValue) MarshalJSON() ([]byte, error) {
 	}
 	if c.Output != nil {
 		return internal.MarshalJSONWithExtraProperty(c.Output, "type", "output")
+	}
+	if len(c.rawJSON) > 0 {
+		return c.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", c)
 }
@@ -1614,6 +2808,9 @@ func (c *ConditionalTransitionOutputParamsValue) validate() error {
 	}
 	if len(fields) == 0 {
 		if c.Type != "" {
+			if len(c.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", c, c.Type)
 		}
 		return fmt.Errorf("type %T is empty", c)
@@ -1762,10 +2959,19 @@ func (f FactoryFailureDomain) Ptr() *FactoryFailureDomain {
 	return &f
 }
 
+var (
+	gitHubRepositorySelectorFieldKind         = big.NewInt(1 << 0)
+	gitHubRepositorySelectorFieldScope        = big.NewInt(1 << 1)
+	gitHubRepositorySelectorFieldRepositories = big.NewInt(1 << 2)
+)
+
 type GitHubRepositorySelector struct {
 	Kind         *GitHubRepositorySelectorKind `json:"kind,omitempty" url:"kind,omitempty"`
 	Scope        *SelectorScope                `json:"scope,omitempty" url:"scope,omitempty"`
 	Repositories []string                      `json:"repositories,omitempty" url:"repositories,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1793,7 +2999,40 @@ func (g *GitHubRepositorySelector) GetRepositories() []string {
 }
 
 func (g *GitHubRepositorySelector) GetExtraProperties() map[string]interface{} {
+	if g == nil {
+		return nil
+	}
 	return g.extraProperties
+}
+
+func (g *GitHubRepositorySelector) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GitHubRepositorySelector) SetKind(kind *GitHubRepositorySelectorKind) {
+	g.Kind = kind
+	g.require(gitHubRepositorySelectorFieldKind)
+}
+
+// SetScope sets the Scope field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GitHubRepositorySelector) SetScope(scope *SelectorScope) {
+	g.Scope = scope
+	g.require(gitHubRepositorySelectorFieldScope)
+}
+
+// SetRepositories sets the Repositories field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GitHubRepositorySelector) SetRepositories(repositories []string) {
+	g.Repositories = repositories
+	g.require(gitHubRepositorySelectorFieldRepositories)
 }
 
 func (g *GitHubRepositorySelector) UnmarshalJSON(data []byte) error {
@@ -1812,7 +3051,21 @@ func (g *GitHubRepositorySelector) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (g *GitHubRepositorySelector) MarshalJSON() ([]byte, error) {
+	type embed GitHubRepositorySelector
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*g),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (g *GitHubRepositorySelector) String() string {
+	if g == nil {
+		return "<nil>"
+	}
 	if len(g.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
 			return value
@@ -1843,8 +3096,15 @@ func (g GitHubRepositorySelectorKind) Ptr() *GitHubRepositorySelectorKind {
 	return &g
 }
 
+var (
+	inputBindingFieldName = big.NewInt(1 << 0)
+)
+
 type InputBinding struct {
 	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1858,7 +3118,26 @@ func (i *InputBinding) GetName() string {
 }
 
 func (i *InputBinding) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *InputBinding) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InputBinding) SetName(name string) {
+	i.Name = name
+	i.require(inputBindingFieldName)
 }
 
 func (i *InputBinding) UnmarshalJSON(data []byte) error {
@@ -1877,7 +3156,21 @@ func (i *InputBinding) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *InputBinding) MarshalJSON() ([]byte, error) {
+	type embed InputBinding
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *InputBinding) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -1889,12 +3182,23 @@ func (i *InputBinding) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+var (
+	integrationTriggerSectionInputFieldProvider = big.NewInt(1 << 0)
+	integrationTriggerSectionInputFieldName     = big.NewInt(1 << 1)
+	integrationTriggerSectionInputFieldSelector = big.NewInt(1 << 2)
+	integrationTriggerSectionInputFieldFilters  = big.NewInt(1 << 3)
+	integrationTriggerSectionInputFieldOutputs  = big.NewInt(1 << 4)
+)
+
 type IntegrationTriggerSectionInput struct {
 	Provider string                                  `json:"provider" url:"provider"`
 	Name     string                                  `json:"name" url:"name"`
 	Selector *IntegrationTriggerSectionInputSelector `json:"selector" url:"selector"`
 	Filters  []*LineConditionInput                   `json:"filters,omitempty" url:"filters,omitempty"`
 	Outputs  map[string]*TriggerPathBinding          `json:"outputs,omitempty" url:"outputs,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1936,7 +3240,54 @@ func (i *IntegrationTriggerSectionInput) GetOutputs() map[string]*TriggerPathBin
 }
 
 func (i *IntegrationTriggerSectionInput) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IntegrationTriggerSectionInput) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionInput) SetProvider(provider string) {
+	i.Provider = provider
+	i.require(integrationTriggerSectionInputFieldProvider)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionInput) SetName(name string) {
+	i.Name = name
+	i.require(integrationTriggerSectionInputFieldName)
+}
+
+// SetSelector sets the Selector field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionInput) SetSelector(selector *IntegrationTriggerSectionInputSelector) {
+	i.Selector = selector
+	i.require(integrationTriggerSectionInputFieldSelector)
+}
+
+// SetFilters sets the Filters field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionInput) SetFilters(filters []*LineConditionInput) {
+	i.Filters = filters
+	i.require(integrationTriggerSectionInputFieldFilters)
+}
+
+// SetOutputs sets the Outputs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionInput) SetOutputs(outputs map[string]*TriggerPathBinding) {
+	i.Outputs = outputs
+	i.require(integrationTriggerSectionInputFieldOutputs)
 }
 
 func (i *IntegrationTriggerSectionInput) UnmarshalJSON(data []byte) error {
@@ -1955,7 +3306,21 @@ func (i *IntegrationTriggerSectionInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IntegrationTriggerSectionInput) MarshalJSON() ([]byte, error) {
+	type embed IntegrationTriggerSectionInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IntegrationTriggerSectionInput) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -1972,6 +3337,8 @@ type IntegrationTriggerSectionInputSelector struct {
 	Github   *GitHubRepositorySelector
 	Linear   *LinearIssueSelector
 	Slack    *SlackChannelSelector
+
+	rawJSON json.RawMessage
 }
 
 func (i *IntegrationTriggerSectionInputSelector) GetProvider() string {
@@ -2033,6 +3400,7 @@ func (i *IntegrationTriggerSectionInputSelector) UnmarshalJSON(data []byte) erro
 		}
 		i.Slack = value
 	}
+	i.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -2048,6 +3416,9 @@ func (i IntegrationTriggerSectionInputSelector) MarshalJSON() ([]byte, error) {
 	}
 	if i.Slack != nil {
 		return internal.MarshalJSONWithExtraProperty(i.Slack, "provider", "slack")
+	}
+	if len(i.rawJSON) > 0 {
+		return i.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", i)
 }
@@ -2087,6 +3458,9 @@ func (i *IntegrationTriggerSectionInputSelector) validate() error {
 	}
 	if len(fields) == 0 {
 		if i.Provider != "" {
+			if len(i.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", i, i.Provider)
 		}
 		return fmt.Errorf("type %T is empty", i)
@@ -2108,12 +3482,23 @@ func (i *IntegrationTriggerSectionInputSelector) validate() error {
 	return nil
 }
 
+var (
+	integrationTriggerSectionOutputFieldProvider = big.NewInt(1 << 0)
+	integrationTriggerSectionOutputFieldName     = big.NewInt(1 << 1)
+	integrationTriggerSectionOutputFieldSelector = big.NewInt(1 << 2)
+	integrationTriggerSectionOutputFieldFilters  = big.NewInt(1 << 3)
+	integrationTriggerSectionOutputFieldOutputs  = big.NewInt(1 << 4)
+)
+
 type IntegrationTriggerSectionOutput struct {
 	Provider string                                   `json:"provider" url:"provider"`
 	Name     string                                   `json:"name" url:"name"`
 	Selector *IntegrationTriggerSectionOutputSelector `json:"selector" url:"selector"`
 	Filters  []*LineConditionOutput                   `json:"filters,omitempty" url:"filters,omitempty"`
 	Outputs  map[string]*TriggerPathBinding           `json:"outputs,omitempty" url:"outputs,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2155,7 +3540,54 @@ func (i *IntegrationTriggerSectionOutput) GetOutputs() map[string]*TriggerPathBi
 }
 
 func (i *IntegrationTriggerSectionOutput) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
 	return i.extraProperties
+}
+
+func (i *IntegrationTriggerSectionOutput) require(field *big.Int) {
+	next := new(big.Int)
+	if i.explicitFields != nil {
+		next.Set(i.explicitFields)
+	}
+	next.Or(next, field)
+	i.explicitFields = next
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionOutput) SetProvider(provider string) {
+	i.Provider = provider
+	i.require(integrationTriggerSectionOutputFieldProvider)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionOutput) SetName(name string) {
+	i.Name = name
+	i.require(integrationTriggerSectionOutputFieldName)
+}
+
+// SetSelector sets the Selector field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionOutput) SetSelector(selector *IntegrationTriggerSectionOutputSelector) {
+	i.Selector = selector
+	i.require(integrationTriggerSectionOutputFieldSelector)
+}
+
+// SetFilters sets the Filters field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionOutput) SetFilters(filters []*LineConditionOutput) {
+	i.Filters = filters
+	i.require(integrationTriggerSectionOutputFieldFilters)
+}
+
+// SetOutputs sets the Outputs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *IntegrationTriggerSectionOutput) SetOutputs(outputs map[string]*TriggerPathBinding) {
+	i.Outputs = outputs
+	i.require(integrationTriggerSectionOutputFieldOutputs)
 }
 
 func (i *IntegrationTriggerSectionOutput) UnmarshalJSON(data []byte) error {
@@ -2174,7 +3606,21 @@ func (i *IntegrationTriggerSectionOutput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (i *IntegrationTriggerSectionOutput) MarshalJSON() ([]byte, error) {
+	type embed IntegrationTriggerSectionOutput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (i *IntegrationTriggerSectionOutput) String() string {
+	if i == nil {
+		return "<nil>"
+	}
 	if len(i.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
 			return value
@@ -2191,6 +3637,8 @@ type IntegrationTriggerSectionOutputSelector struct {
 	Github   *GitHubRepositorySelector
 	Linear   *LinearIssueSelector
 	Slack    *SlackChannelSelector
+
+	rawJSON json.RawMessage
 }
 
 func (i *IntegrationTriggerSectionOutputSelector) GetProvider() string {
@@ -2252,6 +3700,7 @@ func (i *IntegrationTriggerSectionOutputSelector) UnmarshalJSON(data []byte) err
 		}
 		i.Slack = value
 	}
+	i.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -2267,6 +3716,9 @@ func (i IntegrationTriggerSectionOutputSelector) MarshalJSON() ([]byte, error) {
 	}
 	if i.Slack != nil {
 		return internal.MarshalJSONWithExtraProperty(i.Slack, "provider", "slack")
+	}
+	if len(i.rawJSON) > 0 {
+		return i.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", i)
 }
@@ -2306,6 +3758,9 @@ func (i *IntegrationTriggerSectionOutputSelector) validate() error {
 	}
 	if len(fields) == 0 {
 		if i.Provider != "" {
+			if len(i.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", i, i.Provider)
 		}
 		return fmt.Errorf("type %T is empty", i)
@@ -2327,8 +3782,15 @@ func (i *IntegrationTriggerSectionOutputSelector) validate() error {
 	return nil
 }
 
+var (
+	lineAgentConfigFieldInstructions = big.NewInt(1 << 0)
+)
+
 type LineAgentConfig struct {
 	Instructions *LineAgentConfigInstructions `json:"instructions,omitempty" url:"instructions,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -2342,7 +3804,26 @@ func (l *LineAgentConfig) GetInstructions() *LineAgentConfigInstructions {
 }
 
 func (l *LineAgentConfig) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineAgentConfig) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetInstructions sets the Instructions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineAgentConfig) SetInstructions(instructions *LineAgentConfigInstructions) {
+	l.Instructions = instructions
+	l.require(lineAgentConfigFieldInstructions)
 }
 
 func (l *LineAgentConfig) UnmarshalJSON(data []byte) error {
@@ -2361,7 +3842,21 @@ func (l *LineAgentConfig) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineAgentConfig) MarshalJSON() ([]byte, error) {
+	type embed LineAgentConfig
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineAgentConfig) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -2377,6 +3872,8 @@ type LineAgentConfigInstructions struct {
 	Type      string
 	Knowledge *KnowledgeBinding
 	Literal   *LiteralBinding
+
+	rawJSON json.RawMessage
 }
 
 func (l *LineAgentConfigInstructions) GetType() string {
@@ -2425,6 +3922,7 @@ func (l *LineAgentConfigInstructions) UnmarshalJSON(data []byte) error {
 		}
 		l.Literal = value
 	}
+	l.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -2437,6 +3935,9 @@ func (l LineAgentConfigInstructions) MarshalJSON() ([]byte, error) {
 	}
 	if l.Literal != nil {
 		return internal.MarshalJSONWithExtraProperty(l.Literal, "type", "literal")
+	}
+	if len(l.rawJSON) > 0 {
+		return l.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", l)
 }
@@ -2469,6 +3970,9 @@ func (l *LineAgentConfigInstructions) validate() error {
 	}
 	if len(fields) == 0 {
 		if l.Type != "" {
+			if len(l.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", l, l.Type)
 		}
 		return fmt.Errorf("type %T is empty", l)
@@ -2504,6 +4008,8 @@ type LineConditionInput struct {
 	Not         *NotConditionInput
 	NotContains *BinaryConditionInput
 	Truthy      *UnaryConditionInput
+
+	rawJSON json.RawMessage
 }
 
 func (l *LineConditionInput) GetOp() string {
@@ -2682,6 +4188,7 @@ func (l *LineConditionInput) UnmarshalJSON(data []byte) error {
 		}
 		l.Truthy = value
 	}
+	l.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -2724,6 +4231,9 @@ func (l LineConditionInput) MarshalJSON() ([]byte, error) {
 	}
 	if l.Truthy != nil {
 		return internal.MarshalJSONWithExtraProperty(l.Truthy, "op", "truthy")
+	}
+	if len(l.rawJSON) > 0 {
+		return l.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", l)
 }
@@ -2826,6 +4336,9 @@ func (l *LineConditionInput) validate() error {
 	}
 	if len(fields) == 0 {
 		if l.Op != "" {
+			if len(l.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", l, l.Op)
 		}
 		return fmt.Errorf("type %T is empty", l)
@@ -2861,6 +4374,8 @@ type LineConditionOutput struct {
 	Not         *NotConditionOutput
 	NotContains *BinaryConditionOutput
 	Truthy      *UnaryConditionOutput
+
+	rawJSON json.RawMessage
 }
 
 func (l *LineConditionOutput) GetOp() string {
@@ -3039,6 +4554,7 @@ func (l *LineConditionOutput) UnmarshalJSON(data []byte) error {
 		}
 		l.Truthy = value
 	}
+	l.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -3081,6 +4597,9 @@ func (l LineConditionOutput) MarshalJSON() ([]byte, error) {
 	}
 	if l.Truthy != nil {
 		return internal.MarshalJSONWithExtraProperty(l.Truthy, "op", "truthy")
+	}
+	if len(l.rawJSON) > 0 {
+		return l.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", l)
 }
@@ -3183,6 +4702,9 @@ func (l *LineConditionOutput) validate() error {
 	}
 	if len(fields) == 0 {
 		if l.Op != "" {
+			if len(l.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", l, l.Op)
 		}
 		return fmt.Errorf("type %T is empty", l)
@@ -3204,9 +4726,16 @@ func (l *LineConditionOutput) validate() error {
 	return nil
 }
 
+var (
+	lineDeployRequestFieldManifest = big.NewInt(1 << 0)
+)
+
 type LineDeployRequest struct {
 	// Line manifest (authored as TOML or JSON, stored as JSON)
 	Manifest *LineManifestInput `json:"manifest" url:"manifest"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3220,7 +4749,26 @@ func (l *LineDeployRequest) GetManifest() *LineManifestInput {
 }
 
 func (l *LineDeployRequest) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineDeployRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetManifest sets the Manifest field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineDeployRequest) SetManifest(manifest *LineManifestInput) {
+	l.Manifest = manifest
+	l.require(lineDeployRequestFieldManifest)
 }
 
 func (l *LineDeployRequest) UnmarshalJSON(data []byte) error {
@@ -3239,7 +4787,21 @@ func (l *LineDeployRequest) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineDeployRequest) MarshalJSON() ([]byte, error) {
+	type embed LineDeployRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineDeployRequest) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -3251,10 +4813,19 @@ func (l *LineDeployRequest) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineLimitsInputFieldMaxIterations = big.NewInt(1 << 0)
+	lineLimitsInputFieldBudgetUsd     = big.NewInt(1 << 1)
+	lineLimitsInputFieldTimeout       = big.NewInt(1 << 2)
+)
+
 type LineLimitsInput struct {
 	MaxIterations *int                      `json:"max_iterations,omitempty" url:"max_iterations,omitempty"`
 	BudgetUsd     *LineLimitsInputBudgetUsd `json:"budget_usd,omitempty" url:"budget_usd,omitempty"`
 	Timeout       *string                   `json:"timeout,omitempty" url:"timeout,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3282,7 +4853,40 @@ func (l *LineLimitsInput) GetTimeout() *string {
 }
 
 func (l *LineLimitsInput) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineLimitsInput) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetMaxIterations sets the MaxIterations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineLimitsInput) SetMaxIterations(maxIterations *int) {
+	l.MaxIterations = maxIterations
+	l.require(lineLimitsInputFieldMaxIterations)
+}
+
+// SetBudgetUsd sets the BudgetUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineLimitsInput) SetBudgetUsd(budgetUsd *LineLimitsInputBudgetUsd) {
+	l.BudgetUsd = budgetUsd
+	l.require(lineLimitsInputFieldBudgetUsd)
+}
+
+// SetTimeout sets the Timeout field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineLimitsInput) SetTimeout(timeout *string) {
+	l.Timeout = timeout
+	l.require(lineLimitsInputFieldTimeout)
 }
 
 func (l *LineLimitsInput) UnmarshalJSON(data []byte) error {
@@ -3301,7 +4905,21 @@ func (l *LineLimitsInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineLimitsInput) MarshalJSON() ([]byte, error) {
+	type embed LineLimitsInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineLimitsInput) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -3375,10 +4993,19 @@ func (l *LineLimitsInputBudgetUsd) Accept(visitor LineLimitsInputBudgetUsdVisito
 	return fmt.Errorf("type %T does not include a non-empty union type", l)
 }
 
+var (
+	lineLimitsOutputFieldMaxIterations = big.NewInt(1 << 0)
+	lineLimitsOutputFieldBudgetUsd     = big.NewInt(1 << 1)
+	lineLimitsOutputFieldTimeout       = big.NewInt(1 << 2)
+)
+
 type LineLimitsOutput struct {
 	MaxIterations *int    `json:"max_iterations,omitempty" url:"max_iterations,omitempty"`
 	BudgetUsd     *string `json:"budget_usd,omitempty" url:"budget_usd,omitempty"`
 	Timeout       *string `json:"timeout,omitempty" url:"timeout,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3406,7 +5033,40 @@ func (l *LineLimitsOutput) GetTimeout() *string {
 }
 
 func (l *LineLimitsOutput) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineLimitsOutput) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetMaxIterations sets the MaxIterations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineLimitsOutput) SetMaxIterations(maxIterations *int) {
+	l.MaxIterations = maxIterations
+	l.require(lineLimitsOutputFieldMaxIterations)
+}
+
+// SetBudgetUsd sets the BudgetUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineLimitsOutput) SetBudgetUsd(budgetUsd *string) {
+	l.BudgetUsd = budgetUsd
+	l.require(lineLimitsOutputFieldBudgetUsd)
+}
+
+// SetTimeout sets the Timeout field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineLimitsOutput) SetTimeout(timeout *string) {
+	l.Timeout = timeout
+	l.require(lineLimitsOutputFieldTimeout)
 }
 
 func (l *LineLimitsOutput) UnmarshalJSON(data []byte) error {
@@ -3425,7 +5085,21 @@ func (l *LineLimitsOutput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineLimitsOutput) MarshalJSON() ([]byte, error) {
+	type embed LineLimitsOutput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineLimitsOutput) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -3438,6 +5112,15 @@ func (l *LineLimitsOutput) String() string {
 }
 
 // Full line.toml manifest (TOML or JSON authoring; stored as JSON).
+var (
+	lineManifestInputFieldLine        = big.NewInt(1 << 0)
+	lineManifestInputFieldTrigger     = big.NewInt(1 << 1)
+	lineManifestInputFieldStages      = big.NewInt(1 << 2)
+	lineManifestInputFieldTransitions = big.NewInt(1 << 3)
+	lineManifestInputFieldAgent       = big.NewInt(1 << 4)
+	lineManifestInputFieldLimits      = big.NewInt(1 << 5)
+)
+
 type LineManifestInput struct {
 	Line        *LineSection                        `json:"line" url:"line"`
 	Trigger     *LineManifestInputTrigger           `json:"trigger" url:"trigger"`
@@ -3445,6 +5128,9 @@ type LineManifestInput struct {
 	Transitions []*LineManifestInputTransitionsItem `json:"transitions,omitempty" url:"transitions,omitempty"`
 	Agent       *LineAgentConfig                    `json:"agent,omitempty" url:"agent,omitempty"`
 	Limits      *LineLimitsInput                    `json:"limits,omitempty" url:"limits,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3493,7 +5179,61 @@ func (l *LineManifestInput) GetLimits() *LineLimitsInput {
 }
 
 func (l *LineManifestInput) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineManifestInput) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetLine sets the Line field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestInput) SetLine(line *LineSection) {
+	l.Line = line
+	l.require(lineManifestInputFieldLine)
+}
+
+// SetTrigger sets the Trigger field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestInput) SetTrigger(trigger *LineManifestInputTrigger) {
+	l.Trigger = trigger
+	l.require(lineManifestInputFieldTrigger)
+}
+
+// SetStages sets the Stages field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestInput) SetStages(stages []*LineStage) {
+	l.Stages = stages
+	l.require(lineManifestInputFieldStages)
+}
+
+// SetTransitions sets the Transitions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestInput) SetTransitions(transitions []*LineManifestInputTransitionsItem) {
+	l.Transitions = transitions
+	l.require(lineManifestInputFieldTransitions)
+}
+
+// SetAgent sets the Agent field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestInput) SetAgent(agent *LineAgentConfig) {
+	l.Agent = agent
+	l.require(lineManifestInputFieldAgent)
+}
+
+// SetLimits sets the Limits field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestInput) SetLimits(limits *LineLimitsInput) {
+	l.Limits = limits
+	l.require(lineManifestInputFieldLimits)
 }
 
 func (l *LineManifestInput) UnmarshalJSON(data []byte) error {
@@ -3512,7 +5252,21 @@ func (l *LineManifestInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineManifestInput) MarshalJSON() ([]byte, error) {
+	type embed LineManifestInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineManifestInput) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -3528,6 +5282,8 @@ type LineManifestInputTransitionsItem struct {
 	Type        string
 	Agentic     *AgenticTransitionInput
 	Conditional *ConditionalTransitionInput
+
+	rawJSON json.RawMessage
 }
 
 func (l *LineManifestInputTransitionsItem) GetType() string {
@@ -3576,6 +5332,7 @@ func (l *LineManifestInputTransitionsItem) UnmarshalJSON(data []byte) error {
 		}
 		l.Conditional = value
 	}
+	l.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -3588,6 +5345,9 @@ func (l LineManifestInputTransitionsItem) MarshalJSON() ([]byte, error) {
 	}
 	if l.Conditional != nil {
 		return internal.MarshalJSONWithExtraProperty(l.Conditional, "type", "conditional")
+	}
+	if len(l.rawJSON) > 0 {
+		return l.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", l)
 }
@@ -3620,6 +5380,9 @@ func (l *LineManifestInputTransitionsItem) validate() error {
 	}
 	if len(fields) == 0 {
 		if l.Type != "" {
+			if len(l.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", l, l.Type)
 		}
 		return fmt.Errorf("type %T is empty", l)
@@ -3647,6 +5410,8 @@ type LineManifestInputTrigger struct {
 	Manual             *ManualTriggerSection
 	Schedule           *ScheduleTriggerSection
 	Webhook            *WebhookTriggerSection
+
+	rawJSON json.RawMessage
 }
 
 func (l *LineManifestInputTrigger) GetType() string {
@@ -3721,6 +5486,7 @@ func (l *LineManifestInputTrigger) UnmarshalJSON(data []byte) error {
 		}
 		l.Webhook = value
 	}
+	l.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -3739,6 +5505,9 @@ func (l LineManifestInputTrigger) MarshalJSON() ([]byte, error) {
 	}
 	if l.Webhook != nil {
 		return internal.MarshalJSONWithExtraProperty(l.Webhook, "type", "webhook")
+	}
+	if len(l.rawJSON) > 0 {
+		return l.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", l)
 }
@@ -3785,6 +5554,9 @@ func (l *LineManifestInputTrigger) validate() error {
 	}
 	if len(fields) == 0 {
 		if l.Type != "" {
+			if len(l.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", l, l.Type)
 		}
 		return fmt.Errorf("type %T is empty", l)
@@ -3807,6 +5579,15 @@ func (l *LineManifestInputTrigger) validate() error {
 }
 
 // Full line.toml manifest (TOML or JSON authoring; stored as JSON).
+var (
+	lineManifestOutputFieldLine        = big.NewInt(1 << 0)
+	lineManifestOutputFieldTrigger     = big.NewInt(1 << 1)
+	lineManifestOutputFieldStages      = big.NewInt(1 << 2)
+	lineManifestOutputFieldTransitions = big.NewInt(1 << 3)
+	lineManifestOutputFieldAgent       = big.NewInt(1 << 4)
+	lineManifestOutputFieldLimits      = big.NewInt(1 << 5)
+)
+
 type LineManifestOutput struct {
 	Line        *LineSection                         `json:"line" url:"line"`
 	Trigger     *LineManifestOutputTrigger           `json:"trigger" url:"trigger"`
@@ -3814,6 +5595,9 @@ type LineManifestOutput struct {
 	Transitions []*LineManifestOutputTransitionsItem `json:"transitions,omitempty" url:"transitions,omitempty"`
 	Agent       *LineAgentConfig                     `json:"agent,omitempty" url:"agent,omitempty"`
 	Limits      *LineLimitsOutput                    `json:"limits,omitempty" url:"limits,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -3862,7 +5646,61 @@ func (l *LineManifestOutput) GetLimits() *LineLimitsOutput {
 }
 
 func (l *LineManifestOutput) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineManifestOutput) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetLine sets the Line field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestOutput) SetLine(line *LineSection) {
+	l.Line = line
+	l.require(lineManifestOutputFieldLine)
+}
+
+// SetTrigger sets the Trigger field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestOutput) SetTrigger(trigger *LineManifestOutputTrigger) {
+	l.Trigger = trigger
+	l.require(lineManifestOutputFieldTrigger)
+}
+
+// SetStages sets the Stages field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestOutput) SetStages(stages []*LineStage) {
+	l.Stages = stages
+	l.require(lineManifestOutputFieldStages)
+}
+
+// SetTransitions sets the Transitions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestOutput) SetTransitions(transitions []*LineManifestOutputTransitionsItem) {
+	l.Transitions = transitions
+	l.require(lineManifestOutputFieldTransitions)
+}
+
+// SetAgent sets the Agent field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestOutput) SetAgent(agent *LineAgentConfig) {
+	l.Agent = agent
+	l.require(lineManifestOutputFieldAgent)
+}
+
+// SetLimits sets the Limits field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineManifestOutput) SetLimits(limits *LineLimitsOutput) {
+	l.Limits = limits
+	l.require(lineManifestOutputFieldLimits)
 }
 
 func (l *LineManifestOutput) UnmarshalJSON(data []byte) error {
@@ -3881,7 +5719,21 @@ func (l *LineManifestOutput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineManifestOutput) MarshalJSON() ([]byte, error) {
+	type embed LineManifestOutput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineManifestOutput) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -3897,6 +5749,8 @@ type LineManifestOutputTransitionsItem struct {
 	Type        string
 	Agentic     *AgenticTransitionOutput
 	Conditional *ConditionalTransitionOutput
+
+	rawJSON json.RawMessage
 }
 
 func (l *LineManifestOutputTransitionsItem) GetType() string {
@@ -3945,6 +5799,7 @@ func (l *LineManifestOutputTransitionsItem) UnmarshalJSON(data []byte) error {
 		}
 		l.Conditional = value
 	}
+	l.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -3957,6 +5812,9 @@ func (l LineManifestOutputTransitionsItem) MarshalJSON() ([]byte, error) {
 	}
 	if l.Conditional != nil {
 		return internal.MarshalJSONWithExtraProperty(l.Conditional, "type", "conditional")
+	}
+	if len(l.rawJSON) > 0 {
+		return l.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", l)
 }
@@ -3989,6 +5847,9 @@ func (l *LineManifestOutputTransitionsItem) validate() error {
 	}
 	if len(fields) == 0 {
 		if l.Type != "" {
+			if len(l.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", l, l.Type)
 		}
 		return fmt.Errorf("type %T is empty", l)
@@ -4016,6 +5877,8 @@ type LineManifestOutputTrigger struct {
 	Manual             *ManualTriggerSection
 	Schedule           *ScheduleTriggerSection
 	Webhook            *WebhookTriggerSection
+
+	rawJSON json.RawMessage
 }
 
 func (l *LineManifestOutputTrigger) GetType() string {
@@ -4090,6 +5953,7 @@ func (l *LineManifestOutputTrigger) UnmarshalJSON(data []byte) error {
 		}
 		l.Webhook = value
 	}
+	l.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -4108,6 +5972,9 @@ func (l LineManifestOutputTrigger) MarshalJSON() ([]byte, error) {
 	}
 	if l.Webhook != nil {
 		return internal.MarshalJSONWithExtraProperty(l.Webhook, "type", "webhook")
+	}
+	if len(l.rawJSON) > 0 {
+		return l.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", l)
 }
@@ -4154,6 +6021,9 @@ func (l *LineManifestOutputTrigger) validate() error {
 	}
 	if len(fields) == 0 {
 		if l.Type != "" {
+			if len(l.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", l, l.Type)
 		}
 		return fmt.Errorf("type %T is empty", l)
@@ -4175,6 +6045,27 @@ func (l *LineManifestOutputTrigger) validate() error {
 	return nil
 }
 
+var (
+	lineResponseFieldID                  = big.NewInt(1 << 0)
+	lineResponseFieldName                = big.NewInt(1 << 1)
+	lineResponseFieldDescription         = big.NewInt(1 << 2)
+	lineResponseFieldStatus              = big.NewInt(1 << 3)
+	lineResponseFieldCategory            = big.NewInt(1 << 4)
+	lineResponseFieldStageCount          = big.NewInt(1 << 5)
+	lineResponseFieldTriggerType         = big.NewInt(1 << 6)
+	lineResponseFieldLatestVersionNumber = big.NewInt(1 << 7)
+	lineResponseFieldResolvedStages      = big.NewInt(1 << 8)
+	lineResponseFieldCreatedAt           = big.NewInt(1 << 9)
+	lineResponseFieldLatestVersion       = big.NewInt(1 << 10)
+)
+
+// lineResponseRequiredNullableFields maps the wire names of LineResponse's required, nullable fields to their field bits.
+var lineResponseRequiredNullableFields = map[string]*big.Int{
+	"description":           lineResponseFieldDescription,
+	"latest_version_number": lineResponseFieldLatestVersionNumber,
+	"latest_version":        lineResponseFieldLatestVersion,
+}
+
 type LineResponse struct {
 	ID                  string               `json:"id" url:"id"`
 	Name                string               `json:"name" url:"name"`
@@ -4187,6 +6078,9 @@ type LineResponse struct {
 	ResolvedStages      []*ResolvedStage     `json:"resolved_stages,omitempty" url:"resolved_stages,omitempty"`
 	CreatedAt           time.Time            `json:"created_at" url:"created_at"`
 	LatestVersion       *LineVersionResponse `json:"latest_version,omitempty" url:"latest_version,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4270,7 +6164,96 @@ func (l *LineResponse) GetLatestVersion() *LineVersionResponse {
 }
 
 func (l *LineResponse) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetID(id string) {
+	l.ID = id
+	l.require(lineResponseFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetName(name string) {
+	l.Name = name
+	l.require(lineResponseFieldName)
+}
+
+// SetDescription sets the Description field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetDescription(description *string) {
+	l.Description = description
+	l.require(lineResponseFieldDescription)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetStatus(status string) {
+	l.Status = status
+	l.require(lineResponseFieldStatus)
+}
+
+// SetCategory sets the Category field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetCategory(category *string) {
+	l.Category = category
+	l.require(lineResponseFieldCategory)
+}
+
+// SetStageCount sets the StageCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetStageCount(stageCount *int) {
+	l.StageCount = stageCount
+	l.require(lineResponseFieldStageCount)
+}
+
+// SetTriggerType sets the TriggerType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetTriggerType(triggerType *string) {
+	l.TriggerType = triggerType
+	l.require(lineResponseFieldTriggerType)
+}
+
+// SetLatestVersionNumber sets the LatestVersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetLatestVersionNumber(latestVersionNumber *int) {
+	l.LatestVersionNumber = latestVersionNumber
+	l.require(lineResponseFieldLatestVersionNumber)
+}
+
+// SetResolvedStages sets the ResolvedStages field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetResolvedStages(resolvedStages []*ResolvedStage) {
+	l.ResolvedStages = resolvedStages
+	l.require(lineResponseFieldResolvedStages)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetCreatedAt(createdAt time.Time) {
+	l.CreatedAt = createdAt
+	l.require(lineResponseFieldCreatedAt)
+}
+
+// SetLatestVersion sets the LatestVersion field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineResponse) SetLatestVersion(latestVersion *LineVersionResponse) {
+	l.LatestVersion = latestVersion
+	l.require(lineResponseFieldLatestVersion)
 }
 
 func (l *LineResponse) UnmarshalJSON(data []byte) error {
@@ -4291,6 +6274,13 @@ func (l *LineResponse) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	l.extraProperties = extraProperties
+	presentFields, err := internal.ExplicitFieldsFromJSON(data, lineResponseRequiredNullableFields)
+	if err != nil {
+		return err
+	}
+	if presentFields != nil {
+		l.require(presentFields)
+	}
 	l.rawJSON = json.RawMessage(data)
 	return nil
 }
@@ -4304,10 +6294,14 @@ func (l *LineResponse) MarshalJSON() ([]byte, error) {
 		embed:     embed(*l),
 		CreatedAt: internal.NewDateTime(l.CreatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (l *LineResponse) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -4319,11 +6313,21 @@ func (l *LineResponse) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineRunDebugEnvironmentFieldSandboxName    = big.NewInt(1 << 0)
+	lineRunDebugEnvironmentFieldRegion         = big.NewInt(1 << 1)
+	lineRunDebugEnvironmentFieldSnapshotName   = big.NewInt(1 << 2)
+	lineRunDebugEnvironmentFieldGatewayProfile = big.NewInt(1 << 3)
+)
+
 type LineRunDebugEnvironment struct {
 	SandboxName    *string `json:"sandbox_name,omitempty" url:"sandbox_name,omitempty"`
 	Region         *string `json:"region,omitempty" url:"region,omitempty"`
 	SnapshotName   *string `json:"snapshot_name,omitempty" url:"snapshot_name,omitempty"`
 	GatewayProfile *string `json:"gateway_profile,omitempty" url:"gateway_profile,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4358,7 +6362,47 @@ func (l *LineRunDebugEnvironment) GetGatewayProfile() *string {
 }
 
 func (l *LineRunDebugEnvironment) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunDebugEnvironment) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetSandboxName sets the SandboxName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugEnvironment) SetSandboxName(sandboxName *string) {
+	l.SandboxName = sandboxName
+	l.require(lineRunDebugEnvironmentFieldSandboxName)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugEnvironment) SetRegion(region *string) {
+	l.Region = region
+	l.require(lineRunDebugEnvironmentFieldRegion)
+}
+
+// SetSnapshotName sets the SnapshotName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugEnvironment) SetSnapshotName(snapshotName *string) {
+	l.SnapshotName = snapshotName
+	l.require(lineRunDebugEnvironmentFieldSnapshotName)
+}
+
+// SetGatewayProfile sets the GatewayProfile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugEnvironment) SetGatewayProfile(gatewayProfile *string) {
+	l.GatewayProfile = gatewayProfile
+	l.require(lineRunDebugEnvironmentFieldGatewayProfile)
 }
 
 func (l *LineRunDebugEnvironment) UnmarshalJSON(data []byte) error {
@@ -4377,7 +6421,21 @@ func (l *LineRunDebugEnvironment) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineRunDebugEnvironment) MarshalJSON() ([]byte, error) {
+	type embed LineRunDebugEnvironment
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineRunDebugEnvironment) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -4388,6 +6446,20 @@ func (l *LineRunDebugEnvironment) String() string {
 	}
 	return fmt.Sprintf("%#v", l)
 }
+
+var (
+	lineRunDebugResponseFieldID             = big.NewInt(1 << 0)
+	lineRunDebugResponseFieldLineName       = big.NewInt(1 << 1)
+	lineRunDebugResponseFieldLineVersionID  = big.NewInt(1 << 2)
+	lineRunDebugResponseFieldStatus         = big.NewInt(1 << 3)
+	lineRunDebugResponseFieldTriggeredBy    = big.NewInt(1 << 4)
+	lineRunDebugResponseFieldRegion         = big.NewInt(1 << 5)
+	lineRunDebugResponseFieldStartedAt      = big.NewInt(1 << 6)
+	lineRunDebugResponseFieldCompletedAt    = big.NewInt(1 << 7)
+	lineRunDebugResponseFieldErrorMessage   = big.NewInt(1 << 8)
+	lineRunDebugResponseFieldFailureSummary = big.NewInt(1 << 9)
+	lineRunDebugResponseFieldStages         = big.NewInt(1 << 10)
+)
 
 type LineRunDebugResponse struct {
 	ID             string                 `json:"id" url:"id"`
@@ -4401,6 +6473,9 @@ type LineRunDebugResponse struct {
 	ErrorMessage   *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
 	FailureSummary *LineRunFailureSummary `json:"failure_summary,omitempty" url:"failure_summary,omitempty"`
 	Stages         []*LineRunDebugStage   `json:"stages,omitempty" url:"stages,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4484,7 +6559,96 @@ func (l *LineRunDebugResponse) GetStages() []*LineRunDebugStage {
 }
 
 func (l *LineRunDebugResponse) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunDebugResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetID(id string) {
+	l.ID = id
+	l.require(lineRunDebugResponseFieldID)
+}
+
+// SetLineName sets the LineName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetLineName(lineName string) {
+	l.LineName = lineName
+	l.require(lineRunDebugResponseFieldLineName)
+}
+
+// SetLineVersionID sets the LineVersionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetLineVersionID(lineVersionID *string) {
+	l.LineVersionID = lineVersionID
+	l.require(lineRunDebugResponseFieldLineVersionID)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetStatus(status string) {
+	l.Status = status
+	l.require(lineRunDebugResponseFieldStatus)
+}
+
+// SetTriggeredBy sets the TriggeredBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetTriggeredBy(triggeredBy string) {
+	l.TriggeredBy = triggeredBy
+	l.require(lineRunDebugResponseFieldTriggeredBy)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetRegion(region *string) {
+	l.Region = region
+	l.require(lineRunDebugResponseFieldRegion)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetStartedAt(startedAt *time.Time) {
+	l.StartedAt = startedAt
+	l.require(lineRunDebugResponseFieldStartedAt)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetCompletedAt(completedAt *time.Time) {
+	l.CompletedAt = completedAt
+	l.require(lineRunDebugResponseFieldCompletedAt)
+}
+
+// SetErrorMessage sets the ErrorMessage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetErrorMessage(errorMessage *string) {
+	l.ErrorMessage = errorMessage
+	l.require(lineRunDebugResponseFieldErrorMessage)
+}
+
+// SetFailureSummary sets the FailureSummary field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetFailureSummary(failureSummary *LineRunFailureSummary) {
+	l.FailureSummary = failureSummary
+	l.require(lineRunDebugResponseFieldFailureSummary)
+}
+
+// SetStages sets the Stages field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugResponse) SetStages(stages []*LineRunDebugStage) {
+	l.Stages = stages
+	l.require(lineRunDebugResponseFieldStages)
 }
 
 func (l *LineRunDebugResponse) UnmarshalJSON(data []byte) error {
@@ -4522,10 +6686,14 @@ func (l *LineRunDebugResponse) MarshalJSON() ([]byte, error) {
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (l *LineRunDebugResponse) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -4536,6 +6704,19 @@ func (l *LineRunDebugResponse) String() string {
 	}
 	return fmt.Sprintf("%#v", l)
 }
+
+var (
+	lineRunDebugStageFieldStageName    = big.NewInt(1 << 0)
+	lineRunDebugStageFieldStageOrder   = big.NewInt(1 << 1)
+	lineRunDebugStageFieldIteration    = big.NewInt(1 << 2)
+	lineRunDebugStageFieldStatus       = big.NewInt(1 << 3)
+	lineRunDebugStageFieldOutcome      = big.NewInt(1 << 4)
+	lineRunDebugStageFieldReason       = big.NewInt(1 << 5)
+	lineRunDebugStageFieldJobRunID     = big.NewInt(1 << 6)
+	lineRunDebugStageFieldJobVersionID = big.NewInt(1 << 7)
+	lineRunDebugStageFieldSteps        = big.NewInt(1 << 8)
+	lineRunDebugStageFieldEnvironment  = big.NewInt(1 << 9)
+)
 
 type LineRunDebugStage struct {
 	StageName    *string                  `json:"stage_name,omitempty" url:"stage_name,omitempty"`
@@ -4548,6 +6729,9 @@ type LineRunDebugStage struct {
 	JobVersionID *string                  `json:"job_version_id,omitempty" url:"job_version_id,omitempty"`
 	Steps        []*LineRunDebugStep      `json:"steps,omitempty" url:"steps,omitempty"`
 	Environment  *LineRunDebugEnvironment `json:"environment,omitempty" url:"environment,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4624,7 +6808,89 @@ func (l *LineRunDebugStage) GetEnvironment() *LineRunDebugEnvironment {
 }
 
 func (l *LineRunDebugStage) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunDebugStage) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetStageName sets the StageName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetStageName(stageName *string) {
+	l.StageName = stageName
+	l.require(lineRunDebugStageFieldStageName)
+}
+
+// SetStageOrder sets the StageOrder field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetStageOrder(stageOrder *int) {
+	l.StageOrder = stageOrder
+	l.require(lineRunDebugStageFieldStageOrder)
+}
+
+// SetIteration sets the Iteration field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetIteration(iteration *int) {
+	l.Iteration = iteration
+	l.require(lineRunDebugStageFieldIteration)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetStatus(status *string) {
+	l.Status = status
+	l.require(lineRunDebugStageFieldStatus)
+}
+
+// SetOutcome sets the Outcome field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetOutcome(outcome *string) {
+	l.Outcome = outcome
+	l.require(lineRunDebugStageFieldOutcome)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetReason(reason *string) {
+	l.Reason = reason
+	l.require(lineRunDebugStageFieldReason)
+}
+
+// SetJobRunID sets the JobRunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetJobRunID(jobRunID *string) {
+	l.JobRunID = jobRunID
+	l.require(lineRunDebugStageFieldJobRunID)
+}
+
+// SetJobVersionID sets the JobVersionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetJobVersionID(jobVersionID *string) {
+	l.JobVersionID = jobVersionID
+	l.require(lineRunDebugStageFieldJobVersionID)
+}
+
+// SetSteps sets the Steps field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetSteps(steps []*LineRunDebugStep) {
+	l.Steps = steps
+	l.require(lineRunDebugStageFieldSteps)
+}
+
+// SetEnvironment sets the Environment field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStage) SetEnvironment(environment *LineRunDebugEnvironment) {
+	l.Environment = environment
+	l.require(lineRunDebugStageFieldEnvironment)
 }
 
 func (l *LineRunDebugStage) UnmarshalJSON(data []byte) error {
@@ -4643,7 +6909,21 @@ func (l *LineRunDebugStage) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineRunDebugStage) MarshalJSON() ([]byte, error) {
+	type embed LineRunDebugStage
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineRunDebugStage) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -4655,23 +6935,45 @@ func (l *LineRunDebugStage) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineRunDebugStepFieldName             = big.NewInt(1 << 0)
+	lineRunDebugStepFieldAction           = big.NewInt(1 << 1)
+	lineRunDebugStepFieldStatus           = big.NewInt(1 << 2)
+	lineRunDebugStepFieldTaskName         = big.NewInt(1 << 3)
+	lineRunDebugStepFieldExitCode         = big.NewInt(1 << 4)
+	lineRunDebugStepFieldErrorCode        = big.NewInt(1 << 5)
+	lineRunDebugStepFieldFailureClass     = big.NewInt(1 << 6)
+	lineRunDebugStepFieldErrorMessage     = big.NewInt(1 << 7)
+	lineRunDebugStepFieldErrorDetails     = big.NewInt(1 << 8)
+	lineRunDebugStepFieldComputeCommandID = big.NewInt(1 << 9)
+	lineRunDebugStepFieldSandboxName      = big.NewInt(1 << 10)
+	lineRunDebugStepFieldAgentSessionID   = big.NewInt(1 << 11)
+	lineRunDebugStepFieldStdoutTail       = big.NewInt(1 << 12)
+	lineRunDebugStepFieldStderrTail       = big.NewInt(1 << 13)
+	lineRunDebugStepFieldStartedAt        = big.NewInt(1 << 14)
+	lineRunDebugStepFieldCompletedAt      = big.NewInt(1 << 15)
+)
+
 type LineRunDebugStep struct {
-	Name             *string                `json:"name,omitempty" url:"name,omitempty"`
-	Action           *string                `json:"action,omitempty" url:"action,omitempty"`
-	Status           *string                `json:"status,omitempty" url:"status,omitempty"`
-	TaskName         *string                `json:"task_name,omitempty" url:"task_name,omitempty"`
-	ExitCode         *int                   `json:"exit_code,omitempty" url:"exit_code,omitempty"`
-	ErrorCode        *string                `json:"error_code,omitempty" url:"error_code,omitempty"`
-	FailureClass     *string                `json:"failure_class,omitempty" url:"failure_class,omitempty"`
-	ErrorMessage     *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
-	ErrorDetails     map[string]interface{} `json:"error_details,omitempty" url:"error_details,omitempty"`
-	ComputeCommandID *string                `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
-	SandboxName      *string                `json:"sandbox_name,omitempty" url:"sandbox_name,omitempty"`
-	AgentSessionID   *string                `json:"agent_session_id,omitempty" url:"agent_session_id,omitempty"`
-	StdoutTail       *string                `json:"stdout_tail,omitempty" url:"stdout_tail,omitempty"`
-	StderrTail       *string                `json:"stderr_tail,omitempty" url:"stderr_tail,omitempty"`
-	StartedAt        *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt      *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	Name             *string        `json:"name,omitempty" url:"name,omitempty"`
+	Action           *string        `json:"action,omitempty" url:"action,omitempty"`
+	Status           *string        `json:"status,omitempty" url:"status,omitempty"`
+	TaskName         *string        `json:"task_name,omitempty" url:"task_name,omitempty"`
+	ExitCode         *int           `json:"exit_code,omitempty" url:"exit_code,omitempty"`
+	ErrorCode        *string        `json:"error_code,omitempty" url:"error_code,omitempty"`
+	FailureClass     *string        `json:"failure_class,omitempty" url:"failure_class,omitempty"`
+	ErrorMessage     *string        `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorDetails     map[string]any `json:"error_details,omitempty" url:"error_details,omitempty"`
+	ComputeCommandID *string        `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
+	SandboxName      *string        `json:"sandbox_name,omitempty" url:"sandbox_name,omitempty"`
+	AgentSessionID   *string        `json:"agent_session_id,omitempty" url:"agent_session_id,omitempty"`
+	StdoutTail       *string        `json:"stdout_tail,omitempty" url:"stdout_tail,omitempty"`
+	StderrTail       *string        `json:"stderr_tail,omitempty" url:"stderr_tail,omitempty"`
+	StartedAt        *time.Time     `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt      *time.Time     `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4733,7 +7035,7 @@ func (l *LineRunDebugStep) GetErrorMessage() *string {
 	return l.ErrorMessage
 }
 
-func (l *LineRunDebugStep) GetErrorDetails() map[string]interface{} {
+func (l *LineRunDebugStep) GetErrorDetails() map[string]any {
 	if l == nil {
 		return nil
 	}
@@ -4790,7 +7092,131 @@ func (l *LineRunDebugStep) GetCompletedAt() *time.Time {
 }
 
 func (l *LineRunDebugStep) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunDebugStep) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetName(name *string) {
+	l.Name = name
+	l.require(lineRunDebugStepFieldName)
+}
+
+// SetAction sets the Action field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetAction(action *string) {
+	l.Action = action
+	l.require(lineRunDebugStepFieldAction)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetStatus(status *string) {
+	l.Status = status
+	l.require(lineRunDebugStepFieldStatus)
+}
+
+// SetTaskName sets the TaskName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetTaskName(taskName *string) {
+	l.TaskName = taskName
+	l.require(lineRunDebugStepFieldTaskName)
+}
+
+// SetExitCode sets the ExitCode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetExitCode(exitCode *int) {
+	l.ExitCode = exitCode
+	l.require(lineRunDebugStepFieldExitCode)
+}
+
+// SetErrorCode sets the ErrorCode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetErrorCode(errorCode *string) {
+	l.ErrorCode = errorCode
+	l.require(lineRunDebugStepFieldErrorCode)
+}
+
+// SetFailureClass sets the FailureClass field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetFailureClass(failureClass *string) {
+	l.FailureClass = failureClass
+	l.require(lineRunDebugStepFieldFailureClass)
+}
+
+// SetErrorMessage sets the ErrorMessage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetErrorMessage(errorMessage *string) {
+	l.ErrorMessage = errorMessage
+	l.require(lineRunDebugStepFieldErrorMessage)
+}
+
+// SetErrorDetails sets the ErrorDetails field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetErrorDetails(errorDetails map[string]any) {
+	l.ErrorDetails = errorDetails
+	l.require(lineRunDebugStepFieldErrorDetails)
+}
+
+// SetComputeCommandID sets the ComputeCommandID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetComputeCommandID(computeCommandID *string) {
+	l.ComputeCommandID = computeCommandID
+	l.require(lineRunDebugStepFieldComputeCommandID)
+}
+
+// SetSandboxName sets the SandboxName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetSandboxName(sandboxName *string) {
+	l.SandboxName = sandboxName
+	l.require(lineRunDebugStepFieldSandboxName)
+}
+
+// SetAgentSessionID sets the AgentSessionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetAgentSessionID(agentSessionID *string) {
+	l.AgentSessionID = agentSessionID
+	l.require(lineRunDebugStepFieldAgentSessionID)
+}
+
+// SetStdoutTail sets the StdoutTail field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetStdoutTail(stdoutTail *string) {
+	l.StdoutTail = stdoutTail
+	l.require(lineRunDebugStepFieldStdoutTail)
+}
+
+// SetStderrTail sets the StderrTail field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetStderrTail(stderrTail *string) {
+	l.StderrTail = stderrTail
+	l.require(lineRunDebugStepFieldStderrTail)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetStartedAt(startedAt *time.Time) {
+	l.StartedAt = startedAt
+	l.require(lineRunDebugStepFieldStartedAt)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDebugStep) SetCompletedAt(completedAt *time.Time) {
+	l.CompletedAt = completedAt
+	l.require(lineRunDebugStepFieldCompletedAt)
 }
 
 func (l *LineRunDebugStep) UnmarshalJSON(data []byte) error {
@@ -4828,10 +7254,14 @@ func (l *LineRunDebugStep) MarshalJSON() ([]byte, error) {
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (l *LineRunDebugStep) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -4843,25 +7273,59 @@ func (l *LineRunDebugStep) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineRunDetailFieldID                 = big.NewInt(1 << 0)
+	lineRunDetailFieldLineName           = big.NewInt(1 << 1)
+	lineRunDetailFieldLineVersionID      = big.NewInt(1 << 2)
+	lineRunDetailFieldWorkflowRunID      = big.NewInt(1 << 3)
+	lineRunDetailFieldStatus             = big.NewInt(1 << 4)
+	lineRunDetailFieldTrigger            = big.NewInt(1 << 5)
+	lineRunDetailFieldRegion             = big.NewInt(1 << 6)
+	lineRunDetailFieldRunParams          = big.NewInt(1 << 7)
+	lineRunDetailFieldResultPayload      = big.NewInt(1 << 8)
+	lineRunDetailFieldErrorMessage       = big.NewInt(1 << 9)
+	lineRunDetailFieldIterationCount     = big.NewInt(1 << 10)
+	lineRunDetailFieldBudgetUsedUsd      = big.NewInt(1 << 11)
+	lineRunDetailFieldComputeCostCents   = big.NewInt(1 << 12)
+	lineRunDetailFieldInferenceCostCents = big.NewInt(1 << 13)
+	lineRunDetailFieldTotalCostCents     = big.NewInt(1 << 14)
+	lineRunDetailFieldCostRatedAt        = big.NewInt(1 << 15)
+	lineRunDetailFieldRetry              = big.NewInt(1 << 16)
+	lineRunDetailFieldStages             = big.NewInt(1 << 17)
+	lineRunDetailFieldFailure            = big.NewInt(1 << 18)
+	lineRunDetailFieldTriggeredByActor   = big.NewInt(1 << 19)
+	lineRunDetailFieldStartedAt          = big.NewInt(1 << 20)
+	lineRunDetailFieldCompletedAt        = big.NewInt(1 << 21)
+	lineRunDetailFieldCreatedAt          = big.NewInt(1 << 22)
+)
+
 type LineRunDetail struct {
-	ID             string                 `json:"id" url:"id"`
-	LineName       string                 `json:"line_name" url:"line_name"`
-	LineVersionID  string                 `json:"line_version_id" url:"line_version_id"`
-	WorkflowRunID  string                 `json:"workflow_run_id" url:"workflow_run_id"`
-	Status         string                 `json:"status" url:"status"`
-	Trigger        *TriggerSummary        `json:"trigger" url:"trigger"`
-	Region         *string                `json:"region,omitempty" url:"region,omitempty"`
-	RunParams      map[string]interface{} `json:"run_params,omitempty" url:"run_params,omitempty"`
-	ResultPayload  map[string]interface{} `json:"result_payload,omitempty" url:"result_payload,omitempty"`
-	ErrorMessage   *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
-	IterationCount *int                   `json:"iteration_count,omitempty" url:"iteration_count,omitempty"`
-	BudgetUsedUsd  *string                `json:"budget_used_usd,omitempty" url:"budget_used_usd,omitempty"`
-	Retry          *LineRunRetryAction    `json:"retry,omitempty" url:"retry,omitempty"`
-	Stages         []*LineRunStageDetail  `json:"stages,omitempty" url:"stages,omitempty"`
-	Failure        *LineRunFailure        `json:"failure,omitempty" url:"failure,omitempty"`
-	StartedAt      *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt    *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	CreatedAt      time.Time              `json:"created_at" url:"created_at"`
+	ID                 string                `json:"id" url:"id"`
+	LineName           string                `json:"line_name" url:"line_name"`
+	LineVersionID      string                `json:"line_version_id" url:"line_version_id"`
+	WorkflowRunID      string                `json:"workflow_run_id" url:"workflow_run_id"`
+	Status             string                `json:"status" url:"status"`
+	Trigger            *TriggerSummary       `json:"trigger" url:"trigger"`
+	Region             *string               `json:"region,omitempty" url:"region,omitempty"`
+	RunParams          map[string]any        `json:"run_params,omitempty" url:"run_params,omitempty"`
+	ResultPayload      map[string]any        `json:"result_payload,omitempty" url:"result_payload,omitempty"`
+	ErrorMessage       *string               `json:"error_message,omitempty" url:"error_message,omitempty"`
+	IterationCount     *int                  `json:"iteration_count,omitempty" url:"iteration_count,omitempty"`
+	BudgetUsedUsd      *string               `json:"budget_used_usd,omitempty" url:"budget_used_usd,omitempty"`
+	ComputeCostCents   *int                  `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int                  `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int                  `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time            `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	Retry              *LineRunRetryAction   `json:"retry,omitempty" url:"retry,omitempty"`
+	Stages             []*LineRunStageDetail `json:"stages,omitempty" url:"stages,omitempty"`
+	Failure            *LineRunFailure       `json:"failure,omitempty" url:"failure,omitempty"`
+	TriggeredByActor   map[string]any        `json:"triggered_by_actor,omitempty" url:"triggered_by_actor,omitempty"`
+	StartedAt          *time.Time            `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time            `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	CreatedAt          time.Time             `json:"created_at" url:"created_at"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -4916,14 +7380,14 @@ func (l *LineRunDetail) GetRegion() *string {
 	return l.Region
 }
 
-func (l *LineRunDetail) GetRunParams() map[string]interface{} {
+func (l *LineRunDetail) GetRunParams() map[string]any {
 	if l == nil {
 		return nil
 	}
 	return l.RunParams
 }
 
-func (l *LineRunDetail) GetResultPayload() map[string]interface{} {
+func (l *LineRunDetail) GetResultPayload() map[string]any {
 	if l == nil {
 		return nil
 	}
@@ -4951,6 +7415,34 @@ func (l *LineRunDetail) GetBudgetUsedUsd() *string {
 	return l.BudgetUsedUsd
 }
 
+func (l *LineRunDetail) GetComputeCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCostCents
+}
+
+func (l *LineRunDetail) GetInferenceCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.InferenceCostCents
+}
+
+func (l *LineRunDetail) GetTotalCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.TotalCostCents
+}
+
+func (l *LineRunDetail) GetCostRatedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CostRatedAt
+}
+
 func (l *LineRunDetail) GetRetry() *LineRunRetryAction {
 	if l == nil {
 		return nil
@@ -4970,6 +7462,13 @@ func (l *LineRunDetail) GetFailure() *LineRunFailure {
 		return nil
 	}
 	return l.Failure
+}
+
+func (l *LineRunDetail) GetTriggeredByActor() map[string]any {
+	if l == nil {
+		return nil
+	}
+	return l.TriggeredByActor
 }
 
 func (l *LineRunDetail) GetStartedAt() *time.Time {
@@ -4994,13 +7493,187 @@ func (l *LineRunDetail) GetCreatedAt() time.Time {
 }
 
 func (l *LineRunDetail) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunDetail) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetID(id string) {
+	l.ID = id
+	l.require(lineRunDetailFieldID)
+}
+
+// SetLineName sets the LineName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetLineName(lineName string) {
+	l.LineName = lineName
+	l.require(lineRunDetailFieldLineName)
+}
+
+// SetLineVersionID sets the LineVersionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetLineVersionID(lineVersionID string) {
+	l.LineVersionID = lineVersionID
+	l.require(lineRunDetailFieldLineVersionID)
+}
+
+// SetWorkflowRunID sets the WorkflowRunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetWorkflowRunID(workflowRunID string) {
+	l.WorkflowRunID = workflowRunID
+	l.require(lineRunDetailFieldWorkflowRunID)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetStatus(status string) {
+	l.Status = status
+	l.require(lineRunDetailFieldStatus)
+}
+
+// SetTrigger sets the Trigger field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetTrigger(trigger *TriggerSummary) {
+	l.Trigger = trigger
+	l.require(lineRunDetailFieldTrigger)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetRegion(region *string) {
+	l.Region = region
+	l.require(lineRunDetailFieldRegion)
+}
+
+// SetRunParams sets the RunParams field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetRunParams(runParams map[string]any) {
+	l.RunParams = runParams
+	l.require(lineRunDetailFieldRunParams)
+}
+
+// SetResultPayload sets the ResultPayload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetResultPayload(resultPayload map[string]any) {
+	l.ResultPayload = resultPayload
+	l.require(lineRunDetailFieldResultPayload)
+}
+
+// SetErrorMessage sets the ErrorMessage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetErrorMessage(errorMessage *string) {
+	l.ErrorMessage = errorMessage
+	l.require(lineRunDetailFieldErrorMessage)
+}
+
+// SetIterationCount sets the IterationCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetIterationCount(iterationCount *int) {
+	l.IterationCount = iterationCount
+	l.require(lineRunDetailFieldIterationCount)
+}
+
+// SetBudgetUsedUsd sets the BudgetUsedUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetBudgetUsedUsd(budgetUsedUsd *string) {
+	l.BudgetUsedUsd = budgetUsedUsd
+	l.require(lineRunDetailFieldBudgetUsedUsd)
+}
+
+// SetComputeCostCents sets the ComputeCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetComputeCostCents(computeCostCents *int) {
+	l.ComputeCostCents = computeCostCents
+	l.require(lineRunDetailFieldComputeCostCents)
+}
+
+// SetInferenceCostCents sets the InferenceCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetInferenceCostCents(inferenceCostCents *int) {
+	l.InferenceCostCents = inferenceCostCents
+	l.require(lineRunDetailFieldInferenceCostCents)
+}
+
+// SetTotalCostCents sets the TotalCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetTotalCostCents(totalCostCents *int) {
+	l.TotalCostCents = totalCostCents
+	l.require(lineRunDetailFieldTotalCostCents)
+}
+
+// SetCostRatedAt sets the CostRatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetCostRatedAt(costRatedAt *time.Time) {
+	l.CostRatedAt = costRatedAt
+	l.require(lineRunDetailFieldCostRatedAt)
+}
+
+// SetRetry sets the Retry field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetRetry(retry *LineRunRetryAction) {
+	l.Retry = retry
+	l.require(lineRunDetailFieldRetry)
+}
+
+// SetStages sets the Stages field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetStages(stages []*LineRunStageDetail) {
+	l.Stages = stages
+	l.require(lineRunDetailFieldStages)
+}
+
+// SetFailure sets the Failure field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetFailure(failure *LineRunFailure) {
+	l.Failure = failure
+	l.require(lineRunDetailFieldFailure)
+}
+
+// SetTriggeredByActor sets the TriggeredByActor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetTriggeredByActor(triggeredByActor map[string]any) {
+	l.TriggeredByActor = triggeredByActor
+	l.require(lineRunDetailFieldTriggeredByActor)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetStartedAt(startedAt *time.Time) {
+	l.StartedAt = startedAt
+	l.require(lineRunDetailFieldStartedAt)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetCompletedAt(completedAt *time.Time) {
+	l.CompletedAt = completedAt
+	l.require(lineRunDetailFieldCompletedAt)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunDetail) SetCreatedAt(createdAt time.Time) {
+	l.CreatedAt = createdAt
+	l.require(lineRunDetailFieldCreatedAt)
 }
 
 func (l *LineRunDetail) UnmarshalJSON(data []byte) error {
 	type embed LineRunDetail
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
@@ -5011,6 +7684,7 @@ func (l *LineRunDetail) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*l = LineRunDetail(unmarshaler.embed)
+	l.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	l.StartedAt = unmarshaler.StartedAt.TimePtr()
 	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	l.CreatedAt = unmarshaler.CreatedAt.Time()
@@ -5027,19 +7701,25 @@ func (l *LineRunDetail) MarshalJSON() ([]byte, error) {
 	type embed LineRunDetail
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
 	}{
 		embed:       embed(*l),
+		CostRatedAt: internal.NewOptionalDateTime(l.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 		CreatedAt:   internal.NewDateTime(l.CreatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (l *LineRunDetail) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5066,16 +7746,31 @@ func (l *LineRunDetail) String() string {
 // Unknown keys are tolerated for the same reason, in the other direction: a
 // later orchestrator that adds a field here must not make every failure read
 // as unclassified while the rollout is in flight.
+var (
+	lineRunFailureFieldCode         = big.NewInt(1 << 0)
+	lineRunFailureFieldDomain       = big.NewInt(1 << 1)
+	lineRunFailureFieldErrorCode    = big.NewInt(1 << 2)
+	lineRunFailureFieldFailureClass = big.NewInt(1 << 3)
+	lineRunFailureFieldErrorMessage = big.NewInt(1 << 4)
+	lineRunFailureFieldErrorDetails = big.NewInt(1 << 5)
+	lineRunFailureFieldStageName    = big.NewInt(1 << 6)
+	lineRunFailureFieldStageStep    = big.NewInt(1 << 7)
+	lineRunFailureFieldTaskName     = big.NewInt(1 << 8)
+)
+
 type LineRunFailure struct {
-	Code         *FactoryFailureCode    `json:"code,omitempty" url:"code,omitempty"`
-	Domain       *FactoryFailureDomain  `json:"domain,omitempty" url:"domain,omitempty"`
-	ErrorCode    *string                `json:"error_code,omitempty" url:"error_code,omitempty"`
-	FailureClass *string                `json:"failure_class,omitempty" url:"failure_class,omitempty"`
-	ErrorMessage *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
-	ErrorDetails map[string]interface{} `json:"error_details,omitempty" url:"error_details,omitempty"`
-	StageName    *string                `json:"stage_name,omitempty" url:"stage_name,omitempty"`
-	StageStep    *string                `json:"stage_step,omitempty" url:"stage_step,omitempty"`
-	TaskName     *string                `json:"task_name,omitempty" url:"task_name,omitempty"`
+	Code         *FactoryFailureCode   `json:"code,omitempty" url:"code,omitempty"`
+	Domain       *FactoryFailureDomain `json:"domain,omitempty" url:"domain,omitempty"`
+	ErrorCode    *string               `json:"error_code,omitempty" url:"error_code,omitempty"`
+	FailureClass *string               `json:"failure_class,omitempty" url:"failure_class,omitempty"`
+	ErrorMessage *string               `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorDetails map[string]any        `json:"error_details,omitempty" url:"error_details,omitempty"`
+	StageName    *string               `json:"stage_name,omitempty" url:"stage_name,omitempty"`
+	StageStep    *string               `json:"stage_step,omitempty" url:"stage_step,omitempty"`
+	TaskName     *string               `json:"task_name,omitempty" url:"task_name,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5116,7 +7811,7 @@ func (l *LineRunFailure) GetErrorMessage() *string {
 	return l.ErrorMessage
 }
 
-func (l *LineRunFailure) GetErrorDetails() map[string]interface{} {
+func (l *LineRunFailure) GetErrorDetails() map[string]any {
 	if l == nil {
 		return nil
 	}
@@ -5145,7 +7840,82 @@ func (l *LineRunFailure) GetTaskName() *string {
 }
 
 func (l *LineRunFailure) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunFailure) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetCode sets the Code field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailure) SetCode(code *FactoryFailureCode) {
+	l.Code = code
+	l.require(lineRunFailureFieldCode)
+}
+
+// SetDomain sets the Domain field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailure) SetDomain(domain *FactoryFailureDomain) {
+	l.Domain = domain
+	l.require(lineRunFailureFieldDomain)
+}
+
+// SetErrorCode sets the ErrorCode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailure) SetErrorCode(errorCode *string) {
+	l.ErrorCode = errorCode
+	l.require(lineRunFailureFieldErrorCode)
+}
+
+// SetFailureClass sets the FailureClass field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailure) SetFailureClass(failureClass *string) {
+	l.FailureClass = failureClass
+	l.require(lineRunFailureFieldFailureClass)
+}
+
+// SetErrorMessage sets the ErrorMessage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailure) SetErrorMessage(errorMessage *string) {
+	l.ErrorMessage = errorMessage
+	l.require(lineRunFailureFieldErrorMessage)
+}
+
+// SetErrorDetails sets the ErrorDetails field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailure) SetErrorDetails(errorDetails map[string]any) {
+	l.ErrorDetails = errorDetails
+	l.require(lineRunFailureFieldErrorDetails)
+}
+
+// SetStageName sets the StageName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailure) SetStageName(stageName *string) {
+	l.StageName = stageName
+	l.require(lineRunFailureFieldStageName)
+}
+
+// SetStageStep sets the StageStep field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailure) SetStageStep(stageStep *string) {
+	l.StageStep = stageStep
+	l.require(lineRunFailureFieldStageStep)
+}
+
+// SetTaskName sets the TaskName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailure) SetTaskName(taskName *string) {
+	l.TaskName = taskName
+	l.require(lineRunFailureFieldTaskName)
 }
 
 func (l *LineRunFailure) UnmarshalJSON(data []byte) error {
@@ -5164,7 +7934,21 @@ func (l *LineRunFailure) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineRunFailure) MarshalJSON() ([]byte, error) {
+	type embed LineRunFailure
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineRunFailure) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5177,14 +7961,27 @@ func (l *LineRunFailure) String() string {
 }
 
 // The first failed step within the run's last failed stage attempt.
+var (
+	lineRunFailureSummaryFieldStageName        = big.NewInt(1 << 0)
+	lineRunFailureSummaryFieldStepName         = big.NewInt(1 << 1)
+	lineRunFailureSummaryFieldFailureClass     = big.NewInt(1 << 2)
+	lineRunFailureSummaryFieldErrorCode        = big.NewInt(1 << 3)
+	lineRunFailureSummaryFieldErrorMessage     = big.NewInt(1 << 4)
+	lineRunFailureSummaryFieldErrorDetails     = big.NewInt(1 << 5)
+	lineRunFailureSummaryFieldComputeCommandID = big.NewInt(1 << 6)
+)
+
 type LineRunFailureSummary struct {
-	StageName        *string                `json:"stage_name,omitempty" url:"stage_name,omitempty"`
-	StepName         *string                `json:"step_name,omitempty" url:"step_name,omitempty"`
-	FailureClass     *string                `json:"failure_class,omitempty" url:"failure_class,omitempty"`
-	ErrorCode        *string                `json:"error_code,omitempty" url:"error_code,omitempty"`
-	ErrorMessage     *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
-	ErrorDetails     map[string]interface{} `json:"error_details,omitempty" url:"error_details,omitempty"`
-	ComputeCommandID *string                `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
+	StageName        *string        `json:"stage_name,omitempty" url:"stage_name,omitempty"`
+	StepName         *string        `json:"step_name,omitempty" url:"step_name,omitempty"`
+	FailureClass     *string        `json:"failure_class,omitempty" url:"failure_class,omitempty"`
+	ErrorCode        *string        `json:"error_code,omitempty" url:"error_code,omitempty"`
+	ErrorMessage     *string        `json:"error_message,omitempty" url:"error_message,omitempty"`
+	ErrorDetails     map[string]any `json:"error_details,omitempty" url:"error_details,omitempty"`
+	ComputeCommandID *string        `json:"compute_command_id,omitempty" url:"compute_command_id,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5225,7 +8022,7 @@ func (l *LineRunFailureSummary) GetErrorMessage() *string {
 	return l.ErrorMessage
 }
 
-func (l *LineRunFailureSummary) GetErrorDetails() map[string]interface{} {
+func (l *LineRunFailureSummary) GetErrorDetails() map[string]any {
 	if l == nil {
 		return nil
 	}
@@ -5240,7 +8037,68 @@ func (l *LineRunFailureSummary) GetComputeCommandID() *string {
 }
 
 func (l *LineRunFailureSummary) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunFailureSummary) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetStageName sets the StageName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailureSummary) SetStageName(stageName *string) {
+	l.StageName = stageName
+	l.require(lineRunFailureSummaryFieldStageName)
+}
+
+// SetStepName sets the StepName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailureSummary) SetStepName(stepName *string) {
+	l.StepName = stepName
+	l.require(lineRunFailureSummaryFieldStepName)
+}
+
+// SetFailureClass sets the FailureClass field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailureSummary) SetFailureClass(failureClass *string) {
+	l.FailureClass = failureClass
+	l.require(lineRunFailureSummaryFieldFailureClass)
+}
+
+// SetErrorCode sets the ErrorCode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailureSummary) SetErrorCode(errorCode *string) {
+	l.ErrorCode = errorCode
+	l.require(lineRunFailureSummaryFieldErrorCode)
+}
+
+// SetErrorMessage sets the ErrorMessage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailureSummary) SetErrorMessage(errorMessage *string) {
+	l.ErrorMessage = errorMessage
+	l.require(lineRunFailureSummaryFieldErrorMessage)
+}
+
+// SetErrorDetails sets the ErrorDetails field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailureSummary) SetErrorDetails(errorDetails map[string]any) {
+	l.ErrorDetails = errorDetails
+	l.require(lineRunFailureSummaryFieldErrorDetails)
+}
+
+// SetComputeCommandID sets the ComputeCommandID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunFailureSummary) SetComputeCommandID(computeCommandID *string) {
+	l.ComputeCommandID = computeCommandID
+	l.require(lineRunFailureSummaryFieldComputeCommandID)
 }
 
 func (l *LineRunFailureSummary) UnmarshalJSON(data []byte) error {
@@ -5259,7 +8117,21 @@ func (l *LineRunFailureSummary) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineRunFailureSummary) MarshalJSON() ([]byte, error) {
+	type embed LineRunFailureSummary
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineRunFailureSummary) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5271,8 +8143,15 @@ func (l *LineRunFailureSummary) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineRunRetryActionFieldStageName = big.NewInt(1 << 0)
+)
+
 type LineRunRetryAction struct {
 	StageName string `json:"stage_name" url:"stage_name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5286,7 +8165,26 @@ func (l *LineRunRetryAction) GetStageName() string {
 }
 
 func (l *LineRunRetryAction) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunRetryAction) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetStageName sets the StageName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunRetryAction) SetStageName(stageName string) {
+	l.StageName = stageName
+	l.require(lineRunRetryActionFieldStageName)
 }
 
 func (l *LineRunRetryAction) UnmarshalJSON(data []byte) error {
@@ -5305,7 +8203,21 @@ func (l *LineRunRetryAction) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineRunRetryAction) MarshalJSON() ([]byte, error) {
+	type embed LineRunRetryAction
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineRunRetryAction) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5317,19 +8229,45 @@ func (l *LineRunRetryAction) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineRunStageDetailFieldStageName          = big.NewInt(1 << 0)
+	lineRunStageDetailFieldStageOrder         = big.NewInt(1 << 1)
+	lineRunStageDetailFieldIteration          = big.NewInt(1 << 2)
+	lineRunStageDetailFieldStatus             = big.NewInt(1 << 3)
+	lineRunStageDetailFieldOutcome            = big.NewInt(1 << 4)
+	lineRunStageDetailFieldJobRunID           = big.NewInt(1 << 5)
+	lineRunStageDetailFieldComputeCostCents   = big.NewInt(1 << 6)
+	lineRunStageDetailFieldInferenceCostCents = big.NewInt(1 << 7)
+	lineRunStageDetailFieldTotalCostCents     = big.NewInt(1 << 8)
+	lineRunStageDetailFieldCostRatedAt        = big.NewInt(1 << 9)
+	lineRunStageDetailFieldStartedAt          = big.NewInt(1 << 10)
+	lineRunStageDetailFieldCompletedAt        = big.NewInt(1 << 11)
+	lineRunStageDetailFieldArtifactCount      = big.NewInt(1 << 12)
+	lineRunStageDetailFieldInputPayload       = big.NewInt(1 << 13)
+	lineRunStageDetailFieldResultPayload      = big.NewInt(1 << 14)
+	lineRunStageDetailFieldArtifacts          = big.NewInt(1 << 15)
+)
+
 type LineRunStageDetail struct {
-	StageName     string                   `json:"stage_name" url:"stage_name"`
-	StageOrder    int                      `json:"stage_order" url:"stage_order"`
-	Iteration     int                      `json:"iteration" url:"iteration"`
-	Status        string                   `json:"status" url:"status"`
-	Outcome       *string                  `json:"outcome,omitempty" url:"outcome,omitempty"`
-	JobRunID      *string                  `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
-	StartedAt     *time.Time               `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt   *time.Time               `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	ArtifactCount *int                     `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
-	InputPayload  map[string]interface{}   `json:"input_payload,omitempty" url:"input_payload,omitempty"`
-	ResultPayload map[string]interface{}   `json:"result_payload,omitempty" url:"result_payload,omitempty"`
-	Artifacts     []map[string]interface{} `json:"artifacts,omitempty" url:"artifacts,omitempty"`
+	StageName          string           `json:"stage_name" url:"stage_name"`
+	StageOrder         int              `json:"stage_order" url:"stage_order"`
+	Iteration          int              `json:"iteration" url:"iteration"`
+	Status             string           `json:"status" url:"status"`
+	Outcome            *string          `json:"outcome,omitempty" url:"outcome,omitempty"`
+	JobRunID           *string          `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
+	ComputeCostCents   *int             `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int             `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int             `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time       `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	StartedAt          *time.Time       `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time       `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ArtifactCount      *int             `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+	InputPayload       map[string]any   `json:"input_payload,omitempty" url:"input_payload,omitempty"`
+	ResultPayload      map[string]any   `json:"result_payload,omitempty" url:"result_payload,omitempty"`
+	Artifacts          []map[string]any `json:"artifacts,omitempty" url:"artifacts,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5377,6 +8315,34 @@ func (l *LineRunStageDetail) GetJobRunID() *string {
 	return l.JobRunID
 }
 
+func (l *LineRunStageDetail) GetComputeCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCostCents
+}
+
+func (l *LineRunStageDetail) GetInferenceCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.InferenceCostCents
+}
+
+func (l *LineRunStageDetail) GetTotalCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.TotalCostCents
+}
+
+func (l *LineRunStageDetail) GetCostRatedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CostRatedAt
+}
+
 func (l *LineRunStageDetail) GetStartedAt() *time.Time {
 	if l == nil {
 		return nil
@@ -5398,21 +8364,21 @@ func (l *LineRunStageDetail) GetArtifactCount() *int {
 	return l.ArtifactCount
 }
 
-func (l *LineRunStageDetail) GetInputPayload() map[string]interface{} {
+func (l *LineRunStageDetail) GetInputPayload() map[string]any {
 	if l == nil {
 		return nil
 	}
 	return l.InputPayload
 }
 
-func (l *LineRunStageDetail) GetResultPayload() map[string]interface{} {
+func (l *LineRunStageDetail) GetResultPayload() map[string]any {
 	if l == nil {
 		return nil
 	}
 	return l.ResultPayload
 }
 
-func (l *LineRunStageDetail) GetArtifacts() []map[string]interface{} {
+func (l *LineRunStageDetail) GetArtifacts() []map[string]any {
 	if l == nil {
 		return nil
 	}
@@ -5420,13 +8386,138 @@ func (l *LineRunStageDetail) GetArtifacts() []map[string]interface{} {
 }
 
 func (l *LineRunStageDetail) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunStageDetail) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetStageName sets the StageName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetStageName(stageName string) {
+	l.StageName = stageName
+	l.require(lineRunStageDetailFieldStageName)
+}
+
+// SetStageOrder sets the StageOrder field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetStageOrder(stageOrder int) {
+	l.StageOrder = stageOrder
+	l.require(lineRunStageDetailFieldStageOrder)
+}
+
+// SetIteration sets the Iteration field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetIteration(iteration int) {
+	l.Iteration = iteration
+	l.require(lineRunStageDetailFieldIteration)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetStatus(status string) {
+	l.Status = status
+	l.require(lineRunStageDetailFieldStatus)
+}
+
+// SetOutcome sets the Outcome field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetOutcome(outcome *string) {
+	l.Outcome = outcome
+	l.require(lineRunStageDetailFieldOutcome)
+}
+
+// SetJobRunID sets the JobRunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetJobRunID(jobRunID *string) {
+	l.JobRunID = jobRunID
+	l.require(lineRunStageDetailFieldJobRunID)
+}
+
+// SetComputeCostCents sets the ComputeCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetComputeCostCents(computeCostCents *int) {
+	l.ComputeCostCents = computeCostCents
+	l.require(lineRunStageDetailFieldComputeCostCents)
+}
+
+// SetInferenceCostCents sets the InferenceCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetInferenceCostCents(inferenceCostCents *int) {
+	l.InferenceCostCents = inferenceCostCents
+	l.require(lineRunStageDetailFieldInferenceCostCents)
+}
+
+// SetTotalCostCents sets the TotalCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetTotalCostCents(totalCostCents *int) {
+	l.TotalCostCents = totalCostCents
+	l.require(lineRunStageDetailFieldTotalCostCents)
+}
+
+// SetCostRatedAt sets the CostRatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetCostRatedAt(costRatedAt *time.Time) {
+	l.CostRatedAt = costRatedAt
+	l.require(lineRunStageDetailFieldCostRatedAt)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetStartedAt(startedAt *time.Time) {
+	l.StartedAt = startedAt
+	l.require(lineRunStageDetailFieldStartedAt)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetCompletedAt(completedAt *time.Time) {
+	l.CompletedAt = completedAt
+	l.require(lineRunStageDetailFieldCompletedAt)
+}
+
+// SetArtifactCount sets the ArtifactCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetArtifactCount(artifactCount *int) {
+	l.ArtifactCount = artifactCount
+	l.require(lineRunStageDetailFieldArtifactCount)
+}
+
+// SetInputPayload sets the InputPayload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetInputPayload(inputPayload map[string]any) {
+	l.InputPayload = inputPayload
+	l.require(lineRunStageDetailFieldInputPayload)
+}
+
+// SetResultPayload sets the ResultPayload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetResultPayload(resultPayload map[string]any) {
+	l.ResultPayload = resultPayload
+	l.require(lineRunStageDetailFieldResultPayload)
+}
+
+// SetArtifacts sets the Artifacts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageDetail) SetArtifacts(artifacts []map[string]any) {
+	l.Artifacts = artifacts
+	l.require(lineRunStageDetailFieldArtifacts)
 }
 
 func (l *LineRunStageDetail) UnmarshalJSON(data []byte) error {
 	type embed LineRunStageDetail
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 	}{
@@ -5436,6 +8527,7 @@ func (l *LineRunStageDetail) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*l = LineRunStageDetail(unmarshaler.embed)
+	l.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	l.StartedAt = unmarshaler.StartedAt.TimePtr()
 	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *l)
@@ -5451,17 +8543,23 @@ func (l *LineRunStageDetail) MarshalJSON() ([]byte, error) {
 	type embed LineRunStageDetail
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 	}{
 		embed:       embed(*l),
+		CostRatedAt: internal.NewOptionalDateTime(l.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (l *LineRunStageDetail) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5473,16 +8571,39 @@ func (l *LineRunStageDetail) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineRunStageSummaryFieldStageName          = big.NewInt(1 << 0)
+	lineRunStageSummaryFieldStageOrder         = big.NewInt(1 << 1)
+	lineRunStageSummaryFieldIteration          = big.NewInt(1 << 2)
+	lineRunStageSummaryFieldStatus             = big.NewInt(1 << 3)
+	lineRunStageSummaryFieldOutcome            = big.NewInt(1 << 4)
+	lineRunStageSummaryFieldJobRunID           = big.NewInt(1 << 5)
+	lineRunStageSummaryFieldComputeCostCents   = big.NewInt(1 << 6)
+	lineRunStageSummaryFieldInferenceCostCents = big.NewInt(1 << 7)
+	lineRunStageSummaryFieldTotalCostCents     = big.NewInt(1 << 8)
+	lineRunStageSummaryFieldCostRatedAt        = big.NewInt(1 << 9)
+	lineRunStageSummaryFieldStartedAt          = big.NewInt(1 << 10)
+	lineRunStageSummaryFieldCompletedAt        = big.NewInt(1 << 11)
+	lineRunStageSummaryFieldArtifactCount      = big.NewInt(1 << 12)
+)
+
 type LineRunStageSummary struct {
-	StageName     string     `json:"stage_name" url:"stage_name"`
-	StageOrder    int        `json:"stage_order" url:"stage_order"`
-	Iteration     int        `json:"iteration" url:"iteration"`
-	Status        string     `json:"status" url:"status"`
-	Outcome       *string    `json:"outcome,omitempty" url:"outcome,omitempty"`
-	JobRunID      *string    `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
-	StartedAt     *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt   *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	ArtifactCount *int       `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+	StageName          string     `json:"stage_name" url:"stage_name"`
+	StageOrder         int        `json:"stage_order" url:"stage_order"`
+	Iteration          int        `json:"iteration" url:"iteration"`
+	Status             string     `json:"status" url:"status"`
+	Outcome            *string    `json:"outcome,omitempty" url:"outcome,omitempty"`
+	JobRunID           *string    `json:"job_run_id,omitempty" url:"job_run_id,omitempty"`
+	ComputeCostCents   *int       `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int       `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int       `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	StartedAt          *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	ArtifactCount      *int       `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5530,6 +8651,34 @@ func (l *LineRunStageSummary) GetJobRunID() *string {
 	return l.JobRunID
 }
 
+func (l *LineRunStageSummary) GetComputeCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCostCents
+}
+
+func (l *LineRunStageSummary) GetInferenceCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.InferenceCostCents
+}
+
+func (l *LineRunStageSummary) GetTotalCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.TotalCostCents
+}
+
+func (l *LineRunStageSummary) GetCostRatedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CostRatedAt
+}
+
 func (l *LineRunStageSummary) GetStartedAt() *time.Time {
 	if l == nil {
 		return nil
@@ -5552,13 +8701,117 @@ func (l *LineRunStageSummary) GetArtifactCount() *int {
 }
 
 func (l *LineRunStageSummary) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunStageSummary) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetStageName sets the StageName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetStageName(stageName string) {
+	l.StageName = stageName
+	l.require(lineRunStageSummaryFieldStageName)
+}
+
+// SetStageOrder sets the StageOrder field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetStageOrder(stageOrder int) {
+	l.StageOrder = stageOrder
+	l.require(lineRunStageSummaryFieldStageOrder)
+}
+
+// SetIteration sets the Iteration field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetIteration(iteration int) {
+	l.Iteration = iteration
+	l.require(lineRunStageSummaryFieldIteration)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetStatus(status string) {
+	l.Status = status
+	l.require(lineRunStageSummaryFieldStatus)
+}
+
+// SetOutcome sets the Outcome field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetOutcome(outcome *string) {
+	l.Outcome = outcome
+	l.require(lineRunStageSummaryFieldOutcome)
+}
+
+// SetJobRunID sets the JobRunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetJobRunID(jobRunID *string) {
+	l.JobRunID = jobRunID
+	l.require(lineRunStageSummaryFieldJobRunID)
+}
+
+// SetComputeCostCents sets the ComputeCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetComputeCostCents(computeCostCents *int) {
+	l.ComputeCostCents = computeCostCents
+	l.require(lineRunStageSummaryFieldComputeCostCents)
+}
+
+// SetInferenceCostCents sets the InferenceCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetInferenceCostCents(inferenceCostCents *int) {
+	l.InferenceCostCents = inferenceCostCents
+	l.require(lineRunStageSummaryFieldInferenceCostCents)
+}
+
+// SetTotalCostCents sets the TotalCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetTotalCostCents(totalCostCents *int) {
+	l.TotalCostCents = totalCostCents
+	l.require(lineRunStageSummaryFieldTotalCostCents)
+}
+
+// SetCostRatedAt sets the CostRatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetCostRatedAt(costRatedAt *time.Time) {
+	l.CostRatedAt = costRatedAt
+	l.require(lineRunStageSummaryFieldCostRatedAt)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetStartedAt(startedAt *time.Time) {
+	l.StartedAt = startedAt
+	l.require(lineRunStageSummaryFieldStartedAt)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetCompletedAt(completedAt *time.Time) {
+	l.CompletedAt = completedAt
+	l.require(lineRunStageSummaryFieldCompletedAt)
+}
+
+// SetArtifactCount sets the ArtifactCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunStageSummary) SetArtifactCount(artifactCount *int) {
+	l.ArtifactCount = artifactCount
+	l.require(lineRunStageSummaryFieldArtifactCount)
 }
 
 func (l *LineRunStageSummary) UnmarshalJSON(data []byte) error {
 	type embed LineRunStageSummary
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 	}{
@@ -5568,6 +8821,7 @@ func (l *LineRunStageSummary) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*l = LineRunStageSummary(unmarshaler.embed)
+	l.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	l.StartedAt = unmarshaler.StartedAt.TimePtr()
 	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *l)
@@ -5583,17 +8837,23 @@ func (l *LineRunStageSummary) MarshalJSON() ([]byte, error) {
 	type embed LineRunStageSummary
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 	}{
 		embed:       embed(*l),
+		CostRatedAt: internal.NewOptionalDateTime(l.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (l *LineRunStageSummary) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5605,22 +8865,55 @@ func (l *LineRunStageSummary) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineRunSummaryFieldID                 = big.NewInt(1 << 0)
+	lineRunSummaryFieldLineName           = big.NewInt(1 << 1)
+	lineRunSummaryFieldLineVersionID      = big.NewInt(1 << 2)
+	lineRunSummaryFieldStatus             = big.NewInt(1 << 3)
+	lineRunSummaryFieldTrigger            = big.NewInt(1 << 4)
+	lineRunSummaryFieldRegion             = big.NewInt(1 << 5)
+	lineRunSummaryFieldRunParams          = big.NewInt(1 << 6)
+	lineRunSummaryFieldStages             = big.NewInt(1 << 7)
+	lineRunSummaryFieldArtifactCount      = big.NewInt(1 << 8)
+	lineRunSummaryFieldArtifacts          = big.NewInt(1 << 9)
+	lineRunSummaryFieldComputeCostCents   = big.NewInt(1 << 10)
+	lineRunSummaryFieldInferenceCostCents = big.NewInt(1 << 11)
+	lineRunSummaryFieldTotalCostCents     = big.NewInt(1 << 12)
+	lineRunSummaryFieldCostRatedAt        = big.NewInt(1 << 13)
+	lineRunSummaryFieldErrorMessage       = big.NewInt(1 << 14)
+	lineRunSummaryFieldFailure            = big.NewInt(1 << 15)
+	lineRunSummaryFieldManagerTurns       = big.NewInt(1 << 16)
+	lineRunSummaryFieldTriggeredByActor   = big.NewInt(1 << 17)
+	lineRunSummaryFieldStartedAt          = big.NewInt(1 << 18)
+	lineRunSummaryFieldCompletedAt        = big.NewInt(1 << 19)
+	lineRunSummaryFieldCreatedAt          = big.NewInt(1 << 20)
+)
+
 type LineRunSummary struct {
-	ID            string                 `json:"id" url:"id"`
-	LineName      string                 `json:"line_name" url:"line_name"`
-	LineVersionID *string                `json:"line_version_id,omitempty" url:"line_version_id,omitempty"`
-	Status        string                 `json:"status" url:"status"`
-	Trigger       *TriggerSummary        `json:"trigger" url:"trigger"`
-	Region        *string                `json:"region,omitempty" url:"region,omitempty"`
-	RunParams     map[string]interface{} `json:"run_params,omitempty" url:"run_params,omitempty"`
-	Stages        []*LineRunStageSummary `json:"stages,omitempty" url:"stages,omitempty"`
-	ArtifactCount *int                   `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
-	Artifacts     []*ArtifactSummary     `json:"artifacts,omitempty" url:"artifacts,omitempty"`
-	ErrorMessage  *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
-	Failure       *LineRunFailure        `json:"failure,omitempty" url:"failure,omitempty"`
-	StartedAt     *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
-	CompletedAt   *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
-	CreatedAt     time.Time              `json:"created_at" url:"created_at"`
+	ID                 string                 `json:"id" url:"id"`
+	LineName           string                 `json:"line_name" url:"line_name"`
+	LineVersionID      *string                `json:"line_version_id,omitempty" url:"line_version_id,omitempty"`
+	Status             string                 `json:"status" url:"status"`
+	Trigger            *TriggerSummary        `json:"trigger" url:"trigger"`
+	Region             *string                `json:"region,omitempty" url:"region,omitempty"`
+	RunParams          map[string]any         `json:"run_params,omitempty" url:"run_params,omitempty"`
+	Stages             []*LineRunStageSummary `json:"stages,omitempty" url:"stages,omitempty"`
+	ArtifactCount      *int                   `json:"artifact_count,omitempty" url:"artifact_count,omitempty"`
+	Artifacts          []*ArtifactSummary     `json:"artifacts,omitempty" url:"artifacts,omitempty"`
+	ComputeCostCents   *int                   `json:"compute_cost_cents,omitempty" url:"compute_cost_cents,omitempty"`
+	InferenceCostCents *int                   `json:"inference_cost_cents,omitempty" url:"inference_cost_cents,omitempty"`
+	TotalCostCents     *int                   `json:"total_cost_cents,omitempty" url:"total_cost_cents,omitempty"`
+	CostRatedAt        *time.Time             `json:"cost_rated_at,omitempty" url:"cost_rated_at,omitempty"`
+	ErrorMessage       *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	Failure            *LineRunFailure        `json:"failure,omitempty" url:"failure,omitempty"`
+	ManagerTurns       []*ManagerTurnSummary  `json:"manager_turns,omitempty" url:"manager_turns,omitempty"`
+	TriggeredByActor   map[string]any         `json:"triggered_by_actor,omitempty" url:"triggered_by_actor,omitempty"`
+	StartedAt          *time.Time             `json:"started_at,omitempty" url:"started_at,omitempty"`
+	CompletedAt        *time.Time             `json:"completed_at,omitempty" url:"completed_at,omitempty"`
+	CreatedAt          time.Time              `json:"created_at" url:"created_at"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5668,7 +8961,7 @@ func (l *LineRunSummary) GetRegion() *string {
 	return l.Region
 }
 
-func (l *LineRunSummary) GetRunParams() map[string]interface{} {
+func (l *LineRunSummary) GetRunParams() map[string]any {
 	if l == nil {
 		return nil
 	}
@@ -5696,6 +8989,34 @@ func (l *LineRunSummary) GetArtifacts() []*ArtifactSummary {
 	return l.Artifacts
 }
 
+func (l *LineRunSummary) GetComputeCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.ComputeCostCents
+}
+
+func (l *LineRunSummary) GetInferenceCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.InferenceCostCents
+}
+
+func (l *LineRunSummary) GetTotalCostCents() *int {
+	if l == nil {
+		return nil
+	}
+	return l.TotalCostCents
+}
+
+func (l *LineRunSummary) GetCostRatedAt() *time.Time {
+	if l == nil {
+		return nil
+	}
+	return l.CostRatedAt
+}
+
 func (l *LineRunSummary) GetErrorMessage() *string {
 	if l == nil {
 		return nil
@@ -5708,6 +9029,20 @@ func (l *LineRunSummary) GetFailure() *LineRunFailure {
 		return nil
 	}
 	return l.Failure
+}
+
+func (l *LineRunSummary) GetManagerTurns() []*ManagerTurnSummary {
+	if l == nil {
+		return nil
+	}
+	return l.ManagerTurns
+}
+
+func (l *LineRunSummary) GetTriggeredByActor() map[string]any {
+	if l == nil {
+		return nil
+	}
+	return l.TriggeredByActor
 }
 
 func (l *LineRunSummary) GetStartedAt() *time.Time {
@@ -5732,13 +9067,173 @@ func (l *LineRunSummary) GetCreatedAt() time.Time {
 }
 
 func (l *LineRunSummary) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineRunSummary) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetID(id string) {
+	l.ID = id
+	l.require(lineRunSummaryFieldID)
+}
+
+// SetLineName sets the LineName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetLineName(lineName string) {
+	l.LineName = lineName
+	l.require(lineRunSummaryFieldLineName)
+}
+
+// SetLineVersionID sets the LineVersionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetLineVersionID(lineVersionID *string) {
+	l.LineVersionID = lineVersionID
+	l.require(lineRunSummaryFieldLineVersionID)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetStatus(status string) {
+	l.Status = status
+	l.require(lineRunSummaryFieldStatus)
+}
+
+// SetTrigger sets the Trigger field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetTrigger(trigger *TriggerSummary) {
+	l.Trigger = trigger
+	l.require(lineRunSummaryFieldTrigger)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetRegion(region *string) {
+	l.Region = region
+	l.require(lineRunSummaryFieldRegion)
+}
+
+// SetRunParams sets the RunParams field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetRunParams(runParams map[string]any) {
+	l.RunParams = runParams
+	l.require(lineRunSummaryFieldRunParams)
+}
+
+// SetStages sets the Stages field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetStages(stages []*LineRunStageSummary) {
+	l.Stages = stages
+	l.require(lineRunSummaryFieldStages)
+}
+
+// SetArtifactCount sets the ArtifactCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetArtifactCount(artifactCount *int) {
+	l.ArtifactCount = artifactCount
+	l.require(lineRunSummaryFieldArtifactCount)
+}
+
+// SetArtifacts sets the Artifacts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetArtifacts(artifacts []*ArtifactSummary) {
+	l.Artifacts = artifacts
+	l.require(lineRunSummaryFieldArtifacts)
+}
+
+// SetComputeCostCents sets the ComputeCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetComputeCostCents(computeCostCents *int) {
+	l.ComputeCostCents = computeCostCents
+	l.require(lineRunSummaryFieldComputeCostCents)
+}
+
+// SetInferenceCostCents sets the InferenceCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetInferenceCostCents(inferenceCostCents *int) {
+	l.InferenceCostCents = inferenceCostCents
+	l.require(lineRunSummaryFieldInferenceCostCents)
+}
+
+// SetTotalCostCents sets the TotalCostCents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetTotalCostCents(totalCostCents *int) {
+	l.TotalCostCents = totalCostCents
+	l.require(lineRunSummaryFieldTotalCostCents)
+}
+
+// SetCostRatedAt sets the CostRatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetCostRatedAt(costRatedAt *time.Time) {
+	l.CostRatedAt = costRatedAt
+	l.require(lineRunSummaryFieldCostRatedAt)
+}
+
+// SetErrorMessage sets the ErrorMessage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetErrorMessage(errorMessage *string) {
+	l.ErrorMessage = errorMessage
+	l.require(lineRunSummaryFieldErrorMessage)
+}
+
+// SetFailure sets the Failure field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetFailure(failure *LineRunFailure) {
+	l.Failure = failure
+	l.require(lineRunSummaryFieldFailure)
+}
+
+// SetManagerTurns sets the ManagerTurns field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetManagerTurns(managerTurns []*ManagerTurnSummary) {
+	l.ManagerTurns = managerTurns
+	l.require(lineRunSummaryFieldManagerTurns)
+}
+
+// SetTriggeredByActor sets the TriggeredByActor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetTriggeredByActor(triggeredByActor map[string]any) {
+	l.TriggeredByActor = triggeredByActor
+	l.require(lineRunSummaryFieldTriggeredByActor)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetStartedAt(startedAt *time.Time) {
+	l.StartedAt = startedAt
+	l.require(lineRunSummaryFieldStartedAt)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetCompletedAt(completedAt *time.Time) {
+	l.CompletedAt = completedAt
+	l.require(lineRunSummaryFieldCompletedAt)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineRunSummary) SetCreatedAt(createdAt time.Time) {
+	l.CreatedAt = createdAt
+	l.require(lineRunSummaryFieldCreatedAt)
 }
 
 func (l *LineRunSummary) UnmarshalJSON(data []byte) error {
 	type embed LineRunSummary
 	var unmarshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
@@ -5749,6 +9244,7 @@ func (l *LineRunSummary) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*l = LineRunSummary(unmarshaler.embed)
+	l.CostRatedAt = unmarshaler.CostRatedAt.TimePtr()
 	l.StartedAt = unmarshaler.StartedAt.TimePtr()
 	l.CompletedAt = unmarshaler.CompletedAt.TimePtr()
 	l.CreatedAt = unmarshaler.CreatedAt.Time()
@@ -5765,19 +9261,25 @@ func (l *LineRunSummary) MarshalJSON() ([]byte, error) {
 	type embed LineRunSummary
 	var marshaler = struct {
 		embed
+		CostRatedAt *internal.DateTime `json:"cost_rated_at,omitempty"`
 		StartedAt   *internal.DateTime `json:"started_at,omitempty"`
 		CompletedAt *internal.DateTime `json:"completed_at,omitempty"`
 		CreatedAt   *internal.DateTime `json:"created_at"`
 	}{
 		embed:       embed(*l),
+		CostRatedAt: internal.NewOptionalDateTime(l.CostRatedAt),
 		StartedAt:   internal.NewOptionalDateTime(l.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(l.CompletedAt),
 		CreatedAt:   internal.NewDateTime(l.CreatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (l *LineRunSummary) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5789,11 +9291,23 @@ func (l *LineRunSummary) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineScheduleResponseFieldCron               = big.NewInt(1 << 0)
+	lineScheduleResponseFieldTimezone           = big.NewInt(1 << 1)
+	lineScheduleResponseFieldEnabled            = big.NewInt(1 << 2)
+	lineScheduleResponseFieldScheduleGeneration = big.NewInt(1 << 3)
+	lineScheduleResponseFieldInputs             = big.NewInt(1 << 4)
+)
+
 type LineScheduleResponse struct {
-	Cron               string `json:"cron" url:"cron"`
-	Timezone           string `json:"timezone" url:"timezone"`
-	Enabled            bool   `json:"enabled" url:"enabled"`
-	ScheduleGeneration int    `json:"schedule_generation" url:"schedule_generation"`
+	Cron               string         `json:"cron" url:"cron"`
+	Timezone           string         `json:"timezone" url:"timezone"`
+	Enabled            bool           `json:"enabled" url:"enabled"`
+	ScheduleGeneration int            `json:"schedule_generation" url:"schedule_generation"`
+	Inputs             map[string]any `json:"inputs,omitempty" url:"inputs,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5827,8 +9341,62 @@ func (l *LineScheduleResponse) GetScheduleGeneration() int {
 	return l.ScheduleGeneration
 }
 
+func (l *LineScheduleResponse) GetInputs() map[string]any {
+	if l == nil {
+		return nil
+	}
+	return l.Inputs
+}
+
 func (l *LineScheduleResponse) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineScheduleResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetCron sets the Cron field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleResponse) SetCron(cron string) {
+	l.Cron = cron
+	l.require(lineScheduleResponseFieldCron)
+}
+
+// SetTimezone sets the Timezone field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleResponse) SetTimezone(timezone string) {
+	l.Timezone = timezone
+	l.require(lineScheduleResponseFieldTimezone)
+}
+
+// SetEnabled sets the Enabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleResponse) SetEnabled(enabled bool) {
+	l.Enabled = enabled
+	l.require(lineScheduleResponseFieldEnabled)
+}
+
+// SetScheduleGeneration sets the ScheduleGeneration field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleResponse) SetScheduleGeneration(scheduleGeneration int) {
+	l.ScheduleGeneration = scheduleGeneration
+	l.require(lineScheduleResponseFieldScheduleGeneration)
+}
+
+// SetInputs sets the Inputs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleResponse) SetInputs(inputs map[string]any) {
+	l.Inputs = inputs
+	l.require(lineScheduleResponseFieldInputs)
 }
 
 func (l *LineScheduleResponse) UnmarshalJSON(data []byte) error {
@@ -5847,7 +9415,21 @@ func (l *LineScheduleResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineScheduleResponse) MarshalJSON() ([]byte, error) {
+	type embed LineScheduleResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineScheduleResponse) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5859,10 +9441,19 @@ func (l *LineScheduleResponse) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineSectionFieldName        = big.NewInt(1 << 0)
+	lineSectionFieldDescription = big.NewInt(1 << 1)
+	lineSectionFieldCategory    = big.NewInt(1 << 2)
+)
+
 type LineSection struct {
 	Name        string  `json:"name" url:"name"`
 	Description *string `json:"description,omitempty" url:"description,omitempty"`
 	Category    *string `json:"category,omitempty" url:"category,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5890,7 +9481,40 @@ func (l *LineSection) GetCategory() *string {
 }
 
 func (l *LineSection) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineSection) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineSection) SetName(name string) {
+	l.Name = name
+	l.require(lineSectionFieldName)
+}
+
+// SetDescription sets the Description field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineSection) SetDescription(description *string) {
+	l.Description = description
+	l.require(lineSectionFieldDescription)
+}
+
+// SetCategory sets the Category field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineSection) SetCategory(category *string) {
+	l.Category = category
+	l.require(lineSectionFieldCategory)
 }
 
 func (l *LineSection) UnmarshalJSON(data []byte) error {
@@ -5909,7 +9533,21 @@ func (l *LineSection) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineSection) MarshalJSON() ([]byte, error) {
+	type embed LineSection
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineSection) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -5922,12 +9560,23 @@ func (l *LineSection) String() string {
 }
 
 // A node in the line graph that runs one job per visit.
+var (
+	lineStageFieldID           = big.NewInt(1 << 0)
+	lineStageFieldJob          = big.NewInt(1 << 1)
+	lineStageFieldJobVersionID = big.NewInt(1 << 2)
+	lineStageFieldDescription  = big.NewInt(1 << 3)
+	lineStageFieldMaxAttempts  = big.NewInt(1 << 4)
+)
+
 type LineStage struct {
 	ID           string  `json:"id" url:"id"`
 	Job          string  `json:"job" url:"job"`
 	JobVersionID *string `json:"job_version_id,omitempty" url:"job_version_id,omitempty"`
 	Description  *string `json:"description,omitempty" url:"description,omitempty"`
 	MaxAttempts  *int    `json:"max_attempts,omitempty" url:"max_attempts,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -5969,7 +9618,54 @@ func (l *LineStage) GetMaxAttempts() *int {
 }
 
 func (l *LineStage) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineStage) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineStage) SetID(id string) {
+	l.ID = id
+	l.require(lineStageFieldID)
+}
+
+// SetJob sets the Job field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineStage) SetJob(job string) {
+	l.Job = job
+	l.require(lineStageFieldJob)
+}
+
+// SetJobVersionID sets the JobVersionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineStage) SetJobVersionID(jobVersionID *string) {
+	l.JobVersionID = jobVersionID
+	l.require(lineStageFieldJobVersionID)
+}
+
+// SetDescription sets the Description field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineStage) SetDescription(description *string) {
+	l.Description = description
+	l.require(lineStageFieldDescription)
+}
+
+// SetMaxAttempts sets the MaxAttempts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineStage) SetMaxAttempts(maxAttempts *int) {
+	l.MaxAttempts = maxAttempts
+	l.require(lineStageFieldMaxAttempts)
 }
 
 func (l *LineStage) UnmarshalJSON(data []byte) error {
@@ -5988,7 +9684,21 @@ func (l *LineStage) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LineStage) MarshalJSON() ([]byte, error) {
+	type embed LineStage
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LineStage) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -6000,6 +9710,15 @@ func (l *LineStage) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	lineVersionResponseFieldID            = big.NewInt(1 << 0)
+	lineVersionResponseFieldVersionNumber = big.NewInt(1 << 1)
+	lineVersionResponseFieldContentHash   = big.NewInt(1 << 2)
+	lineVersionResponseFieldDeployedAt    = big.NewInt(1 << 3)
+	lineVersionResponseFieldManifest      = big.NewInt(1 << 4)
+	lineVersionResponseFieldInputParams   = big.NewInt(1 << 5)
+)
+
 type LineVersionResponse struct {
 	ID            string                `json:"id" url:"id"`
 	VersionNumber int                   `json:"version_number" url:"version_number"`
@@ -6007,6 +9726,9 @@ type LineVersionResponse struct {
 	DeployedAt    time.Time             `json:"deployed_at" url:"deployed_at"`
 	Manifest      *LineManifestOutput   `json:"manifest" url:"manifest"`
 	InputParams   []*JobParamDefinition `json:"input_params,omitempty" url:"input_params,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6055,7 +9777,61 @@ func (l *LineVersionResponse) GetInputParams() []*JobParamDefinition {
 }
 
 func (l *LineVersionResponse) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LineVersionResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineVersionResponse) SetID(id string) {
+	l.ID = id
+	l.require(lineVersionResponseFieldID)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineVersionResponse) SetVersionNumber(versionNumber int) {
+	l.VersionNumber = versionNumber
+	l.require(lineVersionResponseFieldVersionNumber)
+}
+
+// SetContentHash sets the ContentHash field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineVersionResponse) SetContentHash(contentHash string) {
+	l.ContentHash = contentHash
+	l.require(lineVersionResponseFieldContentHash)
+}
+
+// SetDeployedAt sets the DeployedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineVersionResponse) SetDeployedAt(deployedAt time.Time) {
+	l.DeployedAt = deployedAt
+	l.require(lineVersionResponseFieldDeployedAt)
+}
+
+// SetManifest sets the Manifest field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineVersionResponse) SetManifest(manifest *LineManifestOutput) {
+	l.Manifest = manifest
+	l.require(lineVersionResponseFieldManifest)
+}
+
+// SetInputParams sets the InputParams field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineVersionResponse) SetInputParams(inputParams []*JobParamDefinition) {
+	l.InputParams = inputParams
+	l.require(lineVersionResponseFieldInputParams)
 }
 
 func (l *LineVersionResponse) UnmarshalJSON(data []byte) error {
@@ -6089,10 +9865,14 @@ func (l *LineVersionResponse) MarshalJSON() ([]byte, error) {
 		embed:      embed(*l),
 		DeployedAt: internal.NewDateTime(l.DeployedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (l *LineVersionResponse) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -6104,6 +9884,15 @@ func (l *LineVersionResponse) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+var (
+	linearIssueSelectorFieldKind       = big.NewInt(1 << 0)
+	linearIssueSelectorFieldScope      = big.NewInt(1 << 1)
+	linearIssueSelectorFieldTeamIDs    = big.NewInt(1 << 2)
+	linearIssueSelectorFieldProjectIDs = big.NewInt(1 << 3)
+	linearIssueSelectorFieldLabels     = big.NewInt(1 << 4)
+	linearIssueSelectorFieldStates     = big.NewInt(1 << 5)
+)
+
 type LinearIssueSelector struct {
 	Kind       *LinearIssueSelectorKind `json:"kind,omitempty" url:"kind,omitempty"`
 	Scope      *SelectorScope           `json:"scope,omitempty" url:"scope,omitempty"`
@@ -6111,6 +9900,9 @@ type LinearIssueSelector struct {
 	ProjectIDs []string                 `json:"project_ids,omitempty" url:"project_ids,omitempty"`
 	Labels     []string                 `json:"labels,omitempty" url:"labels,omitempty"`
 	States     []string                 `json:"states,omitempty" url:"states,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6159,7 +9951,61 @@ func (l *LinearIssueSelector) GetStates() []string {
 }
 
 func (l *LinearIssueSelector) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
 	return l.extraProperties
+}
+
+func (l *LinearIssueSelector) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LinearIssueSelector) SetKind(kind *LinearIssueSelectorKind) {
+	l.Kind = kind
+	l.require(linearIssueSelectorFieldKind)
+}
+
+// SetScope sets the Scope field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LinearIssueSelector) SetScope(scope *SelectorScope) {
+	l.Scope = scope
+	l.require(linearIssueSelectorFieldScope)
+}
+
+// SetTeamIDs sets the TeamIDs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LinearIssueSelector) SetTeamIDs(teamIDs []string) {
+	l.TeamIDs = teamIDs
+	l.require(linearIssueSelectorFieldTeamIDs)
+}
+
+// SetProjectIDs sets the ProjectIDs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LinearIssueSelector) SetProjectIDs(projectIDs []string) {
+	l.ProjectIDs = projectIDs
+	l.require(linearIssueSelectorFieldProjectIDs)
+}
+
+// SetLabels sets the Labels field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LinearIssueSelector) SetLabels(labels []string) {
+	l.Labels = labels
+	l.require(linearIssueSelectorFieldLabels)
+}
+
+// SetStates sets the States field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LinearIssueSelector) SetStates(states []string) {
+	l.States = states
+	l.require(linearIssueSelectorFieldStates)
 }
 
 func (l *LinearIssueSelector) UnmarshalJSON(data []byte) error {
@@ -6178,7 +10024,21 @@ func (l *LinearIssueSelector) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (l *LinearIssueSelector) MarshalJSON() ([]byte, error) {
+	type embed LinearIssueSelector
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (l *LinearIssueSelector) String() string {
+	if l == nil {
+		return "<nil>"
+	}
 	if len(l.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
@@ -6209,13 +10069,286 @@ func (l LinearIssueSelectorKind) Ptr() *LinearIssueSelectorKind {
 	return &l
 }
 
+var (
+	listPageLineRunSummaryFieldItems      = big.NewInt(1 << 0)
+	listPageLineRunSummaryFieldNextCursor = big.NewInt(1 << 1)
+	listPageLineRunSummaryFieldTotal      = big.NewInt(1 << 2)
+)
+
+// listPageLineRunSummaryRequiredNullableFields maps the wire names of ListPageLineRunSummary's required, nullable fields to their field bits.
+var listPageLineRunSummaryRequiredNullableFields = map[string]*big.Int{
+	"next_cursor": listPageLineRunSummaryFieldNextCursor,
+}
+
+type ListPageLineRunSummary struct {
+	Items      []*LineRunSummary `json:"items" url:"items"`
+	NextCursor *string           `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
+	Total      *int              `json:"total,omitempty" url:"total,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *ListPageLineRunSummary) GetItems() []*LineRunSummary {
+	if l == nil {
+		return nil
+	}
+	return l.Items
+}
+
+func (l *ListPageLineRunSummary) GetNextCursor() *string {
+	if l == nil {
+		return nil
+	}
+	return l.NextCursor
+}
+
+func (l *ListPageLineRunSummary) GetTotal() *int {
+	if l == nil {
+		return nil
+	}
+	return l.Total
+}
+
+func (l *ListPageLineRunSummary) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.extraProperties
+}
+
+func (l *ListPageLineRunSummary) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListPageLineRunSummary) SetItems(items []*LineRunSummary) {
+	l.Items = items
+	l.require(listPageLineRunSummaryFieldItems)
+}
+
+// SetNextCursor sets the NextCursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListPageLineRunSummary) SetNextCursor(nextCursor *string) {
+	l.NextCursor = nextCursor
+	l.require(listPageLineRunSummaryFieldNextCursor)
+}
+
+// SetTotal sets the Total field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListPageLineRunSummary) SetTotal(total *int) {
+	l.Total = total
+	l.require(listPageLineRunSummaryFieldTotal)
+}
+
+func (l *ListPageLineRunSummary) UnmarshalJSON(data []byte) error {
+	type unmarshaler ListPageLineRunSummary
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = ListPageLineRunSummary(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	presentFields, err := internal.ExplicitFieldsFromJSON(data, listPageLineRunSummaryRequiredNullableFields)
+	if err != nil {
+		return err
+	}
+	if presentFields != nil {
+		l.require(presentFields)
+	}
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *ListPageLineRunSummary) MarshalJSON() ([]byte, error) {
+	type embed ListPageLineRunSummary
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (l *ListPageLineRunSummary) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+// One manager turn, projected for a list row.
+var (
+	managerTurnSummaryFieldWorkflowRunID = big.NewInt(1 << 0)
+	managerTurnSummaryFieldState         = big.NewInt(1 << 1)
+	managerTurnSummaryFieldStartedAt     = big.NewInt(1 << 2)
+)
+
+type ManagerTurnSummary struct {
+	WorkflowRunID string     `json:"workflow_run_id" url:"workflow_run_id"`
+	State         string     `json:"state" url:"state"`
+	StartedAt     *time.Time `json:"started_at,omitempty" url:"started_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *ManagerTurnSummary) GetWorkflowRunID() string {
+	if m == nil {
+		return ""
+	}
+	return m.WorkflowRunID
+}
+
+func (m *ManagerTurnSummary) GetState() string {
+	if m == nil {
+		return ""
+	}
+	return m.State
+}
+
+func (m *ManagerTurnSummary) GetStartedAt() *time.Time {
+	if m == nil {
+		return nil
+	}
+	return m.StartedAt
+}
+
+func (m *ManagerTurnSummary) GetExtraProperties() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.extraProperties
+}
+
+func (m *ManagerTurnSummary) require(field *big.Int) {
+	next := new(big.Int)
+	if m.explicitFields != nil {
+		next.Set(m.explicitFields)
+	}
+	next.Or(next, field)
+	m.explicitFields = next
+}
+
+// SetWorkflowRunID sets the WorkflowRunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *ManagerTurnSummary) SetWorkflowRunID(workflowRunID string) {
+	m.WorkflowRunID = workflowRunID
+	m.require(managerTurnSummaryFieldWorkflowRunID)
+}
+
+// SetState sets the State field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *ManagerTurnSummary) SetState(state string) {
+	m.State = state
+	m.require(managerTurnSummaryFieldState)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *ManagerTurnSummary) SetStartedAt(startedAt *time.Time) {
+	m.StartedAt = startedAt
+	m.require(managerTurnSummaryFieldStartedAt)
+}
+
+func (m *ManagerTurnSummary) UnmarshalJSON(data []byte) error {
+	type embed ManagerTurnSummary
+	var unmarshaler = struct {
+		embed
+		StartedAt *internal.DateTime `json:"started_at,omitempty"`
+	}{
+		embed: embed(*m),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*m = ManagerTurnSummary(unmarshaler.embed)
+	m.StartedAt = unmarshaler.StartedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *ManagerTurnSummary) MarshalJSON() ([]byte, error) {
+	type embed ManagerTurnSummary
+	var marshaler = struct {
+		embed
+		StartedAt *internal.DateTime `json:"started_at,omitempty"`
+	}{
+		embed:     embed(*m),
+		StartedAt: internal.NewOptionalDateTime(m.StartedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, m.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (m *ManagerTurnSummary) String() string {
+	if m == nil {
+		return "<nil>"
+	}
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
 type ManualTriggerSection struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (m *ManualTriggerSection) GetExtraProperties() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
 	return m.extraProperties
+}
+
+func (m *ManualTriggerSection) require(field *big.Int) {
+	next := new(big.Int)
+	if m.explicitFields != nil {
+		next.Set(m.explicitFields)
+	}
+	next.Or(next, field)
+	m.explicitFields = next
 }
 
 func (m *ManualTriggerSection) UnmarshalJSON(data []byte) error {
@@ -6234,7 +10367,21 @@ func (m *ManualTriggerSection) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (m *ManualTriggerSection) MarshalJSON() ([]byte, error) {
+	type embed ManualTriggerSection
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*m),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, m.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (m *ManualTriggerSection) String() string {
+	if m == nil {
+		return "<nil>"
+	}
 	if len(m.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
 			return value
@@ -6246,8 +10393,15 @@ func (m *ManualTriggerSection) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
+var (
+	notConditionInputFieldCondition = big.NewInt(1 << 0)
+)
+
 type NotConditionInput struct {
 	Condition *LineConditionInput `json:"condition" url:"condition"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6261,7 +10415,26 @@ func (n *NotConditionInput) GetCondition() *LineConditionInput {
 }
 
 func (n *NotConditionInput) GetExtraProperties() map[string]interface{} {
+	if n == nil {
+		return nil
+	}
 	return n.extraProperties
+}
+
+func (n *NotConditionInput) require(field *big.Int) {
+	next := new(big.Int)
+	if n.explicitFields != nil {
+		next.Set(n.explicitFields)
+	}
+	next.Or(next, field)
+	n.explicitFields = next
+}
+
+// SetCondition sets the Condition field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NotConditionInput) SetCondition(condition *LineConditionInput) {
+	n.Condition = condition
+	n.require(notConditionInputFieldCondition)
 }
 
 func (n *NotConditionInput) UnmarshalJSON(data []byte) error {
@@ -6280,7 +10453,21 @@ func (n *NotConditionInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (n *NotConditionInput) MarshalJSON() ([]byte, error) {
+	type embed NotConditionInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*n),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (n *NotConditionInput) String() string {
+	if n == nil {
+		return "<nil>"
+	}
 	if len(n.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(n.rawJSON); err == nil {
 			return value
@@ -6292,8 +10479,15 @@ func (n *NotConditionInput) String() string {
 	return fmt.Sprintf("%#v", n)
 }
 
+var (
+	notConditionOutputFieldCondition = big.NewInt(1 << 0)
+)
+
 type NotConditionOutput struct {
 	Condition *LineConditionOutput `json:"condition" url:"condition"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6307,7 +10501,26 @@ func (n *NotConditionOutput) GetCondition() *LineConditionOutput {
 }
 
 func (n *NotConditionOutput) GetExtraProperties() map[string]interface{} {
+	if n == nil {
+		return nil
+	}
 	return n.extraProperties
+}
+
+func (n *NotConditionOutput) require(field *big.Int) {
+	next := new(big.Int)
+	if n.explicitFields != nil {
+		next.Set(n.explicitFields)
+	}
+	next.Or(next, field)
+	n.explicitFields = next
+}
+
+// SetCondition sets the Condition field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NotConditionOutput) SetCondition(condition *LineConditionOutput) {
+	n.Condition = condition
+	n.require(notConditionOutputFieldCondition)
 }
 
 func (n *NotConditionOutput) UnmarshalJSON(data []byte) error {
@@ -6326,7 +10539,21 @@ func (n *NotConditionOutput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (n *NotConditionOutput) MarshalJSON() ([]byte, error) {
+	type embed NotConditionOutput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*n),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (n *NotConditionOutput) String() string {
+	if n == nil {
+		return "<nil>"
+	}
 	if len(n.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(n.rawJSON); err == nil {
 			return value
@@ -6338,9 +10565,17 @@ func (n *NotConditionOutput) String() string {
 	return fmt.Sprintf("%#v", n)
 }
 
+var (
+	outputBindingFieldStage = big.NewInt(1 << 0)
+	outputBindingFieldName  = big.NewInt(1 << 1)
+)
+
 type OutputBinding struct {
 	Stage string `json:"stage" url:"stage"`
 	Name  string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6361,7 +10596,33 @@ func (o *OutputBinding) GetName() string {
 }
 
 func (o *OutputBinding) GetExtraProperties() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
 	return o.extraProperties
+}
+
+func (o *OutputBinding) require(field *big.Int) {
+	next := new(big.Int)
+	if o.explicitFields != nil {
+		next.Set(o.explicitFields)
+	}
+	next.Or(next, field)
+	o.explicitFields = next
+}
+
+// SetStage sets the Stage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OutputBinding) SetStage(stage string) {
+	o.Stage = stage
+	o.require(outputBindingFieldStage)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OutputBinding) SetName(name string) {
+	o.Name = name
+	o.require(outputBindingFieldName)
 }
 
 func (o *OutputBinding) UnmarshalJSON(data []byte) error {
@@ -6380,7 +10641,21 @@ func (o *OutputBinding) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (o *OutputBinding) MarshalJSON() ([]byte, error) {
+	type embed OutputBinding
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*o),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, o.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (o *OutputBinding) String() string {
+	if o == nil {
+		return "<nil>"
+	}
 	if len(o.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
 			return value
@@ -6393,6 +10668,18 @@ func (o *OutputBinding) String() string {
 }
 
 // Stage metadata with job-derived kind and agent info.
+var (
+	resolvedStageFieldID          = big.NewInt(1 << 0)
+	resolvedStageFieldJob         = big.NewInt(1 << 1)
+	resolvedStageFieldDescription = big.NewInt(1 << 2)
+	resolvedStageFieldKind        = big.NewInt(1 << 3)
+	resolvedStageFieldHarness     = big.NewInt(1 << 4)
+	resolvedStageFieldAgentModel  = big.NewInt(1 << 5)
+	resolvedStageFieldAgentRole   = big.NewInt(1 << 6)
+	resolvedStageFieldRuntime     = big.NewInt(1 << 7)
+	resolvedStageFieldParams      = big.NewInt(1 << 8)
+)
+
 type ResolvedStage struct {
 	ID          string                `json:"id" url:"id"`
 	Job         string                `json:"job" url:"job"`
@@ -6403,6 +10690,9 @@ type ResolvedStage struct {
 	AgentRole   *string               `json:"agent_role,omitempty" url:"agent_role,omitempty"`
 	Runtime     *string               `json:"runtime,omitempty" url:"runtime,omitempty"`
 	Params      []*JobParamDefinition `json:"params,omitempty" url:"params,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6472,7 +10762,82 @@ func (r *ResolvedStage) GetParams() []*JobParamDefinition {
 }
 
 func (r *ResolvedStage) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
 	return r.extraProperties
+}
+
+func (r *ResolvedStage) require(field *big.Int) {
+	next := new(big.Int)
+	if r.explicitFields != nil {
+		next.Set(r.explicitFields)
+	}
+	next.Or(next, field)
+	r.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResolvedStage) SetID(id string) {
+	r.ID = id
+	r.require(resolvedStageFieldID)
+}
+
+// SetJob sets the Job field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResolvedStage) SetJob(job string) {
+	r.Job = job
+	r.require(resolvedStageFieldJob)
+}
+
+// SetDescription sets the Description field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResolvedStage) SetDescription(description *string) {
+	r.Description = description
+	r.require(resolvedStageFieldDescription)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResolvedStage) SetKind(kind *ResolvedStageKind) {
+	r.Kind = kind
+	r.require(resolvedStageFieldKind)
+}
+
+// SetHarness sets the Harness field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResolvedStage) SetHarness(harness *ResolvedStageHarness) {
+	r.Harness = harness
+	r.require(resolvedStageFieldHarness)
+}
+
+// SetAgentModel sets the AgentModel field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResolvedStage) SetAgentModel(agentModel *string) {
+	r.AgentModel = agentModel
+	r.require(resolvedStageFieldAgentModel)
+}
+
+// SetAgentRole sets the AgentRole field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResolvedStage) SetAgentRole(agentRole *string) {
+	r.AgentRole = agentRole
+	r.require(resolvedStageFieldAgentRole)
+}
+
+// SetRuntime sets the Runtime field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResolvedStage) SetRuntime(runtime *string) {
+	r.Runtime = runtime
+	r.require(resolvedStageFieldRuntime)
+}
+
+// SetParams sets the Params field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResolvedStage) SetParams(params []*JobParamDefinition) {
+	r.Params = params
+	r.require(resolvedStageFieldParams)
 }
 
 func (r *ResolvedStage) UnmarshalJSON(data []byte) error {
@@ -6491,7 +10856,21 @@ func (r *ResolvedStage) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (r *ResolvedStage) MarshalJSON() ([]byte, error) {
+	type embed ResolvedStage
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (r *ResolvedStage) String() string {
+	if r == nil {
+		return "<nil>"
+	}
 	if len(r.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
 			return value
@@ -6556,9 +10935,19 @@ func (r ResolvedStageKind) Ptr() *ResolvedStageKind {
 	return &r
 }
 
+var (
+	scheduleTriggerSectionFieldCron     = big.NewInt(1 << 0)
+	scheduleTriggerSectionFieldTimezone = big.NewInt(1 << 1)
+	scheduleTriggerSectionFieldInputs   = big.NewInt(1 << 2)
+)
+
 type ScheduleTriggerSection struct {
-	Cron     string  `json:"cron" url:"cron"`
-	Timezone *string `json:"timezone,omitempty" url:"timezone,omitempty"`
+	Cron     string         `json:"cron" url:"cron"`
+	Timezone *string        `json:"timezone,omitempty" url:"timezone,omitempty"`
+	Inputs   map[string]any `json:"inputs,omitempty" url:"inputs,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6578,8 +10967,48 @@ func (s *ScheduleTriggerSection) GetTimezone() *string {
 	return s.Timezone
 }
 
+func (s *ScheduleTriggerSection) GetInputs() map[string]any {
+	if s == nil {
+		return nil
+	}
+	return s.Inputs
+}
+
 func (s *ScheduleTriggerSection) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *ScheduleTriggerSection) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetCron sets the Cron field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *ScheduleTriggerSection) SetCron(cron string) {
+	s.Cron = cron
+	s.require(scheduleTriggerSectionFieldCron)
+}
+
+// SetTimezone sets the Timezone field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *ScheduleTriggerSection) SetTimezone(timezone *string) {
+	s.Timezone = timezone
+	s.require(scheduleTriggerSectionFieldTimezone)
+}
+
+// SetInputs sets the Inputs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *ScheduleTriggerSection) SetInputs(inputs map[string]any) {
+	s.Inputs = inputs
+	s.require(scheduleTriggerSectionFieldInputs)
 }
 
 func (s *ScheduleTriggerSection) UnmarshalJSON(data []byte) error {
@@ -6598,7 +11027,21 @@ func (s *ScheduleTriggerSection) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *ScheduleTriggerSection) MarshalJSON() ([]byte, error) {
+	type embed ScheduleTriggerSection
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *ScheduleTriggerSection) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -6632,10 +11075,19 @@ func (s SelectorScope) Ptr() *SelectorScope {
 	return &s
 }
 
+var (
+	slackChannelSelectorFieldKind     = big.NewInt(1 << 0)
+	slackChannelSelectorFieldScope    = big.NewInt(1 << 1)
+	slackChannelSelectorFieldChannels = big.NewInt(1 << 2)
+)
+
 type SlackChannelSelector struct {
 	Kind     *SlackChannelSelectorKind `json:"kind,omitempty" url:"kind,omitempty"`
 	Scope    *SelectorScope            `json:"scope,omitempty" url:"scope,omitempty"`
 	Channels []string                  `json:"channels,omitempty" url:"channels,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6663,7 +11115,40 @@ func (s *SlackChannelSelector) GetChannels() []string {
 }
 
 func (s *SlackChannelSelector) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *SlackChannelSelector) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelSelector) SetKind(kind *SlackChannelSelectorKind) {
+	s.Kind = kind
+	s.require(slackChannelSelectorFieldKind)
+}
+
+// SetScope sets the Scope field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelSelector) SetScope(scope *SelectorScope) {
+	s.Scope = scope
+	s.require(slackChannelSelectorFieldScope)
+}
+
+// SetChannels sets the Channels field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelSelector) SetChannels(channels []string) {
+	s.Channels = channels
+	s.require(slackChannelSelectorFieldChannels)
 }
 
 func (s *SlackChannelSelector) UnmarshalJSON(data []byte) error {
@@ -6682,7 +11167,21 @@ func (s *SlackChannelSelector) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *SlackChannelSelector) MarshalJSON() ([]byte, error) {
+	type embed SlackChannelSelector
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *SlackChannelSelector) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -6713,9 +11212,17 @@ func (s SlackChannelSelectorKind) Ptr() *SlackChannelSelectorKind {
 	return &s
 }
 
+var (
+	stageOperandFieldPath  = big.NewInt(1 << 0)
+	stageOperandFieldStage = big.NewInt(1 << 1)
+)
+
 type StageOperand struct {
 	Path  string  `json:"path" url:"path"`
 	Stage *string `json:"stage,omitempty" url:"stage,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6736,7 +11243,33 @@ func (s *StageOperand) GetStage() *string {
 }
 
 func (s *StageOperand) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *StageOperand) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetPath sets the Path field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StageOperand) SetPath(path string) {
+	s.Path = path
+	s.require(stageOperandFieldPath)
+}
+
+// SetStage sets the Stage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StageOperand) SetStage(stage *string) {
+	s.Stage = stage
+	s.require(stageOperandFieldStage)
 }
 
 func (s *StageOperand) UnmarshalJSON(data []byte) error {
@@ -6755,7 +11288,21 @@ func (s *StageOperand) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *StageOperand) MarshalJSON() ([]byte, error) {
+	type embed StageOperand
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *StageOperand) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -6767,9 +11314,17 @@ func (s *StageOperand) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
+var (
+	transitionOperandFieldID   = big.NewInt(1 << 0)
+	transitionOperandFieldPath = big.NewInt(1 << 1)
+)
+
 type TransitionOperand struct {
 	ID   string `json:"id" url:"id"`
 	Path string `json:"path" url:"path"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6790,7 +11345,33 @@ func (t *TransitionOperand) GetPath() string {
 }
 
 func (t *TransitionOperand) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
 	return t.extraProperties
+}
+
+func (t *TransitionOperand) require(field *big.Int) {
+	next := new(big.Int)
+	if t.explicitFields != nil {
+		next.Set(t.explicitFields)
+	}
+	next.Or(next, field)
+	t.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TransitionOperand) SetID(id string) {
+	t.ID = id
+	t.require(transitionOperandFieldID)
+}
+
+// SetPath sets the Path field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TransitionOperand) SetPath(path string) {
+	t.Path = path
+	t.require(transitionOperandFieldPath)
 }
 
 func (t *TransitionOperand) UnmarshalJSON(data []byte) error {
@@ -6809,7 +11390,21 @@ func (t *TransitionOperand) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (t *TransitionOperand) MarshalJSON() ([]byte, error) {
+	type embed TransitionOperand
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (t *TransitionOperand) String() string {
+	if t == nil {
+		return "<nil>"
+	}
 	if len(t.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
 			return value
@@ -6821,8 +11416,15 @@ func (t *TransitionOperand) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
+var (
+	triggerOperandFieldPath = big.NewInt(1 << 0)
+)
+
 type TriggerOperand struct {
 	Path string `json:"path" url:"path"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6836,7 +11438,26 @@ func (t *TriggerOperand) GetPath() string {
 }
 
 func (t *TriggerOperand) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
 	return t.extraProperties
+}
+
+func (t *TriggerOperand) require(field *big.Int) {
+	next := new(big.Int)
+	if t.explicitFields != nil {
+		next.Set(t.explicitFields)
+	}
+	next.Or(next, field)
+	t.explicitFields = next
+}
+
+// SetPath sets the Path field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TriggerOperand) SetPath(path string) {
+	t.Path = path
+	t.require(triggerOperandFieldPath)
 }
 
 func (t *TriggerOperand) UnmarshalJSON(data []byte) error {
@@ -6855,7 +11476,21 @@ func (t *TriggerOperand) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (t *TriggerOperand) MarshalJSON() ([]byte, error) {
+	type embed TriggerOperand
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (t *TriggerOperand) String() string {
+	if t == nil {
+		return "<nil>"
+	}
 	if len(t.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
 			return value
@@ -6867,9 +11502,17 @@ func (t *TriggerOperand) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
+var (
+	triggerPathBindingFieldType = big.NewInt(1 << 0)
+	triggerPathBindingFieldPath = big.NewInt(1 << 1)
+)
+
 type TriggerPathBinding struct {
 	Type TriggerPathBindingType `json:"type" url:"type"`
 	Path string                 `json:"path" url:"path"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6890,7 +11533,33 @@ func (t *TriggerPathBinding) GetPath() string {
 }
 
 func (t *TriggerPathBinding) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
 	return t.extraProperties
+}
+
+func (t *TriggerPathBinding) require(field *big.Int) {
+	next := new(big.Int)
+	if t.explicitFields != nil {
+		next.Set(t.explicitFields)
+	}
+	next.Or(next, field)
+	t.explicitFields = next
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TriggerPathBinding) SetType(type_ TriggerPathBindingType) {
+	t.Type = type_
+	t.require(triggerPathBindingFieldType)
+}
+
+// SetPath sets the Path field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TriggerPathBinding) SetPath(path string) {
+	t.Path = path
+	t.require(triggerPathBindingFieldPath)
 }
 
 func (t *TriggerPathBinding) UnmarshalJSON(data []byte) error {
@@ -6909,7 +11578,21 @@ func (t *TriggerPathBinding) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (t *TriggerPathBinding) MarshalJSON() ([]byte, error) {
+	type embed TriggerPathBinding
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (t *TriggerPathBinding) String() string {
+	if t == nil {
+		return "<nil>"
+	}
 	if len(t.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
 			return value
@@ -6947,12 +11630,23 @@ func (t TriggerPathBindingType) Ptr() *TriggerPathBindingType {
 // envelope. The extracted trigger values are not repeated here; they land in
 // the run's `run_params`. `payload` still carries the whole envelope, minus the
 // raw webhook body on list responses.
+var (
+	triggerSummaryFieldSource     = big.NewInt(1 << 0)
+	triggerSummaryFieldProvider   = big.NewInt(1 << 1)
+	triggerSummaryFieldEventName  = big.NewInt(1 << 2)
+	triggerSummaryFieldDeliveryID = big.NewInt(1 << 3)
+	triggerSummaryFieldPayload    = big.NewInt(1 << 4)
+)
+
 type TriggerSummary struct {
-	Source     string                 `json:"source" url:"source"`
-	Provider   *string                `json:"provider,omitempty" url:"provider,omitempty"`
-	EventName  *string                `json:"event_name,omitempty" url:"event_name,omitempty"`
-	DeliveryID *string                `json:"delivery_id,omitempty" url:"delivery_id,omitempty"`
-	Payload    map[string]interface{} `json:"payload,omitempty" url:"payload,omitempty"`
+	Source     string         `json:"source" url:"source"`
+	Provider   *string        `json:"provider,omitempty" url:"provider,omitempty"`
+	EventName  *string        `json:"event_name,omitempty" url:"event_name,omitempty"`
+	DeliveryID *string        `json:"delivery_id,omitempty" url:"delivery_id,omitempty"`
+	Payload    map[string]any `json:"payload,omitempty" url:"payload,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -6986,7 +11680,7 @@ func (t *TriggerSummary) GetDeliveryID() *string {
 	return t.DeliveryID
 }
 
-func (t *TriggerSummary) GetPayload() map[string]interface{} {
+func (t *TriggerSummary) GetPayload() map[string]any {
 	if t == nil {
 		return nil
 	}
@@ -6994,7 +11688,54 @@ func (t *TriggerSummary) GetPayload() map[string]interface{} {
 }
 
 func (t *TriggerSummary) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
 	return t.extraProperties
+}
+
+func (t *TriggerSummary) require(field *big.Int) {
+	next := new(big.Int)
+	if t.explicitFields != nil {
+		next.Set(t.explicitFields)
+	}
+	next.Or(next, field)
+	t.explicitFields = next
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TriggerSummary) SetSource(source string) {
+	t.Source = source
+	t.require(triggerSummaryFieldSource)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TriggerSummary) SetProvider(provider *string) {
+	t.Provider = provider
+	t.require(triggerSummaryFieldProvider)
+}
+
+// SetEventName sets the EventName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TriggerSummary) SetEventName(eventName *string) {
+	t.EventName = eventName
+	t.require(triggerSummaryFieldEventName)
+}
+
+// SetDeliveryID sets the DeliveryID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TriggerSummary) SetDeliveryID(deliveryID *string) {
+	t.DeliveryID = deliveryID
+	t.require(triggerSummaryFieldDeliveryID)
+}
+
+// SetPayload sets the Payload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TriggerSummary) SetPayload(payload map[string]any) {
+	t.Payload = payload
+	t.require(triggerSummaryFieldPayload)
 }
 
 func (t *TriggerSummary) UnmarshalJSON(data []byte) error {
@@ -7013,7 +11754,21 @@ func (t *TriggerSummary) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (t *TriggerSummary) MarshalJSON() ([]byte, error) {
+	type embed TriggerSummary
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (t *TriggerSummary) String() string {
+	if t == nil {
+		return "<nil>"
+	}
 	if len(t.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
 			return value
@@ -7025,8 +11780,15 @@ func (t *TriggerSummary) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
+var (
+	unaryConditionInputFieldOperand = big.NewInt(1 << 0)
+)
+
 type UnaryConditionInput struct {
 	Operand *ConditionOperand `json:"operand" url:"operand"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7040,7 +11802,26 @@ func (u *UnaryConditionInput) GetOperand() *ConditionOperand {
 }
 
 func (u *UnaryConditionInput) GetExtraProperties() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
 	return u.extraProperties
+}
+
+func (u *UnaryConditionInput) require(field *big.Int) {
+	next := new(big.Int)
+	if u.explicitFields != nil {
+		next.Set(u.explicitFields)
+	}
+	next.Or(next, field)
+	u.explicitFields = next
+}
+
+// SetOperand sets the Operand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnaryConditionInput) SetOperand(operand *ConditionOperand) {
+	u.Operand = operand
+	u.require(unaryConditionInputFieldOperand)
 }
 
 func (u *UnaryConditionInput) UnmarshalJSON(data []byte) error {
@@ -7059,7 +11840,21 @@ func (u *UnaryConditionInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (u *UnaryConditionInput) MarshalJSON() ([]byte, error) {
+	type embed UnaryConditionInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*u),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (u *UnaryConditionInput) String() string {
+	if u == nil {
+		return "<nil>"
+	}
 	if len(u.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
 			return value
@@ -7071,8 +11866,15 @@ func (u *UnaryConditionInput) String() string {
 	return fmt.Sprintf("%#v", u)
 }
 
+var (
+	unaryConditionOutputFieldOperand = big.NewInt(1 << 0)
+)
+
 type UnaryConditionOutput struct {
 	Operand *ConditionOperand `json:"operand" url:"operand"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7086,7 +11888,26 @@ func (u *UnaryConditionOutput) GetOperand() *ConditionOperand {
 }
 
 func (u *UnaryConditionOutput) GetExtraProperties() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
 	return u.extraProperties
+}
+
+func (u *UnaryConditionOutput) require(field *big.Int) {
+	next := new(big.Int)
+	if u.explicitFields != nil {
+		next.Set(u.explicitFields)
+	}
+	next.Or(next, field)
+	u.explicitFields = next
+}
+
+// SetOperand sets the Operand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnaryConditionOutput) SetOperand(operand *ConditionOperand) {
+	u.Operand = operand
+	u.require(unaryConditionOutputFieldOperand)
 }
 
 func (u *UnaryConditionOutput) UnmarshalJSON(data []byte) error {
@@ -7105,7 +11926,21 @@ func (u *UnaryConditionOutput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (u *UnaryConditionOutput) MarshalJSON() ([]byte, error) {
+	type embed UnaryConditionOutput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*u),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (u *UnaryConditionOutput) String() string {
+	if u == nil {
+		return "<nil>"
+	}
 	if len(u.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
 			return value
@@ -7117,8 +11952,15 @@ func (u *UnaryConditionOutput) String() string {
 	return fmt.Sprintf("%#v", u)
 }
 
+var (
+	webhookTriggerSectionFieldPath = big.NewInt(1 << 0)
+)
+
 type WebhookTriggerSection struct {
 	Path string `json:"path" url:"path"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -7132,7 +11974,26 @@ func (w *WebhookTriggerSection) GetPath() string {
 }
 
 func (w *WebhookTriggerSection) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
 	return w.extraProperties
+}
+
+func (w *WebhookTriggerSection) require(field *big.Int) {
+	next := new(big.Int)
+	if w.explicitFields != nil {
+		next.Set(w.explicitFields)
+	}
+	next.Or(next, field)
+	w.explicitFields = next
+}
+
+// SetPath sets the Path field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WebhookTriggerSection) SetPath(path string) {
+	w.Path = path
+	w.require(webhookTriggerSectionFieldPath)
 }
 
 func (w *WebhookTriggerSection) UnmarshalJSON(data []byte) error {
@@ -7151,7 +12012,21 @@ func (w *WebhookTriggerSection) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (w *WebhookTriggerSection) MarshalJSON() ([]byte, error) {
+	type embed WebhookTriggerSection
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*w),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (w *WebhookTriggerSection) String() string {
+	if w == nil {
+		return "<nil>"
+	}
 	if len(w.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
 			return value
@@ -7185,21 +12060,173 @@ func (l LineUpdateStatus) Ptr() *LineUpdateStatus {
 	return &l
 }
 
+var (
+	lineUpdateFieldName   = big.NewInt(1 << 0)
+	lineUpdateFieldStatus = big.NewInt(1 << 1)
+)
+
 type LineUpdate struct {
 	Name   string            `json:"-" url:"-"`
 	Status *LineUpdateStatus `json:"status,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
 
-type LineScheduleUpdate struct {
-	Name     string  `json:"-" url:"-"`
-	Cron     string  `json:"cron" url:"-"`
-	Timezone *string `json:"timezone,omitempty" url:"-"`
-	Enabled  *bool   `json:"enabled,omitempty" url:"-"`
+func (l *LineUpdate) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
 }
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineUpdate) SetName(name string) {
+	l.Name = name
+	l.require(lineUpdateFieldName)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineUpdate) SetStatus(status *LineUpdateStatus) {
+	l.Status = status
+	l.require(lineUpdateFieldStatus)
+}
+
+func (l *LineUpdate) UnmarshalJSON(data []byte) error {
+	type unmarshaler LineUpdate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*l = LineUpdate(body)
+	return nil
+}
+
+func (l *LineUpdate) MarshalJSON() ([]byte, error) {
+	type embed LineUpdate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	lineScheduleUpdateFieldName     = big.NewInt(1 << 0)
+	lineScheduleUpdateFieldCron     = big.NewInt(1 << 1)
+	lineScheduleUpdateFieldTimezone = big.NewInt(1 << 2)
+	lineScheduleUpdateFieldEnabled  = big.NewInt(1 << 3)
+	lineScheduleUpdateFieldInputs   = big.NewInt(1 << 4)
+)
+
+type LineScheduleUpdate struct {
+	Name     string         `json:"-" url:"-"`
+	Cron     string         `json:"cron" url:"-"`
+	Timezone *string        `json:"timezone,omitempty" url:"-"`
+	Enabled  *bool          `json:"enabled,omitempty" url:"-"`
+	Inputs   map[string]any `json:"inputs,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (l *LineScheduleUpdate) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleUpdate) SetName(name string) {
+	l.Name = name
+	l.require(lineScheduleUpdateFieldName)
+}
+
+// SetCron sets the Cron field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleUpdate) SetCron(cron string) {
+	l.Cron = cron
+	l.require(lineScheduleUpdateFieldCron)
+}
+
+// SetTimezone sets the Timezone field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleUpdate) SetTimezone(timezone *string) {
+	l.Timezone = timezone
+	l.require(lineScheduleUpdateFieldTimezone)
+}
+
+// SetEnabled sets the Enabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleUpdate) SetEnabled(enabled *bool) {
+	l.Enabled = enabled
+	l.require(lineScheduleUpdateFieldEnabled)
+}
+
+// SetInputs sets the Inputs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *LineScheduleUpdate) SetInputs(inputs map[string]any) {
+	l.Inputs = inputs
+	l.require(lineScheduleUpdateFieldInputs)
+}
+
+func (l *LineScheduleUpdate) UnmarshalJSON(data []byte) error {
+	type unmarshaler LineScheduleUpdate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*l = LineScheduleUpdate(body)
+	return nil
+}
+
+func (l *LineScheduleUpdate) MarshalJSON() ([]byte, error) {
+	type embed LineScheduleUpdate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	validateFactoryLineManifestRequestFieldName = big.NewInt(1 << 0)
+)
 
 type ValidateFactoryLineManifestRequest struct {
 	Name string             `json:"-" url:"-"`
 	Body *LineDeployRequest `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (v *ValidateFactoryLineManifestRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if v.explicitFields != nil {
+		next.Set(v.explicitFields)
+	}
+	next.Or(next, field)
+	v.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *ValidateFactoryLineManifestRequest) SetName(name string) {
+	v.Name = name
+	v.require(validateFactoryLineManifestRequestFieldName)
 }
 
 func (v *ValidateFactoryLineManifestRequest) UnmarshalJSON(data []byte) error {

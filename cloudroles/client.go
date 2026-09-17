@@ -4,336 +4,163 @@ package cloudroles
 
 import (
 	context "context"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
+// Example:
+//
+//	request := &gosdk.ListCloudRolesRequest{}
+//	client.CloudRoles.ListCloudRoles(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListCloudRoles(
 	ctx context.Context,
 	request *gosdk.ListCloudRolesRequest,
 	opts ...option.RequestOption,
 ) ([]*gosdk.CloudRoleResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
+	response, err := c.WithRawResponse.ListCloudRoles(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := baseURL + "/cloud-roles"
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.CloudRoleResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.CloudRoleCreate{
+//	    Provider: gosdk.CloudProviderAws,
+//	    RoleArn: "role_arn",
+//	}
+//	client.CloudRoles.CreateCloudRole(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) CreateCloudRole(
 	ctx context.Context,
 	request *gosdk.CloudRoleCreate,
 	opts ...option.RequestOption,
 ) (*gosdk.CloudRoleResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/cloud-roles"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.CloudRoleResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.CreateCloudRole(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.GetCloudRoleRequest{
+//	    RoleID: "role_id",
+//	}
+//	client.CloudRoles.GetCloudRole(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetCloudRole(
 	ctx context.Context,
 	request *gosdk.GetCloudRoleRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.CloudRoleResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/cloud-roles/%v",
-		request.RoleID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.CloudRoleResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetCloudRole(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.DeleteCloudRoleRequest{
+//	    RoleID: "role_id",
+//	}
+//	client.CloudRoles.DeleteCloudRole(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DeleteCloudRole(
 	ctx context.Context,
 	request *gosdk.DeleteCloudRoleRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/cloud-roles/%v",
-		request.RoleID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.DeleteCloudRole(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// Example:
+//
+//	request := &gosdk.CloudRoleUpdate{
+//	    RoleID: "role_id",
+//	}
+//	client.CloudRoles.UpdateCloudRole(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) UpdateCloudRole(
 	ctx context.Context,
 	request *gosdk.CloudRoleUpdate,
 	opts ...option.RequestOption,
 ) (*gosdk.CloudRoleResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/cloud-roles/%v",
-		request.RoleID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.CloudRoleResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.UpdateCloudRole(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPatch,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }

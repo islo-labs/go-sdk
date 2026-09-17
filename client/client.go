@@ -3,6 +3,8 @@
 package client
 
 import (
+	os "os"
+
 	byo "github.com/islo-labs/go-sdk/byo"
 	cloudroles "github.com/islo-labs/go-sdk/cloudroles"
 	computeevents "github.com/islo-labs/go-sdk/computeevents"
@@ -24,15 +26,9 @@ import (
 	snapshots "github.com/islo-labs/go-sdk/snapshots"
 	tenants "github.com/islo-labs/go-sdk/tenants"
 	webhooks "github.com/islo-labs/go-sdk/webhooks"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
-	baseURL string
-	caller  *internal.Caller
-	header  http.Header
-
 	Tenants             *tenants.Client
 	Knowledge           *knowledge.Client
 	Credits             *credits.Client
@@ -51,6 +47,10 @@ type Client struct {
 	Shares              *shares.Client
 	Snapshots           *snapshots.Client
 	Webhooks            *webhooks.Client
+
+	options *core.RequestOptions
+	baseURL string
+	caller  *internal.Caller
 }
 
 func NewClient(opts ...option.RequestOption) *Client {
@@ -58,32 +58,36 @@ func NewClient(opts ...option.RequestOption) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		Tenants:             tenants.NewClient(options),
+		Knowledge:           knowledge.NewClient(options),
+		Credits:             credits.NewClient(options),
+		Integrations:        integrations.NewClient(options),
+		GatewayProfiles:     gatewayprofiles.NewClient(options),
+		Environments:        environments.NewClient(options),
+		CloudRoles:          cloudroles.NewClient(options),
+		Byo:                 byo.NewClient(options),
+		Inference:           inference.NewClient(options),
+		ContainerRegistries: containerregistries.NewClient(options),
+		Jobs:                jobs.NewClient(options),
+		JobRuns:             jobruns.NewClient(options),
+		Factory:             factory.NewClient(options),
+		ComputeEvents:       computeevents.NewClient(options),
+		Sandboxes:           sandboxes.NewClient(options),
+		Shares:              shares.NewClient(options),
+		Snapshots:           snapshots.NewClient(options),
+		Webhooks:            webhooks.NewClient(options),
+		options:             options,
+		baseURL:             options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header:              options.ToHeader(),
-		Tenants:             tenants.NewClient(opts...),
-		Knowledge:           knowledge.NewClient(opts...),
-		Credits:             credits.NewClient(opts...),
-		Integrations:        integrations.NewClient(opts...),
-		GatewayProfiles:     gatewayprofiles.NewClient(opts...),
-		Environments:        environments.NewClient(opts...),
-		CloudRoles:          cloudroles.NewClient(opts...),
-		Byo:                 byo.NewClient(opts...),
-		Inference:           inference.NewClient(opts...),
-		ContainerRegistries: containerregistries.NewClient(opts...),
-		Jobs:                jobs.NewClient(opts...),
-		JobRuns:             jobruns.NewClient(opts...),
-		Factory:             factory.NewClient(opts...),
-		ComputeEvents:       computeevents.NewClient(opts...),
-		Sandboxes:           sandboxes.NewClient(opts...),
-		Shares:              shares.NewClient(opts...),
-		Snapshots:           snapshots.NewClient(opts...),
-		Webhooks:            webhooks.NewClient(opts...),
 	}
 }
