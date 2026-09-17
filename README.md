@@ -20,6 +20,7 @@ package main
 import (
     "context"
     "fmt"
+    "time"
 
     api "github.com/islo-labs/go-sdk"
     "github.com/islo-labs/go-sdk/client"
@@ -30,7 +31,7 @@ func main() {
     c := client.NewIslo(option.WithAPIKey("ak_..."))
     ctx := context.Background()
 
-    sb, err := c.Sandboxes.CreateSandbox(ctx, &api.SandboxCreate{
+    sb, err := c.Sandboxes.CreateSandbox(ctx, &api.CreateSandboxRequest{
         Name:  api.String("my-sandbox"),
         Image: api.String("python:3.12-slim"),
     })
@@ -38,7 +39,7 @@ func main() {
         panic(err)
     }
 
-    res, err := c.Sandboxes.ExecInSandbox(ctx, &api.ExecInSandboxRequest{
+    started, err := c.Sandboxes.ExecInSandbox(ctx, &api.ExecInSandboxRequest{
         SandboxName: sb.Name,
         Body: &api.ExecRequest{
             Command: []string{"echo", "Hello from sandbox"},
@@ -47,11 +48,29 @@ func main() {
     if err != nil {
         panic(err)
     }
-    fmt.Println("exec:", res.ExecID, "status:", res.Status)
 
-    _, _ = c.Sandboxes.DeleteSandbox(ctx, &api.DeleteSandboxRequest{
-        SandboxName: sb.Name,
-    })
+    for {
+        result, err := c.Sandboxes.GetExecResult(ctx, &api.GetExecResultRequest{
+            SandboxName: sb.Name,
+            ExecID:      started.ExecID,
+        })
+        if err != nil {
+            panic(err)
+        }
+        if result.Status == "completed" || result.Status == "failed" || result.Status == "timeout" {
+            if result.ExitCode == nil {
+                fmt.Println(result.Stdout)
+            } else {
+                fmt.Println(*result.ExitCode, result.Stdout)
+            }
+            break
+        }
+        time.Sleep(time.Second)
+    }
+
+    if err := c.Sandboxes.DeleteSandbox(ctx, &api.DeleteSandboxRequest{SandboxName: sb.Name}); err != nil {
+        panic(err)
+    }
 }
 ```
 
@@ -63,17 +82,14 @@ func main() {
 |---|---|---|
 | `option.WithAPIKey(key)` | Islo API key (`ak_...`). | `$ISLO_API_KEY` |
 | `option.WithBaseURL(url)` | Control-plane API base URL. | `$ISLO_BASE_URL` or `https://api.islo.dev` |
-| `option.WithComputeURL(url)` | Compute-plane API base URL. | `$ISLO_COMPUTE_URL` or `https://ca.compute.islo.dev` |
-| `option.WithEnvironment(controlURL, computeURL)` | Set both control and compute URLs together. | Production URLs |
 | `option.WithHTTPClient(c)` | Bring your own `*http.Client`. Its `Transport` is wrapped for auth; `Timeout` is preserved. | `&http.Client{}` |
 
-For custom deployments, configure the control and compute planes independently:
+Set `ISLO_COMPUTE_URL` to override the compute-plane URL. For a custom control plane:
 
 ```go
 c := client.NewIslo(
     option.WithAPIKey("ak_..."),
     option.WithBaseURL("https://api.customer.example.com"),
-    option.WithComputeURL("https://compute.customer.example.com"),
 )
 ```
 
@@ -90,7 +106,7 @@ _, err := c.Sandboxes.CreateSandbox(ctx, ...)
 if err != nil {
     var apiError *core.APIError
     if errors.As(err, &apiError) {
-        // inspect apiError.StatusCode, apiError.Body, etc.
+        // inspect apiError.StatusCode and apiError.Header
     }
     return err
 }
