@@ -4,142 +4,83 @@ package byo
 
 import (
 	context "context"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
+// Example:
+//
+//	client.Byo.GetByoInferenceStatus(
+//	    context.TODO(),
+//	)
 func (c *Client) GetByoInferenceStatus(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) (*gosdk.ByoStatusResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/byo/inference/status"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.ByoStatusResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetByoInferenceStatus(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.ByoSetupRequest{
+//	    SourceKind: gosdk.ByoSourceKindDatabricks,
+//	}
+//	client.Byo.StartByoInferenceSetup(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) StartByoInferenceSetup(
 	ctx context.Context,
 	request *gosdk.ByoSetupRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.ByoSetupResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/byo/inference/start-setup"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-		502: func(apiError *core.APIError) error {
-			return &gosdk.BadGatewayError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.ByoSetupResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.StartByoInferenceSetup(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }

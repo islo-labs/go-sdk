@@ -7,52 +7,298 @@ import (
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
 	io "io"
+	big "math/big"
 	time "time"
+)
+
+var (
+	knowledgeItemCreateFieldSlug     = big.NewInt(1 << 0)
+	knowledgeItemCreateFieldLevel    = big.NewInt(1 << 1)
+	knowledgeItemCreateFieldType     = big.NewInt(1 << 2)
+	knowledgeItemCreateFieldFormat   = big.NewInt(1 << 3)
+	knowledgeItemCreateFieldBody     = big.NewInt(1 << 4)
+	knowledgeItemCreateFieldMetadata = big.NewInt(1 << 5)
+	knowledgeItemCreateFieldLinks    = big.NewInt(1 << 6)
 )
 
 type KnowledgeItemCreate struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
-	Slug     string                 `json:"slug" url:"-"`
-	Level    *KnowledgeLevel        `json:"level,omitempty" url:"-"`
-	Type     *KnowledgeLevel        `json:"type,omitempty" url:"-"`
-	Format   *string                `json:"format,omitempty" url:"-"`
-	Body     *string                `json:"body,omitempty" url:"-"`
-	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
-	Links    []*KnowledgeLinkInput  `json:"links,omitempty" url:"-"`
+	Slug     string                `json:"slug" url:"-"`
+	Level    *KnowledgeLevel       `json:"level,omitempty" url:"-"`
+	Type     *KnowledgeLevel       `json:"type,omitempty" url:"-"`
+	Format   *string               `json:"format,omitempty" url:"-"`
+	Body     *string               `json:"body,omitempty" url:"-"`
+	Metadata map[string]any        `json:"metadata,omitempty" url:"-"`
+	Links    []*KnowledgeLinkInput `json:"links,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (k *KnowledgeItemCreate) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetSlug sets the Slug field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemCreate) SetSlug(slug string) {
+	k.Slug = slug
+	k.require(knowledgeItemCreateFieldSlug)
+}
+
+// SetLevel sets the Level field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemCreate) SetLevel(level *KnowledgeLevel) {
+	k.Level = level
+	k.require(knowledgeItemCreateFieldLevel)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemCreate) SetType(type_ *KnowledgeLevel) {
+	k.Type = type_
+	k.require(knowledgeItemCreateFieldType)
+}
+
+// SetFormat sets the Format field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemCreate) SetFormat(format *string) {
+	k.Format = format
+	k.require(knowledgeItemCreateFieldFormat)
+}
+
+// SetBody sets the Body field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemCreate) SetBody(body *string) {
+	k.Body = body
+	k.require(knowledgeItemCreateFieldBody)
+}
+
+// SetMetadata sets the Metadata field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemCreate) SetMetadata(metadata map[string]any) {
+	k.Metadata = metadata
+	k.require(knowledgeItemCreateFieldMetadata)
+}
+
+// SetLinks sets the Links field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemCreate) SetLinks(links []*KnowledgeLinkInput) {
+	k.Links = links
+	k.require(knowledgeItemCreateFieldLinks)
+}
+
+func (k *KnowledgeItemCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler KnowledgeItemCreate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*k = KnowledgeItemCreate(body)
+	return nil
+}
+
+func (k *KnowledgeItemCreate) MarshalJSON() ([]byte, error) {
+	type embed KnowledgeItemCreate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 type BodyCreateKnowledgeMedia struct {
 	File io.Reader `json:"-" url:"-"`
 	// JSON metadata for the knowledge item
 	Item string `json:"item" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (b *BodyCreateKnowledgeMedia) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+var (
+	deleteKnowledgeRequestFieldIdentifier = big.NewInt(1 << 0)
+)
 
 type DeleteKnowledgeRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteKnowledgeRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteKnowledgeRequest) SetIdentifier(identifier string) {
+	d.Identifier = identifier
+	d.require(deleteKnowledgeRequestFieldIdentifier)
+}
+
+var (
+	getKnowledgeRequestFieldIdentifier = big.NewInt(1 << 0)
+)
 
 type GetKnowledgeRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetKnowledgeRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeRequest) SetIdentifier(identifier string) {
+	g.Identifier = identifier
+	g.require(getKnowledgeRequestFieldIdentifier)
+}
+
+var (
+	getKnowledgeContentRequestFieldIdentifier = big.NewInt(1 << 0)
+)
 
 type GetKnowledgeContentRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetKnowledgeContentRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeContentRequest) SetIdentifier(identifier string) {
+	g.Identifier = identifier
+	g.require(getKnowledgeContentRequestFieldIdentifier)
+}
+
+var (
+	getKnowledgeVersionRequestFieldIdentifier    = big.NewInt(1 << 0)
+	getKnowledgeVersionRequestFieldVersionNumber = big.NewInt(1 << 1)
+)
 
 type GetKnowledgeVersionRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier    string `json:"-" url:"-"`
 	VersionNumber int    `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetKnowledgeVersionRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeVersionRequest) SetIdentifier(identifier string) {
+	g.Identifier = identifier
+	g.require(getKnowledgeVersionRequestFieldIdentifier)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeVersionRequest) SetVersionNumber(versionNumber int) {
+	g.VersionNumber = versionNumber
+	g.require(getKnowledgeVersionRequestFieldVersionNumber)
+}
+
+var (
+	getKnowledgeVersionContentRequestFieldIdentifier    = big.NewInt(1 << 0)
+	getKnowledgeVersionContentRequestFieldVersionNumber = big.NewInt(1 << 1)
+)
 
 type GetKnowledgeVersionContentRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier    string `json:"-" url:"-"`
 	VersionNumber int    `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetKnowledgeVersionContentRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeVersionContentRequest) SetIdentifier(identifier string) {
+	g.Identifier = identifier
+	g.require(getKnowledgeVersionContentRequestFieldIdentifier)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeVersionContentRequest) SetVersionNumber(versionNumber int) {
+	g.VersionNumber = versionNumber
+	g.require(getKnowledgeVersionContentRequestFieldVersionNumber)
+}
+
+var (
+	listKnowledgeRequestFieldLevel      = big.NewInt(1 << 0)
+	listKnowledgeRequestFieldType       = big.NewInt(1 << 1)
+	listKnowledgeRequestFieldTag        = big.NewInt(1 << 2)
+	listKnowledgeRequestFieldRepository = big.NewInt(1 << 3)
+	listKnowledgeRequestFieldQ          = big.NewInt(1 << 4)
+	listKnowledgeRequestFieldCursor     = big.NewInt(1 << 5)
+	listKnowledgeRequestFieldLimit      = big.NewInt(1 << 6)
+)
 
 type ListKnowledgeRequest struct {
 	Level      *KnowledgeLevel `json:"-" url:"level,omitempty"`
@@ -63,26 +309,235 @@ type ListKnowledgeRequest struct {
 	Q      *string `json:"-" url:"q,omitempty"`
 	Cursor *string `json:"-" url:"cursor,omitempty"`
 	Limit  *int    `json:"-" url:"limit,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListKnowledgeRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetLevel sets the Level field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetLevel(level *KnowledgeLevel) {
+	l.Level = level
+	l.require(listKnowledgeRequestFieldLevel)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetType(type_ *KnowledgeLevel) {
+	l.Type = type_
+	l.require(listKnowledgeRequestFieldType)
+}
+
+// SetTag sets the Tag field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetTag(tag *string) {
+	l.Tag = tag
+	l.require(listKnowledgeRequestFieldTag)
+}
+
+// SetRepository sets the Repository field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetRepository(repository *string) {
+	l.Repository = repository
+	l.require(listKnowledgeRequestFieldRepository)
+}
+
+// SetQ sets the Q field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetQ(q *string) {
+	l.Q = q
+	l.require(listKnowledgeRequestFieldQ)
+}
+
+// SetCursor sets the Cursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetCursor(cursor *string) {
+	l.Cursor = cursor
+	l.require(listKnowledgeRequestFieldCursor)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listKnowledgeRequestFieldLimit)
+}
+
+var (
+	listKnowledgeVersionsRequestFieldIdentifier = big.NewInt(1 << 0)
+	listKnowledgeVersionsRequestFieldCursor     = big.NewInt(1 << 1)
+	listKnowledgeVersionsRequestFieldLimit      = big.NewInt(1 << 2)
+)
 
 type ListKnowledgeVersionsRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string  `json:"-" url:"-"`
 	Cursor     *string `json:"-" url:"cursor,omitempty"`
 	Limit      *int    `json:"-" url:"limit,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListKnowledgeVersionsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeVersionsRequest) SetIdentifier(identifier string) {
+	l.Identifier = identifier
+	l.require(listKnowledgeVersionsRequestFieldIdentifier)
+}
+
+// SetCursor sets the Cursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeVersionsRequest) SetCursor(cursor *string) {
+	l.Cursor = cursor
+	l.require(listKnowledgeVersionsRequestFieldCursor)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeVersionsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listKnowledgeVersionsRequestFieldLimit)
+}
+
+var (
+	bodyPutKnowledgeContentFieldIdentifier = big.NewInt(1 << 0)
+)
 
 type BodyPutKnowledgeContent struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string    `json:"-" url:"-"`
 	File       io.Reader `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (b *BodyPutKnowledgeContent) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BodyPutKnowledgeContent) SetIdentifier(identifier string) {
+	b.Identifier = identifier
+	b.require(bodyPutKnowledgeContentFieldIdentifier)
+}
+
+func (b *BodyPutKnowledgeContent) UnmarshalJSON(data []byte) error {
+	type unmarshaler BodyPutKnowledgeContent
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*b = BodyPutKnowledgeContent(body)
+	return nil
+}
+
+func (b *BodyPutKnowledgeContent) MarshalJSON() ([]byte, error) {
+	type embed BodyPutKnowledgeContent
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	knowledgeRestoreRequestFieldIdentifier    = big.NewInt(1 << 0)
+	knowledgeRestoreRequestFieldVersionNumber = big.NewInt(1 << 1)
+)
 
 type KnowledgeRestoreRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier    string `json:"-" url:"-"`
 	VersionNumber int    `json:"version_number" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (k *KnowledgeRestoreRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeRestoreRequest) SetIdentifier(identifier string) {
+	k.Identifier = identifier
+	k.require(knowledgeRestoreRequestFieldIdentifier)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeRestoreRequest) SetVersionNumber(versionNumber int) {
+	k.VersionNumber = versionNumber
+	k.require(knowledgeRestoreRequestFieldVersionNumber)
+}
+
+func (k *KnowledgeRestoreRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler KnowledgeRestoreRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*k = KnowledgeRestoreRequest(body)
+	return nil
+}
+
+func (k *KnowledgeRestoreRequest) MarshalJSON() ([]byte, error) {
+	type embed KnowledgeRestoreRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	knowledgeItemListResponseFieldID            = big.NewInt(1 << 0)
+	knowledgeItemListResponseFieldSlug          = big.NewInt(1 << 1)
+	knowledgeItemListResponseFieldType          = big.NewInt(1 << 2)
+	knowledgeItemListResponseFieldLevel         = big.NewInt(1 << 3)
+	knowledgeItemListResponseFieldStatus        = big.NewInt(1 << 4)
+	knowledgeItemListResponseFieldLinks         = big.NewInt(1 << 5)
+	knowledgeItemListResponseFieldCreatedAt     = big.NewInt(1 << 6)
+	knowledgeItemListResponseFieldUpdatedAt     = big.NewInt(1 << 7)
+	knowledgeItemListResponseFieldVersionNumber = big.NewInt(1 << 8)
+	knowledgeItemListResponseFieldByteSize      = big.NewInt(1 << 9)
+)
 
 type KnowledgeItemListResponse struct {
 	ID string `json:"id" url:"id"`
@@ -96,6 +551,9 @@ type KnowledgeItemListResponse struct {
 	UpdatedAt     time.Time                `json:"updated_at" url:"updated_at"`
 	VersionNumber *int                     `json:"version_number,omitempty" url:"version_number,omitempty"`
 	ByteSize      *int                     `json:"byte_size,omitempty" url:"byte_size,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -172,7 +630,89 @@ func (k *KnowledgeItemListResponse) GetByteSize() *int {
 }
 
 func (k *KnowledgeItemListResponse) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
 	return k.extraProperties
+}
+
+func (k *KnowledgeItemListResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetID(id string) {
+	k.ID = id
+	k.require(knowledgeItemListResponseFieldID)
+}
+
+// SetSlug sets the Slug field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetSlug(slug string) {
+	k.Slug = slug
+	k.require(knowledgeItemListResponseFieldSlug)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetType(type_ KnowledgeLevel) {
+	k.Type = type_
+	k.require(knowledgeItemListResponseFieldType)
+}
+
+// SetLevel sets the Level field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetLevel(level KnowledgeLevel) {
+	k.Level = level
+	k.require(knowledgeItemListResponseFieldLevel)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetStatus(status KnowledgeStatus) {
+	k.Status = status
+	k.require(knowledgeItemListResponseFieldStatus)
+}
+
+// SetLinks sets the Links field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetLinks(links []*KnowledgeLinkResponse) {
+	k.Links = links
+	k.require(knowledgeItemListResponseFieldLinks)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetCreatedAt(createdAt time.Time) {
+	k.CreatedAt = createdAt
+	k.require(knowledgeItemListResponseFieldCreatedAt)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetUpdatedAt(updatedAt time.Time) {
+	k.UpdatedAt = updatedAt
+	k.require(knowledgeItemListResponseFieldUpdatedAt)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetVersionNumber(versionNumber *int) {
+	k.VersionNumber = versionNumber
+	k.require(knowledgeItemListResponseFieldVersionNumber)
+}
+
+// SetByteSize sets the ByteSize field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemListResponse) SetByteSize(byteSize *int) {
+	k.ByteSize = byteSize
+	k.require(knowledgeItemListResponseFieldByteSize)
 }
 
 func (k *KnowledgeItemListResponse) UnmarshalJSON(data []byte) error {
@@ -210,10 +750,14 @@ func (k *KnowledgeItemListResponse) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewDateTime(k.CreatedAt),
 		UpdatedAt: internal.NewDateTime(k.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (k *KnowledgeItemListResponse) String() string {
+	if k == nil {
+		return "<nil>"
+	}
 	if len(k.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
 			return value
@@ -225,6 +769,23 @@ func (k *KnowledgeItemListResponse) String() string {
 	return fmt.Sprintf("%#v", k)
 }
 
+var (
+	knowledgeItemResponseFieldID            = big.NewInt(1 << 0)
+	knowledgeItemResponseFieldSlug          = big.NewInt(1 << 1)
+	knowledgeItemResponseFieldType          = big.NewInt(1 << 2)
+	knowledgeItemResponseFieldLevel         = big.NewInt(1 << 3)
+	knowledgeItemResponseFieldFormat        = big.NewInt(1 << 4)
+	knowledgeItemResponseFieldBody          = big.NewInt(1 << 5)
+	knowledgeItemResponseFieldMetadata      = big.NewInt(1 << 6)
+	knowledgeItemResponseFieldStatus        = big.NewInt(1 << 7)
+	knowledgeItemResponseFieldLinks         = big.NewInt(1 << 8)
+	knowledgeItemResponseFieldCreatedAt     = big.NewInt(1 << 9)
+	knowledgeItemResponseFieldUpdatedAt     = big.NewInt(1 << 10)
+	knowledgeItemResponseFieldVersionID     = big.NewInt(1 << 11)
+	knowledgeItemResponseFieldVersionNumber = big.NewInt(1 << 12)
+	knowledgeItemResponseFieldByteSize      = big.NewInt(1 << 13)
+)
+
 type KnowledgeItemResponse struct {
 	ID string `json:"id" url:"id"`
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
@@ -233,7 +794,7 @@ type KnowledgeItemResponse struct {
 	Level         KnowledgeLevel           `json:"level" url:"level"`
 	Format        string                   `json:"format" url:"format"`
 	Body          string                   `json:"body" url:"body"`
-	Metadata      map[string]interface{}   `json:"metadata" url:"metadata"`
+	Metadata      map[string]any           `json:"metadata" url:"metadata"`
 	Status        KnowledgeStatus          `json:"status" url:"status"`
 	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
 	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
@@ -241,6 +802,9 @@ type KnowledgeItemResponse struct {
 	VersionID     *string                  `json:"version_id,omitempty" url:"version_id,omitempty"`
 	VersionNumber *int                     `json:"version_number,omitempty" url:"version_number,omitempty"`
 	ByteSize      *int                     `json:"byte_size,omitempty" url:"byte_size,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -288,7 +852,7 @@ func (k *KnowledgeItemResponse) GetBody() string {
 	return k.Body
 }
 
-func (k *KnowledgeItemResponse) GetMetadata() map[string]interface{} {
+func (k *KnowledgeItemResponse) GetMetadata() map[string]any {
 	if k == nil {
 		return nil
 	}
@@ -345,7 +909,117 @@ func (k *KnowledgeItemResponse) GetByteSize() *int {
 }
 
 func (k *KnowledgeItemResponse) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
 	return k.extraProperties
+}
+
+func (k *KnowledgeItemResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetID(id string) {
+	k.ID = id
+	k.require(knowledgeItemResponseFieldID)
+}
+
+// SetSlug sets the Slug field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetSlug(slug string) {
+	k.Slug = slug
+	k.require(knowledgeItemResponseFieldSlug)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetType(type_ KnowledgeLevel) {
+	k.Type = type_
+	k.require(knowledgeItemResponseFieldType)
+}
+
+// SetLevel sets the Level field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetLevel(level KnowledgeLevel) {
+	k.Level = level
+	k.require(knowledgeItemResponseFieldLevel)
+}
+
+// SetFormat sets the Format field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetFormat(format string) {
+	k.Format = format
+	k.require(knowledgeItemResponseFieldFormat)
+}
+
+// SetBody sets the Body field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetBody(body string) {
+	k.Body = body
+	k.require(knowledgeItemResponseFieldBody)
+}
+
+// SetMetadata sets the Metadata field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetMetadata(metadata map[string]any) {
+	k.Metadata = metadata
+	k.require(knowledgeItemResponseFieldMetadata)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetStatus(status KnowledgeStatus) {
+	k.Status = status
+	k.require(knowledgeItemResponseFieldStatus)
+}
+
+// SetLinks sets the Links field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetLinks(links []*KnowledgeLinkResponse) {
+	k.Links = links
+	k.require(knowledgeItemResponseFieldLinks)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetCreatedAt(createdAt time.Time) {
+	k.CreatedAt = createdAt
+	k.require(knowledgeItemResponseFieldCreatedAt)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetUpdatedAt(updatedAt time.Time) {
+	k.UpdatedAt = updatedAt
+	k.require(knowledgeItemResponseFieldUpdatedAt)
+}
+
+// SetVersionID sets the VersionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetVersionID(versionID *string) {
+	k.VersionID = versionID
+	k.require(knowledgeItemResponseFieldVersionID)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetVersionNumber(versionNumber *int) {
+	k.VersionNumber = versionNumber
+	k.require(knowledgeItemResponseFieldVersionNumber)
+}
+
+// SetByteSize sets the ByteSize field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemResponse) SetByteSize(byteSize *int) {
+	k.ByteSize = byteSize
+	k.require(knowledgeItemResponseFieldByteSize)
 }
 
 func (k *KnowledgeItemResponse) UnmarshalJSON(data []byte) error {
@@ -383,10 +1057,14 @@ func (k *KnowledgeItemResponse) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewDateTime(k.CreatedAt),
 		UpdatedAt: internal.NewDateTime(k.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (k *KnowledgeItemResponse) String() string {
+	if k == nil {
+		return "<nil>"
+	}
 	if len(k.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
 			return value
@@ -435,9 +1113,17 @@ func (k KnowledgeLevel) Ptr() *KnowledgeLevel {
 	return &k
 }
 
+var (
+	knowledgeLinkInputFieldLinkType = big.NewInt(1 << 0)
+	knowledgeLinkInputFieldValue    = big.NewInt(1 << 1)
+)
+
 type KnowledgeLinkInput struct {
 	LinkType KnowledgeLinkType `json:"link_type" url:"link_type"`
 	Value    string            `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -458,7 +1144,33 @@ func (k *KnowledgeLinkInput) GetValue() string {
 }
 
 func (k *KnowledgeLinkInput) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
 	return k.extraProperties
+}
+
+func (k *KnowledgeLinkInput) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetLinkType sets the LinkType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeLinkInput) SetLinkType(linkType KnowledgeLinkType) {
+	k.LinkType = linkType
+	k.require(knowledgeLinkInputFieldLinkType)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeLinkInput) SetValue(value string) {
+	k.Value = value
+	k.require(knowledgeLinkInputFieldValue)
 }
 
 func (k *KnowledgeLinkInput) UnmarshalJSON(data []byte) error {
@@ -477,7 +1189,21 @@ func (k *KnowledgeLinkInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (k *KnowledgeLinkInput) MarshalJSON() ([]byte, error) {
+	type embed KnowledgeLinkInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (k *KnowledgeLinkInput) String() string {
+	if k == nil {
+		return "<nil>"
+	}
 	if len(k.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
 			return value
@@ -489,9 +1215,17 @@ func (k *KnowledgeLinkInput) String() string {
 	return fmt.Sprintf("%#v", k)
 }
 
+var (
+	knowledgeLinkResponseFieldLinkType = big.NewInt(1 << 0)
+	knowledgeLinkResponseFieldValue    = big.NewInt(1 << 1)
+)
+
 type KnowledgeLinkResponse struct {
 	LinkType KnowledgeLinkType `json:"link_type" url:"link_type"`
 	Value    string            `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -512,7 +1246,33 @@ func (k *KnowledgeLinkResponse) GetValue() string {
 }
 
 func (k *KnowledgeLinkResponse) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
 	return k.extraProperties
+}
+
+func (k *KnowledgeLinkResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetLinkType sets the LinkType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeLinkResponse) SetLinkType(linkType KnowledgeLinkType) {
+	k.LinkType = linkType
+	k.require(knowledgeLinkResponseFieldLinkType)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeLinkResponse) SetValue(value string) {
+	k.Value = value
+	k.require(knowledgeLinkResponseFieldValue)
 }
 
 func (k *KnowledgeLinkResponse) UnmarshalJSON(data []byte) error {
@@ -531,7 +1291,21 @@ func (k *KnowledgeLinkResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (k *KnowledgeLinkResponse) MarshalJSON() ([]byte, error) {
+	type embed KnowledgeLinkResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (k *KnowledgeLinkResponse) String() string {
+	if k == nil {
+		return "<nil>"
+	}
 	if len(k.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
 			return value
@@ -587,10 +1361,105 @@ func (k KnowledgeStatus) Ptr() *KnowledgeStatus {
 	return &k
 }
 
+var (
+	knowledgeTagsResponseFieldTags = big.NewInt(1 << 0)
+)
+
+type KnowledgeTagsResponse struct {
+	Tags []string `json:"tags" url:"tags"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KnowledgeTagsResponse) GetTags() []string {
+	if k == nil {
+		return nil
+	}
+	return k.Tags
+}
+
+func (k *KnowledgeTagsResponse) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
+	return k.extraProperties
+}
+
+func (k *KnowledgeTagsResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetTags sets the Tags field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeTagsResponse) SetTags(tags []string) {
+	k.Tags = tags
+	k.require(knowledgeTagsResponseFieldTags)
+}
+
+func (k *KnowledgeTagsResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler KnowledgeTagsResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*k = KnowledgeTagsResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KnowledgeTagsResponse) MarshalJSON() ([]byte, error) {
+	type embed KnowledgeTagsResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (k *KnowledgeTagsResponse) String() string {
+	if k == nil {
+		return "<nil>"
+	}
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
+}
+
+var (
+	knowledgeVersionListResponseFieldID            = big.NewInt(1 << 0)
+	knowledgeVersionListResponseFieldVersionNumber = big.NewInt(1 << 1)
+	knowledgeVersionListResponseFieldCreatedAt     = big.NewInt(1 << 2)
+)
+
 type KnowledgeVersionListResponse struct {
 	ID            string    `json:"id" url:"id"`
 	VersionNumber int       `json:"version_number" url:"version_number"`
 	CreatedAt     time.Time `json:"created_at" url:"created_at"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -618,7 +1487,40 @@ func (k *KnowledgeVersionListResponse) GetCreatedAt() time.Time {
 }
 
 func (k *KnowledgeVersionListResponse) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
 	return k.extraProperties
+}
+
+func (k *KnowledgeVersionListResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionListResponse) SetID(id string) {
+	k.ID = id
+	k.require(knowledgeVersionListResponseFieldID)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionListResponse) SetVersionNumber(versionNumber int) {
+	k.VersionNumber = versionNumber
+	k.require(knowledgeVersionListResponseFieldVersionNumber)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionListResponse) SetCreatedAt(createdAt time.Time) {
+	k.CreatedAt = createdAt
+	k.require(knowledgeVersionListResponseFieldCreatedAt)
 }
 
 func (k *KnowledgeVersionListResponse) UnmarshalJSON(data []byte) error {
@@ -652,10 +1554,14 @@ func (k *KnowledgeVersionListResponse) MarshalJSON() ([]byte, error) {
 		embed:     embed(*k),
 		CreatedAt: internal.NewDateTime(k.CreatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (k *KnowledgeVersionListResponse) String() string {
+	if k == nil {
+		return "<nil>"
+	}
 	if len(k.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
 			return value
@@ -667,6 +1573,20 @@ func (k *KnowledgeVersionListResponse) String() string {
 	return fmt.Sprintf("%#v", k)
 }
 
+var (
+	knowledgeVersionResponseFieldID            = big.NewInt(1 << 0)
+	knowledgeVersionResponseFieldVersionNumber = big.NewInt(1 << 1)
+	knowledgeVersionResponseFieldType          = big.NewInt(1 << 2)
+	knowledgeVersionResponseFieldLevel         = big.NewInt(1 << 3)
+	knowledgeVersionResponseFieldFormat        = big.NewInt(1 << 4)
+	knowledgeVersionResponseFieldBody          = big.NewInt(1 << 5)
+	knowledgeVersionResponseFieldMetadata      = big.NewInt(1 << 6)
+	knowledgeVersionResponseFieldLinks         = big.NewInt(1 << 7)
+	knowledgeVersionResponseFieldContentHash   = big.NewInt(1 << 8)
+	knowledgeVersionResponseFieldCreatedAt     = big.NewInt(1 << 9)
+	knowledgeVersionResponseFieldByteSize      = big.NewInt(1 << 10)
+)
+
 type KnowledgeVersionResponse struct {
 	ID            string                   `json:"id" url:"id"`
 	VersionNumber int                      `json:"version_number" url:"version_number"`
@@ -674,11 +1594,14 @@ type KnowledgeVersionResponse struct {
 	Level         KnowledgeLevel           `json:"level" url:"level"`
 	Format        string                   `json:"format" url:"format"`
 	Body          string                   `json:"body" url:"body"`
-	Metadata      map[string]interface{}   `json:"metadata" url:"metadata"`
+	Metadata      map[string]any           `json:"metadata" url:"metadata"`
 	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
 	ContentHash   string                   `json:"content_hash" url:"content_hash"`
 	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
 	ByteSize      *int                     `json:"byte_size,omitempty" url:"byte_size,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -726,7 +1649,7 @@ func (k *KnowledgeVersionResponse) GetBody() string {
 	return k.Body
 }
 
-func (k *KnowledgeVersionResponse) GetMetadata() map[string]interface{} {
+func (k *KnowledgeVersionResponse) GetMetadata() map[string]any {
 	if k == nil {
 		return nil
 	}
@@ -762,7 +1685,96 @@ func (k *KnowledgeVersionResponse) GetByteSize() *int {
 }
 
 func (k *KnowledgeVersionResponse) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
 	return k.extraProperties
+}
+
+func (k *KnowledgeVersionResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetID(id string) {
+	k.ID = id
+	k.require(knowledgeVersionResponseFieldID)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetVersionNumber(versionNumber int) {
+	k.VersionNumber = versionNumber
+	k.require(knowledgeVersionResponseFieldVersionNumber)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetType(type_ KnowledgeLevel) {
+	k.Type = type_
+	k.require(knowledgeVersionResponseFieldType)
+}
+
+// SetLevel sets the Level field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetLevel(level KnowledgeLevel) {
+	k.Level = level
+	k.require(knowledgeVersionResponseFieldLevel)
+}
+
+// SetFormat sets the Format field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetFormat(format string) {
+	k.Format = format
+	k.require(knowledgeVersionResponseFieldFormat)
+}
+
+// SetBody sets the Body field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetBody(body string) {
+	k.Body = body
+	k.require(knowledgeVersionResponseFieldBody)
+}
+
+// SetMetadata sets the Metadata field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetMetadata(metadata map[string]any) {
+	k.Metadata = metadata
+	k.require(knowledgeVersionResponseFieldMetadata)
+}
+
+// SetLinks sets the Links field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetLinks(links []*KnowledgeLinkResponse) {
+	k.Links = links
+	k.require(knowledgeVersionResponseFieldLinks)
+}
+
+// SetContentHash sets the ContentHash field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetContentHash(contentHash string) {
+	k.ContentHash = contentHash
+	k.require(knowledgeVersionResponseFieldContentHash)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetCreatedAt(createdAt time.Time) {
+	k.CreatedAt = createdAt
+	k.require(knowledgeVersionResponseFieldCreatedAt)
+}
+
+// SetByteSize sets the ByteSize field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeVersionResponse) SetByteSize(byteSize *int) {
+	k.ByteSize = byteSize
+	k.require(knowledgeVersionResponseFieldByteSize)
 }
 
 func (k *KnowledgeVersionResponse) UnmarshalJSON(data []byte) error {
@@ -796,10 +1808,14 @@ func (k *KnowledgeVersionResponse) MarshalJSON() ([]byte, error) {
 		embed:     embed(*k),
 		CreatedAt: internal.NewDateTime(k.CreatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (k *KnowledgeVersionResponse) String() string {
+	if k == nil {
+		return "<nil>"
+	}
 	if len(k.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
 			return value
@@ -811,9 +1827,17 @@ func (k *KnowledgeVersionResponse) String() string {
 	return fmt.Sprintf("%#v", k)
 }
 
+var (
+	paginatedKnowledgeResponseFieldItems      = big.NewInt(1 << 0)
+	paginatedKnowledgeResponseFieldNextCursor = big.NewInt(1 << 1)
+)
+
 type PaginatedKnowledgeResponse struct {
 	Items      []*KnowledgeItemListResponse `json:"items" url:"items"`
 	NextCursor *string                      `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -834,7 +1858,33 @@ func (p *PaginatedKnowledgeResponse) GetNextCursor() *string {
 }
 
 func (p *PaginatedKnowledgeResponse) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
 	return p.extraProperties
+}
+
+func (p *PaginatedKnowledgeResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if p.explicitFields != nil {
+		next.Set(p.explicitFields)
+	}
+	next.Or(next, field)
+	p.explicitFields = next
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PaginatedKnowledgeResponse) SetItems(items []*KnowledgeItemListResponse) {
+	p.Items = items
+	p.require(paginatedKnowledgeResponseFieldItems)
+}
+
+// SetNextCursor sets the NextCursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PaginatedKnowledgeResponse) SetNextCursor(nextCursor *string) {
+	p.NextCursor = nextCursor
+	p.require(paginatedKnowledgeResponseFieldNextCursor)
 }
 
 func (p *PaginatedKnowledgeResponse) UnmarshalJSON(data []byte) error {
@@ -853,7 +1903,21 @@ func (p *PaginatedKnowledgeResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (p *PaginatedKnowledgeResponse) MarshalJSON() ([]byte, error) {
+	type embed PaginatedKnowledgeResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (p *PaginatedKnowledgeResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
 	if len(p.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
 			return value
@@ -865,9 +1929,17 @@ func (p *PaginatedKnowledgeResponse) String() string {
 	return fmt.Sprintf("%#v", p)
 }
 
+var (
+	paginatedKnowledgeVersionResponseFieldItems      = big.NewInt(1 << 0)
+	paginatedKnowledgeVersionResponseFieldNextCursor = big.NewInt(1 << 1)
+)
+
 type PaginatedKnowledgeVersionResponse struct {
 	Items      []*KnowledgeVersionListResponse `json:"items" url:"items"`
 	NextCursor *string                         `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -888,7 +1960,33 @@ func (p *PaginatedKnowledgeVersionResponse) GetNextCursor() *string {
 }
 
 func (p *PaginatedKnowledgeVersionResponse) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
 	return p.extraProperties
+}
+
+func (p *PaginatedKnowledgeVersionResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if p.explicitFields != nil {
+		next.Set(p.explicitFields)
+	}
+	next.Or(next, field)
+	p.explicitFields = next
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PaginatedKnowledgeVersionResponse) SetItems(items []*KnowledgeVersionListResponse) {
+	p.Items = items
+	p.require(paginatedKnowledgeVersionResponseFieldItems)
+}
+
+// SetNextCursor sets the NextCursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PaginatedKnowledgeVersionResponse) SetNextCursor(nextCursor *string) {
+	p.NextCursor = nextCursor
+	p.require(paginatedKnowledgeVersionResponseFieldNextCursor)
 }
 
 func (p *PaginatedKnowledgeVersionResponse) UnmarshalJSON(data []byte) error {
@@ -907,7 +2005,21 @@ func (p *PaginatedKnowledgeVersionResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (p *PaginatedKnowledgeVersionResponse) MarshalJSON() ([]byte, error) {
+	type embed PaginatedKnowledgeVersionResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (p *PaginatedKnowledgeVersionResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
 	if len(p.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
 			return value
@@ -919,14 +2031,114 @@ func (p *PaginatedKnowledgeVersionResponse) String() string {
 	return fmt.Sprintf("%#v", p)
 }
 
+var (
+	knowledgeItemUpdateFieldIdentifier = big.NewInt(1 << 0)
+	knowledgeItemUpdateFieldLevel      = big.NewInt(1 << 1)
+	knowledgeItemUpdateFieldType       = big.NewInt(1 << 2)
+	knowledgeItemUpdateFieldFormat     = big.NewInt(1 << 3)
+	knowledgeItemUpdateFieldBody       = big.NewInt(1 << 4)
+	knowledgeItemUpdateFieldMetadata   = big.NewInt(1 << 5)
+	knowledgeItemUpdateFieldStatus     = big.NewInt(1 << 6)
+	knowledgeItemUpdateFieldLinks      = big.NewInt(1 << 7)
+)
+
 type KnowledgeItemUpdate struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
-	Identifier string                 `json:"-" url:"-"`
-	Level      *KnowledgeLevel        `json:"level,omitempty" url:"-"`
-	Type       *KnowledgeLevel        `json:"type,omitempty" url:"-"`
-	Format     *string                `json:"format,omitempty" url:"-"`
-	Body       *string                `json:"body,omitempty" url:"-"`
-	Metadata   map[string]interface{} `json:"metadata,omitempty" url:"-"`
-	Status     *KnowledgeStatus       `json:"status,omitempty" url:"-"`
-	Links      []*KnowledgeLinkInput  `json:"links,omitempty" url:"-"`
+	Identifier string                `json:"-" url:"-"`
+	Level      *KnowledgeLevel       `json:"level,omitempty" url:"-"`
+	Type       *KnowledgeLevel       `json:"type,omitempty" url:"-"`
+	Format     *string               `json:"format,omitempty" url:"-"`
+	Body       *string               `json:"body,omitempty" url:"-"`
+	Metadata   map[string]any        `json:"metadata,omitempty" url:"-"`
+	Status     *KnowledgeStatus      `json:"status,omitempty" url:"-"`
+	Links      []*KnowledgeLinkInput `json:"links,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (k *KnowledgeItemUpdate) require(field *big.Int) {
+	next := new(big.Int)
+	if k.explicitFields != nil {
+		next.Set(k.explicitFields)
+	}
+	next.Or(next, field)
+	k.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemUpdate) SetIdentifier(identifier string) {
+	k.Identifier = identifier
+	k.require(knowledgeItemUpdateFieldIdentifier)
+}
+
+// SetLevel sets the Level field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemUpdate) SetLevel(level *KnowledgeLevel) {
+	k.Level = level
+	k.require(knowledgeItemUpdateFieldLevel)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemUpdate) SetType(type_ *KnowledgeLevel) {
+	k.Type = type_
+	k.require(knowledgeItemUpdateFieldType)
+}
+
+// SetFormat sets the Format field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemUpdate) SetFormat(format *string) {
+	k.Format = format
+	k.require(knowledgeItemUpdateFieldFormat)
+}
+
+// SetBody sets the Body field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemUpdate) SetBody(body *string) {
+	k.Body = body
+	k.require(knowledgeItemUpdateFieldBody)
+}
+
+// SetMetadata sets the Metadata field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemUpdate) SetMetadata(metadata map[string]any) {
+	k.Metadata = metadata
+	k.require(knowledgeItemUpdateFieldMetadata)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemUpdate) SetStatus(status *KnowledgeStatus) {
+	k.Status = status
+	k.require(knowledgeItemUpdateFieldStatus)
+}
+
+// SetLinks sets the Links field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KnowledgeItemUpdate) SetLinks(links []*KnowledgeLinkInput) {
+	k.Links = links
+	k.require(knowledgeItemUpdateFieldLinks)
+}
+
+func (k *KnowledgeItemUpdate) UnmarshalJSON(data []byte) error {
+	type unmarshaler KnowledgeItemUpdate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*k = KnowledgeItemUpdate(body)
+	return nil
+}
+
+func (k *KnowledgeItemUpdate) MarshalJSON() ([]byte, error) {
+	type embed KnowledgeItemUpdate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }

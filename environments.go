@@ -6,30 +6,191 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
 	time "time"
+)
+
+var (
+	environmentCreateFieldName      = big.NewInt(1 << 0)
+	environmentCreateFieldIsDefault = big.NewInt(1 << 1)
+	environmentCreateFieldEntries   = big.NewInt(1 << 2)
 )
 
 type EnvironmentCreate struct {
 	Name      string                          `json:"name" url:"-"`
 	IsDefault *bool                           `json:"is_default,omitempty" url:"-"`
 	Entries   []*EnvironmentCreateEntriesItem `json:"entries,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (e *EnvironmentCreate) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentCreate) SetName(name string) {
+	e.Name = name
+	e.require(environmentCreateFieldName)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentCreate) SetIsDefault(isDefault *bool) {
+	e.IsDefault = isDefault
+	e.require(environmentCreateFieldIsDefault)
+}
+
+// SetEntries sets the Entries field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentCreate) SetEntries(entries []*EnvironmentCreateEntriesItem) {
+	e.Entries = entries
+	e.require(environmentCreateFieldEntries)
+}
+
+func (e *EnvironmentCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler EnvironmentCreate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*e = EnvironmentCreate(body)
+	return nil
+}
+
+func (e *EnvironmentCreate) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentCreate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	deleteEnvironmentRequestFieldEnvironmentRef = big.NewInt(1 << 0)
+)
 
 type DeleteEnvironmentRequest struct {
 	EnvironmentRef string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteEnvironmentRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetEnvironmentRef sets the EnvironmentRef field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteEnvironmentRequest) SetEnvironmentRef(environmentRef string) {
+	d.EnvironmentRef = environmentRef
+	d.require(deleteEnvironmentRequestFieldEnvironmentRef)
+}
+
+var (
+	getEnvironmentRequestFieldEnvironmentRef = big.NewInt(1 << 0)
+)
 
 type GetEnvironmentRequest struct {
 	EnvironmentRef string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetEnvironmentRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetEnvironmentRef sets the EnvironmentRef field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetEnvironmentRequest) SetEnvironmentRef(environmentRef string) {
+	g.EnvironmentRef = environmentRef
+	g.require(getEnvironmentRequestFieldEnvironmentRef)
+}
+
+var (
+	listEnvironmentsRequestFieldLimit  = big.NewInt(1 << 0)
+	listEnvironmentsRequestFieldOffset = big.NewInt(1 << 1)
+)
 
 type ListEnvironmentsRequest struct {
 	Limit  *int `json:"-" url:"limit,omitempty"`
 	Offset *int `json:"-" url:"offset,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListEnvironmentsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListEnvironmentsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listEnvironmentsRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListEnvironmentsRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listEnvironmentsRequestFieldOffset)
+}
+
+var (
+	setDefaultEnvironmentRequestFieldEnvironmentRef = big.NewInt(1 << 0)
+)
 
 type SetDefaultEnvironmentRequest struct {
 	EnvironmentRef string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (s *SetDefaultEnvironmentRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetEnvironmentRef sets the EnvironmentRef field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetDefaultEnvironmentRequest) SetEnvironmentRef(environmentRef string) {
+	s.EnvironmentRef = environmentRef
+	s.require(setDefaultEnvironmentRequestFieldEnvironmentRef)
 }
 
 type EnvironmentEntryKind string
@@ -76,6 +237,23 @@ func (e EnvironmentEntryPlacement) Ptr() *EnvironmentEntryPlacement {
 	return &e
 }
 
+var (
+	environmentEntryResponseFieldID        = big.NewInt(1 << 0)
+	environmentEntryResponseFieldKey       = big.NewInt(1 << 1)
+	environmentEntryResponseFieldKind      = big.NewInt(1 << 2)
+	environmentEntryResponseFieldPlacement = big.NewInt(1 << 3)
+	environmentEntryResponseFieldValue     = big.NewInt(1 << 4)
+	environmentEntryResponseFieldHasValue  = big.NewInt(1 << 5)
+	environmentEntryResponseFieldRule      = big.NewInt(1 << 6)
+	environmentEntryResponseFieldCreatedAt = big.NewInt(1 << 7)
+	environmentEntryResponseFieldUpdatedAt = big.NewInt(1 << 8)
+)
+
+// environmentEntryResponseRequiredNullableFields maps the wire names of EnvironmentEntryResponse's required, nullable fields to their field bits.
+var environmentEntryResponseRequiredNullableFields = map[string]*big.Int{
+	"value": environmentEntryResponseFieldValue,
+}
+
 type EnvironmentEntryResponse struct {
 	ID        string                          `json:"id" url:"id"`
 	Key       string                          `json:"key" url:"key"`
@@ -86,6 +264,9 @@ type EnvironmentEntryResponse struct {
 	Rule      *EnvironmentGatewayRuleResponse `json:"rule,omitempty" url:"rule,omitempty"`
 	CreatedAt time.Time                       `json:"created_at" url:"created_at"`
 	UpdatedAt time.Time                       `json:"updated_at" url:"updated_at"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -155,7 +336,82 @@ func (e *EnvironmentEntryResponse) GetUpdatedAt() time.Time {
 }
 
 func (e *EnvironmentEntryResponse) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *EnvironmentEntryResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentEntryResponse) SetID(id string) {
+	e.ID = id
+	e.require(environmentEntryResponseFieldID)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentEntryResponse) SetKey(key string) {
+	e.Key = key
+	e.require(environmentEntryResponseFieldKey)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentEntryResponse) SetKind(kind EnvironmentEntryKind) {
+	e.Kind = kind
+	e.require(environmentEntryResponseFieldKind)
+}
+
+// SetPlacement sets the Placement field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentEntryResponse) SetPlacement(placement EnvironmentEntryPlacement) {
+	e.Placement = placement
+	e.require(environmentEntryResponseFieldPlacement)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentEntryResponse) SetValue(value *string) {
+	e.Value = value
+	e.require(environmentEntryResponseFieldValue)
+}
+
+// SetHasValue sets the HasValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentEntryResponse) SetHasValue(hasValue *bool) {
+	e.HasValue = hasValue
+	e.require(environmentEntryResponseFieldHasValue)
+}
+
+// SetRule sets the Rule field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentEntryResponse) SetRule(rule *EnvironmentGatewayRuleResponse) {
+	e.Rule = rule
+	e.require(environmentEntryResponseFieldRule)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentEntryResponse) SetCreatedAt(createdAt time.Time) {
+	e.CreatedAt = createdAt
+	e.require(environmentEntryResponseFieldCreatedAt)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentEntryResponse) SetUpdatedAt(updatedAt time.Time) {
+	e.UpdatedAt = updatedAt
+	e.require(environmentEntryResponseFieldUpdatedAt)
 }
 
 func (e *EnvironmentEntryResponse) UnmarshalJSON(data []byte) error {
@@ -178,6 +434,13 @@ func (e *EnvironmentEntryResponse) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	e.extraProperties = extraProperties
+	presentFields, err := internal.ExplicitFieldsFromJSON(data, environmentEntryResponseRequiredNullableFields)
+	if err != nil {
+		return err
+	}
+	if presentFields != nil {
+		e.require(presentFields)
+	}
 	e.rawJSON = json.RawMessage(data)
 	return nil
 }
@@ -193,10 +456,14 @@ func (e *EnvironmentEntryResponse) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewDateTime(e.CreatedAt),
 		UpdatedAt: internal.NewDateTime(e.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (e *EnvironmentEntryResponse) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -208,13 +475,25 @@ func (e *EnvironmentEntryResponse) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+var (
+	environmentGatewayRuleInputFieldHostPattern   = big.NewInt(1 << 0)
+	environmentGatewayRuleInputFieldPathPattern   = big.NewInt(1 << 1)
+	environmentGatewayRuleInputFieldMethods       = big.NewInt(1 << 2)
+	environmentGatewayRuleInputFieldRateLimitRpm  = big.NewInt(1 << 3)
+	environmentGatewayRuleInputFieldAuthStrategy  = big.NewInt(1 << 4)
+	environmentGatewayRuleInputFieldContentFilter = big.NewInt(1 << 5)
+)
+
 type EnvironmentGatewayRuleInput struct {
 	HostPattern   string              `json:"host_pattern" url:"host_pattern"`
 	PathPattern   *string             `json:"path_pattern,omitempty" url:"path_pattern,omitempty"`
 	Methods       []string            `json:"methods,omitempty" url:"methods,omitempty"`
 	RateLimitRpm  *int                `json:"rate_limit_rpm,omitempty" url:"rate_limit_rpm,omitempty"`
 	AuthStrategy  *AuthStrategySchema `json:"auth_strategy,omitempty" url:"auth_strategy,omitempty"`
-	ContentFilter interface{}         `json:"content_filter,omitempty" url:"content_filter,omitempty"`
+	ContentFilter any                 `json:"content_filter,omitempty" url:"content_filter,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -255,7 +534,7 @@ func (e *EnvironmentGatewayRuleInput) GetAuthStrategy() *AuthStrategySchema {
 	return e.AuthStrategy
 }
 
-func (e *EnvironmentGatewayRuleInput) GetContentFilter() interface{} {
+func (e *EnvironmentGatewayRuleInput) GetContentFilter() any {
 	if e == nil {
 		return nil
 	}
@@ -263,7 +542,61 @@ func (e *EnvironmentGatewayRuleInput) GetContentFilter() interface{} {
 }
 
 func (e *EnvironmentGatewayRuleInput) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *EnvironmentGatewayRuleInput) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetHostPattern sets the HostPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleInput) SetHostPattern(hostPattern string) {
+	e.HostPattern = hostPattern
+	e.require(environmentGatewayRuleInputFieldHostPattern)
+}
+
+// SetPathPattern sets the PathPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleInput) SetPathPattern(pathPattern *string) {
+	e.PathPattern = pathPattern
+	e.require(environmentGatewayRuleInputFieldPathPattern)
+}
+
+// SetMethods sets the Methods field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleInput) SetMethods(methods []string) {
+	e.Methods = methods
+	e.require(environmentGatewayRuleInputFieldMethods)
+}
+
+// SetRateLimitRpm sets the RateLimitRpm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleInput) SetRateLimitRpm(rateLimitRpm *int) {
+	e.RateLimitRpm = rateLimitRpm
+	e.require(environmentGatewayRuleInputFieldRateLimitRpm)
+}
+
+// SetAuthStrategy sets the AuthStrategy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleInput) SetAuthStrategy(authStrategy *AuthStrategySchema) {
+	e.AuthStrategy = authStrategy
+	e.require(environmentGatewayRuleInputFieldAuthStrategy)
+}
+
+// SetContentFilter sets the ContentFilter field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleInput) SetContentFilter(contentFilter any) {
+	e.ContentFilter = contentFilter
+	e.require(environmentGatewayRuleInputFieldContentFilter)
 }
 
 func (e *EnvironmentGatewayRuleInput) UnmarshalJSON(data []byte) error {
@@ -282,7 +615,21 @@ func (e *EnvironmentGatewayRuleInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (e *EnvironmentGatewayRuleInput) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentGatewayRuleInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (e *EnvironmentGatewayRuleInput) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -294,13 +641,25 @@ func (e *EnvironmentGatewayRuleInput) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+var (
+	environmentGatewayRuleResponseFieldID           = big.NewInt(1 << 0)
+	environmentGatewayRuleResponseFieldHostPattern  = big.NewInt(1 << 1)
+	environmentGatewayRuleResponseFieldPathPattern  = big.NewInt(1 << 2)
+	environmentGatewayRuleResponseFieldMethods      = big.NewInt(1 << 3)
+	environmentGatewayRuleResponseFieldRateLimitRpm = big.NewInt(1 << 4)
+	environmentGatewayRuleResponseFieldAuthStrategy = big.NewInt(1 << 5)
+)
+
 type EnvironmentGatewayRuleResponse struct {
-	ID           string                 `json:"id" url:"id"`
-	HostPattern  string                 `json:"host_pattern" url:"host_pattern"`
-	PathPattern  *string                `json:"path_pattern,omitempty" url:"path_pattern,omitempty"`
-	Methods      []string               `json:"methods,omitempty" url:"methods,omitempty"`
-	RateLimitRpm *int                   `json:"rate_limit_rpm,omitempty" url:"rate_limit_rpm,omitempty"`
-	AuthStrategy map[string]interface{} `json:"auth_strategy,omitempty" url:"auth_strategy,omitempty"`
+	ID           string         `json:"id" url:"id"`
+	HostPattern  string         `json:"host_pattern" url:"host_pattern"`
+	PathPattern  *string        `json:"path_pattern,omitempty" url:"path_pattern,omitempty"`
+	Methods      []string       `json:"methods,omitempty" url:"methods,omitempty"`
+	RateLimitRpm *int           `json:"rate_limit_rpm,omitempty" url:"rate_limit_rpm,omitempty"`
+	AuthStrategy map[string]any `json:"auth_strategy,omitempty" url:"auth_strategy,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -341,7 +700,7 @@ func (e *EnvironmentGatewayRuleResponse) GetRateLimitRpm() *int {
 	return e.RateLimitRpm
 }
 
-func (e *EnvironmentGatewayRuleResponse) GetAuthStrategy() map[string]interface{} {
+func (e *EnvironmentGatewayRuleResponse) GetAuthStrategy() map[string]any {
 	if e == nil {
 		return nil
 	}
@@ -349,7 +708,61 @@ func (e *EnvironmentGatewayRuleResponse) GetAuthStrategy() map[string]interface{
 }
 
 func (e *EnvironmentGatewayRuleResponse) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *EnvironmentGatewayRuleResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleResponse) SetID(id string) {
+	e.ID = id
+	e.require(environmentGatewayRuleResponseFieldID)
+}
+
+// SetHostPattern sets the HostPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleResponse) SetHostPattern(hostPattern string) {
+	e.HostPattern = hostPattern
+	e.require(environmentGatewayRuleResponseFieldHostPattern)
+}
+
+// SetPathPattern sets the PathPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleResponse) SetPathPattern(pathPattern *string) {
+	e.PathPattern = pathPattern
+	e.require(environmentGatewayRuleResponseFieldPathPattern)
+}
+
+// SetMethods sets the Methods field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleResponse) SetMethods(methods []string) {
+	e.Methods = methods
+	e.require(environmentGatewayRuleResponseFieldMethods)
+}
+
+// SetRateLimitRpm sets the RateLimitRpm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleResponse) SetRateLimitRpm(rateLimitRpm *int) {
+	e.RateLimitRpm = rateLimitRpm
+	e.require(environmentGatewayRuleResponseFieldRateLimitRpm)
+}
+
+// SetAuthStrategy sets the AuthStrategy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentGatewayRuleResponse) SetAuthStrategy(authStrategy map[string]any) {
+	e.AuthStrategy = authStrategy
+	e.require(environmentGatewayRuleResponseFieldAuthStrategy)
 }
 
 func (e *EnvironmentGatewayRuleResponse) UnmarshalJSON(data []byte) error {
@@ -368,7 +781,21 @@ func (e *EnvironmentGatewayRuleResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (e *EnvironmentGatewayRuleResponse) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentGatewayRuleResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (e *EnvironmentGatewayRuleResponse) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -380,6 +807,16 @@ func (e *EnvironmentGatewayRuleResponse) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+var (
+	environmentListItemFieldID            = big.NewInt(1 << 0)
+	environmentListItemFieldName          = big.NewInt(1 << 1)
+	environmentListItemFieldIsDefault     = big.NewInt(1 << 2)
+	environmentListItemFieldVariableCount = big.NewInt(1 << 3)
+	environmentListItemFieldSecretCount   = big.NewInt(1 << 4)
+	environmentListItemFieldCreatedAt     = big.NewInt(1 << 5)
+	environmentListItemFieldUpdatedAt     = big.NewInt(1 << 6)
+)
+
 type EnvironmentListItem struct {
 	ID            string    `json:"id" url:"id"`
 	Name          string    `json:"name" url:"name"`
@@ -388,6 +825,9 @@ type EnvironmentListItem struct {
 	SecretCount   *int      `json:"secret_count,omitempty" url:"secret_count,omitempty"`
 	CreatedAt     time.Time `json:"created_at" url:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at" url:"updated_at"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -443,7 +883,68 @@ func (e *EnvironmentListItem) GetUpdatedAt() time.Time {
 }
 
 func (e *EnvironmentListItem) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *EnvironmentListItem) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentListItem) SetID(id string) {
+	e.ID = id
+	e.require(environmentListItemFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentListItem) SetName(name string) {
+	e.Name = name
+	e.require(environmentListItemFieldName)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentListItem) SetIsDefault(isDefault bool) {
+	e.IsDefault = isDefault
+	e.require(environmentListItemFieldIsDefault)
+}
+
+// SetVariableCount sets the VariableCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentListItem) SetVariableCount(variableCount *int) {
+	e.VariableCount = variableCount
+	e.require(environmentListItemFieldVariableCount)
+}
+
+// SetSecretCount sets the SecretCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentListItem) SetSecretCount(secretCount *int) {
+	e.SecretCount = secretCount
+	e.require(environmentListItemFieldSecretCount)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentListItem) SetCreatedAt(createdAt time.Time) {
+	e.CreatedAt = createdAt
+	e.require(environmentListItemFieldCreatedAt)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentListItem) SetUpdatedAt(updatedAt time.Time) {
+	e.UpdatedAt = updatedAt
+	e.require(environmentListItemFieldUpdatedAt)
 }
 
 func (e *EnvironmentListItem) UnmarshalJSON(data []byte) error {
@@ -481,10 +982,14 @@ func (e *EnvironmentListItem) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewDateTime(e.CreatedAt),
 		UpdatedAt: internal.NewDateTime(e.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (e *EnvironmentListItem) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -496,6 +1001,15 @@ func (e *EnvironmentListItem) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+var (
+	environmentResponseFieldID        = big.NewInt(1 << 0)
+	environmentResponseFieldName      = big.NewInt(1 << 1)
+	environmentResponseFieldIsDefault = big.NewInt(1 << 2)
+	environmentResponseFieldEntries   = big.NewInt(1 << 3)
+	environmentResponseFieldCreatedAt = big.NewInt(1 << 4)
+	environmentResponseFieldUpdatedAt = big.NewInt(1 << 5)
+)
+
 type EnvironmentResponse struct {
 	ID        string                      `json:"id" url:"id"`
 	Name      string                      `json:"name" url:"name"`
@@ -503,6 +1017,9 @@ type EnvironmentResponse struct {
 	Entries   []*EnvironmentEntryResponse `json:"entries" url:"entries"`
 	CreatedAt time.Time                   `json:"created_at" url:"created_at"`
 	UpdatedAt time.Time                   `json:"updated_at" url:"updated_at"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -551,7 +1068,61 @@ func (e *EnvironmentResponse) GetUpdatedAt() time.Time {
 }
 
 func (e *EnvironmentResponse) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *EnvironmentResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentResponse) SetID(id string) {
+	e.ID = id
+	e.require(environmentResponseFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentResponse) SetName(name string) {
+	e.Name = name
+	e.require(environmentResponseFieldName)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentResponse) SetIsDefault(isDefault bool) {
+	e.IsDefault = isDefault
+	e.require(environmentResponseFieldIsDefault)
+}
+
+// SetEntries sets the Entries field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentResponse) SetEntries(entries []*EnvironmentEntryResponse) {
+	e.Entries = entries
+	e.require(environmentResponseFieldEntries)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentResponse) SetCreatedAt(createdAt time.Time) {
+	e.CreatedAt = createdAt
+	e.require(environmentResponseFieldCreatedAt)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentResponse) SetUpdatedAt(updatedAt time.Time) {
+	e.UpdatedAt = updatedAt
+	e.require(environmentResponseFieldUpdatedAt)
 }
 
 func (e *EnvironmentResponse) UnmarshalJSON(data []byte) error {
@@ -589,10 +1160,14 @@ func (e *EnvironmentResponse) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewDateTime(e.CreatedAt),
 		UpdatedAt: internal.NewDateTime(e.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (e *EnvironmentResponse) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -604,11 +1179,21 @@ func (e *EnvironmentResponse) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+var (
+	environmentSecretInputFieldKey       = big.NewInt(1 << 0)
+	environmentSecretInputFieldPlacement = big.NewInt(1 << 1)
+	environmentSecretInputFieldRule      = big.NewInt(1 << 2)
+	environmentSecretInputFieldValue     = big.NewInt(1 << 3)
+)
+
 type EnvironmentSecretInput struct {
 	Key       string                       `json:"key" url:"key"`
 	Placement EnvironmentEntryPlacement    `json:"placement" url:"placement"`
 	Rule      *EnvironmentGatewayRuleInput `json:"rule,omitempty" url:"rule,omitempty"`
 	Value     string                       `json:"value" url:"value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -643,7 +1228,47 @@ func (e *EnvironmentSecretInput) GetValue() string {
 }
 
 func (e *EnvironmentSecretInput) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *EnvironmentSecretInput) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentSecretInput) SetKey(key string) {
+	e.Key = key
+	e.require(environmentSecretInputFieldKey)
+}
+
+// SetPlacement sets the Placement field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentSecretInput) SetPlacement(placement EnvironmentEntryPlacement) {
+	e.Placement = placement
+	e.require(environmentSecretInputFieldPlacement)
+}
+
+// SetRule sets the Rule field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentSecretInput) SetRule(rule *EnvironmentGatewayRuleInput) {
+	e.Rule = rule
+	e.require(environmentSecretInputFieldRule)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentSecretInput) SetValue(value string) {
+	e.Value = value
+	e.require(environmentSecretInputFieldValue)
 }
 
 func (e *EnvironmentSecretInput) UnmarshalJSON(data []byte) error {
@@ -662,7 +1287,21 @@ func (e *EnvironmentSecretInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (e *EnvironmentSecretInput) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentSecretInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (e *EnvironmentSecretInput) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -674,11 +1313,21 @@ func (e *EnvironmentSecretInput) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+var (
+	environmentSecretUpdateInputFieldKey       = big.NewInt(1 << 0)
+	environmentSecretUpdateInputFieldPlacement = big.NewInt(1 << 1)
+	environmentSecretUpdateInputFieldRule      = big.NewInt(1 << 2)
+	environmentSecretUpdateInputFieldValue     = big.NewInt(1 << 3)
+)
+
 type EnvironmentSecretUpdateInput struct {
 	Key       string                       `json:"key" url:"key"`
 	Placement EnvironmentEntryPlacement    `json:"placement" url:"placement"`
 	Rule      *EnvironmentGatewayRuleInput `json:"rule,omitempty" url:"rule,omitempty"`
 	Value     *string                      `json:"value,omitempty" url:"value,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -713,7 +1362,47 @@ func (e *EnvironmentSecretUpdateInput) GetValue() *string {
 }
 
 func (e *EnvironmentSecretUpdateInput) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *EnvironmentSecretUpdateInput) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentSecretUpdateInput) SetKey(key string) {
+	e.Key = key
+	e.require(environmentSecretUpdateInputFieldKey)
+}
+
+// SetPlacement sets the Placement field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentSecretUpdateInput) SetPlacement(placement EnvironmentEntryPlacement) {
+	e.Placement = placement
+	e.require(environmentSecretUpdateInputFieldPlacement)
+}
+
+// SetRule sets the Rule field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentSecretUpdateInput) SetRule(rule *EnvironmentGatewayRuleInput) {
+	e.Rule = rule
+	e.require(environmentSecretUpdateInputFieldRule)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentSecretUpdateInput) SetValue(value *string) {
+	e.Value = value
+	e.require(environmentSecretUpdateInputFieldValue)
 }
 
 func (e *EnvironmentSecretUpdateInput) UnmarshalJSON(data []byte) error {
@@ -732,7 +1421,21 @@ func (e *EnvironmentSecretUpdateInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (e *EnvironmentSecretUpdateInput) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentSecretUpdateInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (e *EnvironmentSecretUpdateInput) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -744,10 +1447,19 @@ func (e *EnvironmentSecretUpdateInput) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+var (
+	environmentVariableInputFieldKey       = big.NewInt(1 << 0)
+	environmentVariableInputFieldPlacement = big.NewInt(1 << 1)
+	environmentVariableInputFieldValue     = big.NewInt(1 << 2)
+)
+
 type EnvironmentVariableInput struct {
 	Key       string                             `json:"key" url:"key"`
 	Placement *EnvironmentVariableInputPlacement `json:"placement,omitempty" url:"placement,omitempty"`
 	Value     *string                            `json:"value,omitempty" url:"value,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -775,7 +1487,40 @@ func (e *EnvironmentVariableInput) GetValue() *string {
 }
 
 func (e *EnvironmentVariableInput) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *EnvironmentVariableInput) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentVariableInput) SetKey(key string) {
+	e.Key = key
+	e.require(environmentVariableInputFieldKey)
+}
+
+// SetPlacement sets the Placement field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentVariableInput) SetPlacement(placement *EnvironmentVariableInputPlacement) {
+	e.Placement = placement
+	e.require(environmentVariableInputFieldPlacement)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentVariableInput) SetValue(value *string) {
+	e.Value = value
+	e.require(environmentVariableInputFieldValue)
 }
 
 func (e *EnvironmentVariableInput) UnmarshalJSON(data []byte) error {
@@ -794,7 +1539,21 @@ func (e *EnvironmentVariableInput) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (e *EnvironmentVariableInput) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentVariableInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (e *EnvironmentVariableInput) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -829,6 +1588,8 @@ type EnvironmentCreateEntriesItem struct {
 	Kind     string
 	Secret   *EnvironmentSecretInput
 	Variable *EnvironmentVariableInput
+
+	rawJSON json.RawMessage
 }
 
 func (e *EnvironmentCreateEntriesItem) GetKind() string {
@@ -877,6 +1638,7 @@ func (e *EnvironmentCreateEntriesItem) UnmarshalJSON(data []byte) error {
 		}
 		e.Variable = value
 	}
+	e.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -889,6 +1651,9 @@ func (e EnvironmentCreateEntriesItem) MarshalJSON() ([]byte, error) {
 	}
 	if e.Variable != nil {
 		return internal.MarshalJSONWithExtraProperty(e.Variable, "kind", "variable")
+	}
+	if len(e.rawJSON) > 0 {
+		return e.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", e)
 }
@@ -921,6 +1686,9 @@ func (e *EnvironmentCreateEntriesItem) validate() error {
 	}
 	if len(fields) == 0 {
 		if e.Kind != "" {
+			if len(e.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", e, e.Kind)
 		}
 		return fmt.Errorf("type %T is empty", e)
@@ -946,6 +1714,8 @@ type EnvironmentUpdateEntriesItem struct {
 	Kind     string
 	Secret   *EnvironmentSecretUpdateInput
 	Variable *EnvironmentVariableInput
+
+	rawJSON json.RawMessage
 }
 
 func (e *EnvironmentUpdateEntriesItem) GetKind() string {
@@ -994,6 +1764,7 @@ func (e *EnvironmentUpdateEntriesItem) UnmarshalJSON(data []byte) error {
 		}
 		e.Variable = value
 	}
+	e.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -1006,6 +1777,9 @@ func (e EnvironmentUpdateEntriesItem) MarshalJSON() ([]byte, error) {
 	}
 	if e.Variable != nil {
 		return internal.MarshalJSONWithExtraProperty(e.Variable, "kind", "variable")
+	}
+	if len(e.rawJSON) > 0 {
+		return e.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", e)
 }
@@ -1038,6 +1812,9 @@ func (e *EnvironmentUpdateEntriesItem) validate() error {
 	}
 	if len(fields) == 0 {
 		if e.Kind != "" {
+			if len(e.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", e, e.Kind)
 		}
 		return fmt.Errorf("type %T is empty", e)
@@ -1059,9 +1836,104 @@ func (e *EnvironmentUpdateEntriesItem) validate() error {
 	return nil
 }
 
+var (
+	unsetDefaultEnvironmentRequestFieldEnvironmentRef = big.NewInt(1 << 0)
+)
+
+type UnsetDefaultEnvironmentRequest struct {
+	EnvironmentRef string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (u *UnsetDefaultEnvironmentRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if u.explicitFields != nil {
+		next.Set(u.explicitFields)
+	}
+	next.Or(next, field)
+	u.explicitFields = next
+}
+
+// SetEnvironmentRef sets the EnvironmentRef field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnsetDefaultEnvironmentRequest) SetEnvironmentRef(environmentRef string) {
+	u.EnvironmentRef = environmentRef
+	u.require(unsetDefaultEnvironmentRequestFieldEnvironmentRef)
+}
+
+var (
+	environmentUpdateFieldEnvironmentRef = big.NewInt(1 << 0)
+	environmentUpdateFieldName           = big.NewInt(1 << 1)
+	environmentUpdateFieldIsDefault      = big.NewInt(1 << 2)
+	environmentUpdateFieldEntries        = big.NewInt(1 << 3)
+)
+
 type EnvironmentUpdate struct {
 	EnvironmentRef string                          `json:"-" url:"-"`
 	Name           *string                         `json:"name,omitempty" url:"-"`
 	IsDefault      *bool                           `json:"is_default,omitempty" url:"-"`
 	Entries        []*EnvironmentUpdateEntriesItem `json:"entries,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (e *EnvironmentUpdate) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetEnvironmentRef sets the EnvironmentRef field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentUpdate) SetEnvironmentRef(environmentRef string) {
+	e.EnvironmentRef = environmentRef
+	e.require(environmentUpdateFieldEnvironmentRef)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentUpdate) SetName(name *string) {
+	e.Name = name
+	e.require(environmentUpdateFieldName)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentUpdate) SetIsDefault(isDefault *bool) {
+	e.IsDefault = isDefault
+	e.require(environmentUpdateFieldIsDefault)
+}
+
+// SetEntries sets the Entries field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EnvironmentUpdate) SetEntries(entries []*EnvironmentUpdateEntriesItem) {
+	e.Entries = entries
+	e.require(environmentUpdateFieldEntries)
+}
+
+func (e *EnvironmentUpdate) UnmarshalJSON(data []byte) error {
+	type unmarshaler EnvironmentUpdate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*e = EnvironmentUpdate(body)
+	return nil
+}
+
+func (e *EnvironmentUpdate) MarshalJSON() ([]byte, error) {
+	type embed EnvironmentUpdate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }

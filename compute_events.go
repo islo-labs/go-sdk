@@ -6,11 +6,35 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
 	time "time"
+)
+
+var (
+	getComputeEventRequestFieldCommandID = big.NewInt(1 << 0)
 )
 
 type GetComputeEventRequest struct {
 	CommandID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetComputeEventRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetCommandID sets the CommandID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetComputeEventRequest) SetCommandID(commandID string) {
+	g.CommandID = commandID
+	g.require(getComputeEventRequestFieldCommandID)
 }
 
 // What an agent step produced, which is a step's output as much as stdout.
@@ -19,14 +43,29 @@ type GetComputeEventRequest struct {
 // validated against the step's `[outputs]` contract, the session it ran in.
 // None of it reached a reader before, so an agent step was the one step in a
 // job whose row could only ever say whether it passed.
+var (
+	agentResultFieldMode           = big.NewInt(1 << 0)
+	agentResultFieldHarness        = big.NewInt(1 << 1)
+	agentResultFieldModel          = big.NewInt(1 << 2)
+	agentResultFieldStatus         = big.NewInt(1 << 3)
+	agentResultFieldOutcome        = big.NewInt(1 << 4)
+	agentResultFieldAgentSessionID = big.NewInt(1 << 5)
+	agentResultFieldOutputText     = big.NewInt(1 << 6)
+	agentResultFieldOutputs        = big.NewInt(1 << 7)
+)
+
 type AgentResult struct {
 	Mode           *string               `json:"mode,omitempty" url:"mode,omitempty"`
 	Harness        *string               `json:"harness,omitempty" url:"harness,omitempty"`
+	Model          *string               `json:"model,omitempty" url:"model,omitempty"`
 	Status         *string               `json:"status,omitempty" url:"status,omitempty"`
 	Outcome        *string               `json:"outcome,omitempty" url:"outcome,omitempty"`
 	AgentSessionID *string               `json:"agent_session_id,omitempty" url:"agent_session_id,omitempty"`
 	OutputText     *string               `json:"output_text,omitempty" url:"output_text,omitempty"`
 	Outputs        map[string]*JSONValue `json:"outputs,omitempty" url:"outputs,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -44,6 +83,13 @@ func (a *AgentResult) GetHarness() *string {
 		return nil
 	}
 	return a.Harness
+}
+
+func (a *AgentResult) GetModel() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Model
 }
 
 func (a *AgentResult) GetStatus() *string {
@@ -82,7 +128,75 @@ func (a *AgentResult) GetOutputs() map[string]*JSONValue {
 }
 
 func (a *AgentResult) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AgentResult) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
+}
+
+// SetMode sets the Mode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentResult) SetMode(mode *string) {
+	a.Mode = mode
+	a.require(agentResultFieldMode)
+}
+
+// SetHarness sets the Harness field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentResult) SetHarness(harness *string) {
+	a.Harness = harness
+	a.require(agentResultFieldHarness)
+}
+
+// SetModel sets the Model field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentResult) SetModel(model *string) {
+	a.Model = model
+	a.require(agentResultFieldModel)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentResult) SetStatus(status *string) {
+	a.Status = status
+	a.require(agentResultFieldStatus)
+}
+
+// SetOutcome sets the Outcome field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentResult) SetOutcome(outcome *string) {
+	a.Outcome = outcome
+	a.require(agentResultFieldOutcome)
+}
+
+// SetAgentSessionID sets the AgentSessionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentResult) SetAgentSessionID(agentSessionID *string) {
+	a.AgentSessionID = agentSessionID
+	a.require(agentResultFieldAgentSessionID)
+}
+
+// SetOutputText sets the OutputText field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentResult) SetOutputText(outputText *string) {
+	a.OutputText = outputText
+	a.require(agentResultFieldOutputText)
+}
+
+// SetOutputs sets the Outputs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentResult) SetOutputs(outputs map[string]*JSONValue) {
+	a.Outputs = outputs
+	a.require(agentResultFieldOutputs)
 }
 
 func (a *AgentResult) UnmarshalJSON(data []byte) error {
@@ -101,7 +215,21 @@ func (a *AgentResult) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AgentResult) MarshalJSON() ([]byte, error) {
+	type embed AgentResult
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AgentResult) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -113,18 +241,42 @@ func (a *AgentResult) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	computeEventDetailResponseFieldCommandID    = big.NewInt(1 << 0)
+	computeEventDetailResponseFieldAction       = big.NewInt(1 << 1)
+	computeEventDetailResponseFieldSuccess      = big.NewInt(1 << 2)
+	computeEventDetailResponseFieldErrorMessage = big.NewInt(1 << 3)
+	computeEventDetailResponseFieldErrorCode    = big.NewInt(1 << 4)
+	computeEventDetailResponseFieldErrorDetails = big.NewInt(1 << 5)
+	computeEventDetailResponseFieldStartedAt    = big.NewInt(1 << 6)
+	computeEventDetailResponseFieldCompletedAt  = big.NewInt(1 << 7)
+	computeEventDetailResponseFieldSessionName  = big.NewInt(1 << 8)
+	computeEventDetailResponseFieldSandboxName  = big.NewInt(1 << 9)
+	computeEventDetailResponseFieldResult       = big.NewInt(1 << 10)
+)
+
+// computeEventDetailResponseRequiredNullableFields maps the wire names of ComputeEventDetailResponse's required, nullable fields to their field bits.
+var computeEventDetailResponseRequiredNullableFields = map[string]*big.Int{
+	"error_message": computeEventDetailResponseFieldErrorMessage,
+	"started_at":    computeEventDetailResponseFieldStartedAt,
+	"completed_at":  computeEventDetailResponseFieldCompletedAt,
+}
+
 type ComputeEventDetailResponse struct {
 	CommandID    string                            `json:"command_id" url:"command_id"`
 	Action       string                            `json:"action" url:"action"`
 	Success      bool                              `json:"success" url:"success"`
 	ErrorMessage *string                           `json:"error_message,omitempty" url:"error_message,omitempty"`
 	ErrorCode    *string                           `json:"error_code,omitempty" url:"error_code,omitempty"`
-	ErrorDetails map[string]interface{}            `json:"error_details,omitempty" url:"error_details,omitempty"`
+	ErrorDetails map[string]any                    `json:"error_details,omitempty" url:"error_details,omitempty"`
 	StartedAt    *time.Time                        `json:"started_at,omitempty" url:"started_at,omitempty"`
 	CompletedAt  *time.Time                        `json:"completed_at,omitempty" url:"completed_at,omitempty"`
 	SessionName  *string                           `json:"session_name,omitempty" url:"session_name,omitempty"`
 	SandboxName  *string                           `json:"sandbox_name,omitempty" url:"sandbox_name,omitempty"`
 	Result       *ComputeEventDetailResponseResult `json:"result" url:"result"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -165,7 +317,7 @@ func (c *ComputeEventDetailResponse) GetErrorCode() *string {
 	return c.ErrorCode
 }
 
-func (c *ComputeEventDetailResponse) GetErrorDetails() map[string]interface{} {
+func (c *ComputeEventDetailResponse) GetErrorDetails() map[string]any {
 	if c == nil {
 		return nil
 	}
@@ -208,7 +360,96 @@ func (c *ComputeEventDetailResponse) GetResult() *ComputeEventDetailResponseResu
 }
 
 func (c *ComputeEventDetailResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *ComputeEventDetailResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetCommandID sets the CommandID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetCommandID(commandID string) {
+	c.CommandID = commandID
+	c.require(computeEventDetailResponseFieldCommandID)
+}
+
+// SetAction sets the Action field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetAction(action string) {
+	c.Action = action
+	c.require(computeEventDetailResponseFieldAction)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetSuccess(success bool) {
+	c.Success = success
+	c.require(computeEventDetailResponseFieldSuccess)
+}
+
+// SetErrorMessage sets the ErrorMessage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetErrorMessage(errorMessage *string) {
+	c.ErrorMessage = errorMessage
+	c.require(computeEventDetailResponseFieldErrorMessage)
+}
+
+// SetErrorCode sets the ErrorCode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetErrorCode(errorCode *string) {
+	c.ErrorCode = errorCode
+	c.require(computeEventDetailResponseFieldErrorCode)
+}
+
+// SetErrorDetails sets the ErrorDetails field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetErrorDetails(errorDetails map[string]any) {
+	c.ErrorDetails = errorDetails
+	c.require(computeEventDetailResponseFieldErrorDetails)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetStartedAt(startedAt *time.Time) {
+	c.StartedAt = startedAt
+	c.require(computeEventDetailResponseFieldStartedAt)
+}
+
+// SetCompletedAt sets the CompletedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetCompletedAt(completedAt *time.Time) {
+	c.CompletedAt = completedAt
+	c.require(computeEventDetailResponseFieldCompletedAt)
+}
+
+// SetSessionName sets the SessionName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetSessionName(sessionName *string) {
+	c.SessionName = sessionName
+	c.require(computeEventDetailResponseFieldSessionName)
+}
+
+// SetSandboxName sets the SandboxName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetSandboxName(sandboxName *string) {
+	c.SandboxName = sandboxName
+	c.require(computeEventDetailResponseFieldSandboxName)
+}
+
+// SetResult sets the Result field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeEventDetailResponse) SetResult(result *ComputeEventDetailResponseResult) {
+	c.Result = result
+	c.require(computeEventDetailResponseFieldResult)
 }
 
 func (c *ComputeEventDetailResponse) UnmarshalJSON(data []byte) error {
@@ -231,6 +472,13 @@ func (c *ComputeEventDetailResponse) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	c.extraProperties = extraProperties
+	presentFields, err := internal.ExplicitFieldsFromJSON(data, computeEventDetailResponseRequiredNullableFields)
+	if err != nil {
+		return err
+	}
+	if presentFields != nil {
+		c.require(presentFields)
+	}
 	c.rawJSON = json.RawMessage(data)
 	return nil
 }
@@ -246,10 +494,14 @@ func (c *ComputeEventDetailResponse) MarshalJSON() ([]byte, error) {
 		StartedAt:   internal.NewOptionalDateTime(c.StartedAt),
 		CompletedAt: internal.NewOptionalDateTime(c.CompletedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (c *ComputeEventDetailResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -268,6 +520,8 @@ type ComputeEventDetailResponseResult struct {
 	Exec     *ExecResult
 	Sandbox  *SandboxResult
 	Snapshot *SnapshotResult
+
+	rawJSON json.RawMessage
 }
 
 func (c *ComputeEventDetailResponseResult) GetType() string {
@@ -355,6 +609,7 @@ func (c *ComputeEventDetailResponseResult) UnmarshalJSON(data []byte) error {
 		}
 		c.Snapshot = value
 	}
+	c.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -376,6 +631,9 @@ func (c ComputeEventDetailResponseResult) MarshalJSON() ([]byte, error) {
 	}
 	if c.Snapshot != nil {
 		return internal.MarshalJSONWithExtraProperty(c.Snapshot, "type", "snapshot")
+	}
+	if len(c.rawJSON) > 0 {
+		return c.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", c)
 }
@@ -429,6 +687,9 @@ func (c *ComputeEventDetailResponseResult) validate() error {
 	}
 	if len(fields) == 0 {
 		if c.Type != "" {
+			if len(c.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", c, c.Type)
 		}
 		return fmt.Errorf("type %T is empty", c)
@@ -451,12 +712,28 @@ func (c *ComputeEventDetailResponseResult) validate() error {
 }
 
 type EmptyResult struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (e *EmptyResult) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *EmptyResult) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
 }
 
 func (e *EmptyResult) UnmarshalJSON(data []byte) error {
@@ -475,7 +752,21 @@ func (e *EmptyResult) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (e *EmptyResult) MarshalJSON() ([]byte, error) {
+	type embed EmptyResult
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (e *EmptyResult) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -487,6 +778,15 @@ func (e *EmptyResult) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+var (
+	execResultFieldExecID    = big.NewInt(1 << 0)
+	execResultFieldStatus    = big.NewInt(1 << 1)
+	execResultFieldExitCode  = big.NewInt(1 << 2)
+	execResultFieldStdout    = big.NewInt(1 << 3)
+	execResultFieldStderr    = big.NewInt(1 << 4)
+	execResultFieldTruncated = big.NewInt(1 << 5)
+)
+
 type ExecResult struct {
 	ExecID    *string `json:"exec_id,omitempty" url:"exec_id,omitempty"`
 	Status    *string `json:"status,omitempty" url:"status,omitempty"`
@@ -494,6 +794,9 @@ type ExecResult struct {
 	Stdout    *string `json:"stdout,omitempty" url:"stdout,omitempty"`
 	Stderr    *string `json:"stderr,omitempty" url:"stderr,omitempty"`
 	Truncated *bool   `json:"truncated,omitempty" url:"truncated,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -542,7 +845,61 @@ func (e *ExecResult) GetTruncated() *bool {
 }
 
 func (e *ExecResult) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
 	return e.extraProperties
+}
+
+func (e *ExecResult) require(field *big.Int) {
+	next := new(big.Int)
+	if e.explicitFields != nil {
+		next.Set(e.explicitFields)
+	}
+	next.Or(next, field)
+	e.explicitFields = next
+}
+
+// SetExecID sets the ExecID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecResult) SetExecID(execID *string) {
+	e.ExecID = execID
+	e.require(execResultFieldExecID)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecResult) SetStatus(status *string) {
+	e.Status = status
+	e.require(execResultFieldStatus)
+}
+
+// SetExitCode sets the ExitCode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecResult) SetExitCode(exitCode *int) {
+	e.ExitCode = exitCode
+	e.require(execResultFieldExitCode)
+}
+
+// SetStdout sets the Stdout field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecResult) SetStdout(stdout *string) {
+	e.Stdout = stdout
+	e.require(execResultFieldStdout)
+}
+
+// SetStderr sets the Stderr field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecResult) SetStderr(stderr *string) {
+	e.Stderr = stderr
+	e.require(execResultFieldStderr)
+}
+
+// SetTruncated sets the Truncated field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecResult) SetTruncated(truncated *bool) {
+	e.Truncated = truncated
+	e.require(execResultFieldTruncated)
 }
 
 func (e *ExecResult) UnmarshalJSON(data []byte) error {
@@ -561,7 +918,21 @@ func (e *ExecResult) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (e *ExecResult) MarshalJSON() ([]byte, error) {
+	type embed ExecResult
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (e *ExecResult) String() string {
+	if e == nil {
+		return "<nil>"
+	}
 	if len(e.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
 			return value
@@ -573,12 +944,21 @@ func (e *ExecResult) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
-type JSONValue = interface{}
+type JSONValue = any
+
+var (
+	sandboxResultFieldID     = big.NewInt(1 << 0)
+	sandboxResultFieldName   = big.NewInt(1 << 1)
+	sandboxResultFieldStatus = big.NewInt(1 << 2)
+)
 
 type SandboxResult struct {
 	ID     *string `json:"id,omitempty" url:"id,omitempty"`
 	Name   *string `json:"name,omitempty" url:"name,omitempty"`
 	Status *string `json:"status,omitempty" url:"status,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -606,7 +986,40 @@ func (s *SandboxResult) GetStatus() *string {
 }
 
 func (s *SandboxResult) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *SandboxResult) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SandboxResult) SetID(id *string) {
+	s.ID = id
+	s.require(sandboxResultFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SandboxResult) SetName(name *string) {
+	s.Name = name
+	s.require(sandboxResultFieldName)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SandboxResult) SetStatus(status *string) {
+	s.Status = status
+	s.require(sandboxResultFieldStatus)
 }
 
 func (s *SandboxResult) UnmarshalJSON(data []byte) error {
@@ -625,7 +1038,21 @@ func (s *SandboxResult) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *SandboxResult) MarshalJSON() ([]byte, error) {
+	type embed SandboxResult
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *SandboxResult) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -637,10 +1064,19 @@ func (s *SandboxResult) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
+var (
+	snapshotResultFieldID     = big.NewInt(1 << 0)
+	snapshotResultFieldName   = big.NewInt(1 << 1)
+	snapshotResultFieldStatus = big.NewInt(1 << 2)
+)
+
 type SnapshotResult struct {
 	ID     *string `json:"id,omitempty" url:"id,omitempty"`
 	Name   *string `json:"name,omitempty" url:"name,omitempty"`
 	Status *string `json:"status,omitempty" url:"status,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -668,7 +1104,40 @@ func (s *SnapshotResult) GetStatus() *string {
 }
 
 func (s *SnapshotResult) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *SnapshotResult) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResult) SetID(id *string) {
+	s.ID = id
+	s.require(snapshotResultFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResult) SetName(name *string) {
+	s.Name = name
+	s.require(snapshotResultFieldName)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResult) SetStatus(status *string) {
+	s.Status = status
+	s.require(snapshotResultFieldStatus)
 }
 
 func (s *SnapshotResult) UnmarshalJSON(data []byte) error {
@@ -687,7 +1156,21 @@ func (s *SnapshotResult) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *SnapshotResult) MarshalJSON() ([]byte, error) {
+	type embed SnapshotResult
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *SnapshotResult) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value

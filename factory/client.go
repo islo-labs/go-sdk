@@ -4,466 +4,310 @@ package factory
 
 import (
 	context "context"
+	http "net/http"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
+// Example:
+//
+//	request := &gosdk.ValidateFactoryLineManifestRequest{
+//	    Name: "name",
+//	    Body: &gosdk.LineDeployRequest{
+//	        Manifest: &gosdk.LineManifestInput{
+//	            Line: &gosdk.LineSection{
+//	                Name: "name",
+//	            },
+//	            Trigger: &gosdk.LineManifestInputTrigger{
+//	                IntegrationTrigger: &gosdk.IntegrationTriggerSectionInput{
+//	                    Provider: "provider",
+//	                    Name: "name",
+//	                    Selector: &gosdk.IntegrationTriggerSectionInputSelector{
+//	                        Github: &gosdk.GitHubRepositorySelector{},
+//	                    },
+//	                },
+//	            },
+//	            Stages: []*gosdk.LineStage{
+//	                &gosdk.LineStage{
+//	                    ID: "id",
+//	                    Job: "job",
+//	                },
+//	            },
+//	        },
+//	    },
+//	}
+//	client.Factory.ValidateFactoryLineManifest(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ValidateFactoryLineManifest(
 	ctx context.Context,
 	request *gosdk.ValidateFactoryLineManifestRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v/validate",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.ValidateFactoryLineManifest(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// Example:
+//
+//	request := &gosdk.DeployFactoryLineRequest{
+//	    Name: "name",
+//	    Body: &gosdk.LineDeployRequest{
+//	        Manifest: &gosdk.LineManifestInput{
+//	            Line: &gosdk.LineSection{
+//	                Name: "name",
+//	            },
+//	            Trigger: &gosdk.LineManifestInputTrigger{
+//	                IntegrationTrigger: &gosdk.IntegrationTriggerSectionInput{
+//	                    Provider: "provider",
+//	                    Name: "name",
+//	                    Selector: &gosdk.IntegrationTriggerSectionInputSelector{
+//	                        Github: &gosdk.GitHubRepositorySelector{},
+//	                    },
+//	                },
+//	            },
+//	            Stages: []*gosdk.LineStage{
+//	                &gosdk.LineStage{
+//	                    ID: "id",
+//	                    Job: "job",
+//	                },
+//	            },
+//	        },
+//	    },
+//	}
+//	client.Factory.DeployFactoryLine(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DeployFactoryLine(
 	ctx context.Context,
 	request *gosdk.DeployFactoryLineRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.LineVersionResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v/deploy",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.LineVersionResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.DeployFactoryLine(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.ListFactoryLinesRequest{}
+//	client.Factory.ListFactoryLines(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListFactoryLines(
 	ctx context.Context,
 	request *gosdk.ListFactoryLinesRequest,
 	opts ...option.RequestOption,
 ) ([]*gosdk.LineResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
+	response, err := c.WithRawResponse.ListFactoryLines(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := baseURL + "/factory/lines"
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.LineResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.GetFactoryLineRequest{
+//	    Name: "name",
+//	}
+//	client.Factory.GetFactoryLine(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetFactoryLine(
 	ctx context.Context,
 	request *gosdk.GetFactoryLineRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.LineResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.LineResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetFactoryLine(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.LineUpdate{
+//	    Name: "name",
+//	}
+//	client.Factory.UpdateFactoryLine(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) UpdateFactoryLine(
 	ctx context.Context,
 	request *gosdk.LineUpdate,
 	opts ...option.RequestOption,
 ) (*gosdk.LineResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.LineResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.UpdateFactoryLine(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPatch,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.ListFactoryLineVersionsRequest{
+//	    Name: "name",
+//	}
+//	client.Factory.ListFactoryLineVersions(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListFactoryLineVersions(
 	ctx context.Context,
 	request *gosdk.ListFactoryLineVersionsRequest,
 	opts ...option.RequestOption,
 ) ([]*gosdk.LineVersionResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
+	response, err := c.WithRawResponse.ListFactoryLineVersions(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v/versions",
-		request.Name,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.LineVersionResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.ListFactoryLineRunsForLineRequest{
+//	    Name: "name",
+//	}
+//	client.Factory.ListFactoryLineRunsForLine(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListFactoryLineRunsForLine(
 	ctx context.Context,
 	request *gosdk.ListFactoryLineRunsForLineRequest,
 	opts ...option.RequestOption,
 ) ([]*gosdk.LineRunSummary, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
+	response, err := c.WithRawResponse.ListFactoryLineRunsForLine(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v/runs",
-		request.Name,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.LineRunSummary
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.LineRunCreate{
+//	    Name: "name",
+//	}
+//	client.Factory.TriggerFactoryLineRun(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) TriggerFactoryLineRun(
 	ctx context.Context,
 	request *gosdk.LineRunCreate,
 	opts ...option.RequestOption,
 ) (*gosdk.LineRunDetail, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v/runs",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.LineRunDetail
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.TriggerFactoryLineRun(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.ListFactoryLineRunsRequest{}
+//	client.Factory.ListFactoryLineRuns(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListFactoryLineRuns(
 	ctx context.Context,
 	request *gosdk.ListFactoryLineRunsRequest,
 	opts ...option.RequestOption,
-) ([]*gosdk.LineRunSummary, error) {
+) (*core.Page[*string, *gosdk.LineRunSummary, *gosdk.ListPageLineRunSummary], error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
+		internal.ResolveEnvironmentBaseURL(
+			options.Environment,
+			"Control",
+		),
 		c.baseURL,
+		internal.ResolveEnvironmentBaseURL(
+			c.options.Environment,
+			"Control",
+		),
 		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/factory/line-runs"
@@ -471,277 +315,202 @@ func (c *Client) ListFactoryLineRuns(
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
 	headers := internal.MergeHeaders(
-		c.header.Clone(),
+		c.options.ToHeader(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.LineRunSummary
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
+	prepareCall := func(pageRequest *core.PageRequest[*string]) *internal.CallParams {
+		if pageRequest.Cursor != nil {
+			queryParams.Set("cursor", *pageRequest.Cursor)
+		}
+		nextURL := endpointURL
+		if len(queryParams) > 0 {
+			nextURL += "?" + queryParams.Encode()
+		}
+		return &internal.CallParams{
+			URL:             nextURL,
 			Method:          http.MethodGet,
 			Headers:         headers,
 			MaxAttempts:     options.MaxAttempts,
+			DisableRetries:  options.DisableRetries,
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
+			Response:        pageRequest.Response,
+			ErrorDecoder:    internal.NewErrorDecoder(gosdk.ErrorCodes),
+		}
 	}
-	return response, nil
+	readPageResponse := func(response *gosdk.ListPageLineRunSummary) *core.PageResponse[*string, *gosdk.LineRunSummary, *gosdk.ListPageLineRunSummary] {
+		var zeroValue *string
+		next := response.GetNextCursor()
+		results := response.GetItems()
+		return &core.PageResponse[*string, *gosdk.LineRunSummary, *gosdk.ListPageLineRunSummary]{
+			Results:  results,
+			Response: response,
+			Next:     next,
+			Done:     next == zeroValue || *next == "",
+		}
+	}
+	pager := internal.NewCursorPager(
+		c.caller,
+		prepareCall,
+		readPageResponse,
+	)
+	return pager.GetPage(ctx, request.Cursor)
 }
 
+// Example:
+//
+//	request := &gosdk.ListFactoryLineRunFacetsRequest{
+//	    Fields: []*string{
+//	        gosdk.String(
+//	            "fields",
+//	        ),
+//	    },
+//	}
+//	client.Factory.ListFactoryLineRunFacets(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) ListFactoryLineRunFacets(
+	ctx context.Context,
+	request *gosdk.ListFactoryLineRunFacetsRequest,
+	opts ...option.RequestOption,
+) (*gosdk.FacetsResponse, error) {
+	response, err := c.WithRawResponse.ListFactoryLineRunFacets(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Example:
+//
+//	request := &gosdk.GetFactoryLineRunRequest{
+//	    RunID: "run_id",
+//	}
+//	client.Factory.GetFactoryLineRun(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetFactoryLineRun(
 	ctx context.Context,
 	request *gosdk.GetFactoryLineRunRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.LineRunDetail, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/line-runs/%v",
-		request.RunID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.LineRunDetail
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetFactoryLineRun(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Per-stage and per-step diagnostics for one line run, including the last failed stage attempt's first failing step, each step's exit code and output tails, and the sandbox environment each stage ran in.
+//
+// Example:
+//
+//	request := &gosdk.GetFactoryLineRunDebugRequest{
+//	    RunID: "run_id",
+//	}
+//	client.Factory.GetFactoryLineRunDebug(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetFactoryLineRunDebug(
 	ctx context.Context,
 	request *gosdk.GetFactoryLineRunDebugRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.LineRunDebugResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/line-runs/%v/debug",
-		request.RunID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.LineRunDebugResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetFactoryLineRunDebug(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.GetFactoryLineScheduleRequest{
+//	    Name: "name",
+//	}
+//	client.Factory.GetFactoryLineSchedule(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetFactoryLineSchedule(
 	ctx context.Context,
 	request *gosdk.GetFactoryLineScheduleRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.LineScheduleResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v/schedule",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.LineScheduleResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetFactoryLineSchedule(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.LineScheduleUpdate{
+//	    Name: "name",
+//	    Cron: "cron",
+//	}
+//	client.Factory.UpsertFactoryLineSchedule(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) UpsertFactoryLineSchedule(
 	ctx context.Context,
 	request *gosdk.LineScheduleUpdate,
 	opts ...option.RequestOption,
 ) (*gosdk.LineScheduleResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v/schedule",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.LineScheduleResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.UpsertFactoryLineSchedule(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPut,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.DeleteFactoryLineScheduleRequest{
+//	    Name: "name",
+//	}
+//	client.Factory.DeleteFactoryLineSchedule(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DeleteFactoryLineSchedule(
 	ctx context.Context,
 	request *gosdk.DeleteFactoryLineScheduleRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/factory/lines/%v/schedule",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.DeleteFactoryLineSchedule(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil

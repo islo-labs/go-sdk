@@ -6,6 +6,15 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
+)
+
+var (
+	computeRegionResponseFieldKey       = big.NewInt(1 << 0)
+	computeRegionResponseFieldLabel     = big.NewInt(1 << 1)
+	computeRegionResponseFieldApiUrl    = big.NewInt(1 << 2)
+	computeRegionResponseFieldWsURL     = big.NewInt(1 << 3)
+	computeRegionResponseFieldIsDefault = big.NewInt(1 << 4)
 )
 
 type ComputeRegionResponse struct {
@@ -19,6 +28,9 @@ type ComputeRegionResponse struct {
 	WsURL string `json:"ws_url" url:"ws_url"`
 	// Whether this is the tenant's default compute region.
 	IsDefault *bool `json:"is_default,omitempty" url:"is_default,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -60,7 +72,54 @@ func (c *ComputeRegionResponse) GetIsDefault() *bool {
 }
 
 func (c *ComputeRegionResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *ComputeRegionResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetKey(key string) {
+	c.Key = key
+	c.require(computeRegionResponseFieldKey)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetLabel(label string) {
+	c.Label = label
+	c.require(computeRegionResponseFieldLabel)
+}
+
+// SetApiUrl sets the ApiUrl field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetApiUrl(apiUrl string) {
+	c.ApiUrl = apiUrl
+	c.require(computeRegionResponseFieldApiUrl)
+}
+
+// SetWsURL sets the WsURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetWsURL(wsURL string) {
+	c.WsURL = wsURL
+	c.require(computeRegionResponseFieldWsURL)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetIsDefault(isDefault *bool) {
+	c.IsDefault = isDefault
+	c.require(computeRegionResponseFieldIsDefault)
 }
 
 func (c *ComputeRegionResponse) UnmarshalJSON(data []byte) error {
@@ -79,7 +138,21 @@ func (c *ComputeRegionResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *ComputeRegionResponse) MarshalJSON() ([]byte, error) {
+	type embed ComputeRegionResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *ComputeRegionResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -91,9 +164,16 @@ func (c *ComputeRegionResponse) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
+var (
+	tenantRegionsResponseFieldRegions = big.NewInt(1 << 0)
+)
+
 type TenantRegionsResponse struct {
 	// Compute regions available to the authenticated tenant.
 	Regions []*ComputeRegionResponse `json:"regions" url:"regions"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -107,7 +187,26 @@ func (t *TenantRegionsResponse) GetRegions() []*ComputeRegionResponse {
 }
 
 func (t *TenantRegionsResponse) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
 	return t.extraProperties
+}
+
+func (t *TenantRegionsResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if t.explicitFields != nil {
+		next.Set(t.explicitFields)
+	}
+	next.Or(next, field)
+	t.explicitFields = next
+}
+
+// SetRegions sets the Regions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TenantRegionsResponse) SetRegions(regions []*ComputeRegionResponse) {
+	t.Regions = regions
+	t.require(tenantRegionsResponseFieldRegions)
 }
 
 func (t *TenantRegionsResponse) UnmarshalJSON(data []byte) error {
@@ -126,7 +225,21 @@ func (t *TenantRegionsResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (t *TenantRegionsResponse) MarshalJSON() ([]byte, error) {
+	type embed TenantRegionsResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (t *TenantRegionsResponse) String() string {
+	if t == nil {
+		return "<nil>"
+	}
 	if len(t.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
 			return value

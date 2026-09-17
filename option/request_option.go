@@ -3,6 +3,7 @@
 package option
 
 import (
+	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	http "net/http"
 	url "net/url"
@@ -63,9 +64,63 @@ func WithMaxAttempts(attempts uint) *core.MaxAttemptsOption {
 	}
 }
 
+// WithMaxStreamBufSize configures the maximum buffer size for streaming responses.
+// This controls the maximum size of a single message (in bytes) that the stream
+// can process. By default, this is set to 1MB.
+func WithMaxStreamBufSize(size int) *core.MaxBufSizeOption {
+	return &core.MaxBufSizeOption{
+		MaxBufSize: size,
+	}
+}
+
+// WithMaxStreamReconnectAttempts caps the number of transparent mid-stream
+// reconnect attempts on streaming endpoints that support resumption. The
+// reconnect loop honors Last-Event-ID and any server-sent `retry:` directives.
+// Has no effect on endpoints that don't support resumption.
+func WithMaxStreamReconnectAttempts(attempts uint) *core.MaxStreamReconnectAttemptsOption {
+	return &core.MaxStreamReconnectAttemptsOption{
+		MaxStreamReconnectAttempts: attempts,
+	}
+}
+
+// WithoutStreamReconnection disables transparent mid-stream reconnection on
+// resumable SSE endpoints. Has no effect on non-resumable endpoints.
+func WithoutStreamReconnection() *core.WithoutStreamReconnectionOption {
+	return &core.WithoutStreamReconnectionOption{}
+}
+
+// WithoutRetries disables HTTP-level retry attempts for the request. Use this
+// instead of WithMaxAttempts(0), which falls through to the default of 2
+// attempts.
+func WithoutRetries() *core.WithoutRetriesOption {
+	return &core.WithoutRetriesOption{}
+}
+
+// WithEnvironment sets the environment for the client, which determines
+// the base URL for each endpoint.
+func WithEnvironment(environment gosdk.Environment) *core.EnvironmentOption {
+	return &core.EnvironmentOption{
+		Environment: environment,
+	}
+}
+
 // WithAPIKey sets the 'Authorization: Bearer <apiKey>' request header.
 func WithAPIKey(apiKey string) *core.APIKeyOption {
 	return &core.APIKeyOption{
 		APIKey: apiKey,
+	}
+}
+
+// WithAPIKeyFunc sets a function that returns the 'Authorization: Bearer' token at request time.
+func WithAPIKeyFunc(fn func() (string, error)) *core.APIKeyFuncOption {
+	return &core.APIKeyFuncOption{
+		APIKeyFunc: fn,
+	}
+}
+
+// WithAPIVersion sets the apiVersion request header.
+func WithAPIVersion(apiVersion string) *core.APIVersionOption {
+	return &core.APIVersionOption{
+		APIVersion: apiVersion,
 	}
 }
