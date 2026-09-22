@@ -6,6 +6,13 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
+)
+
+var (
+	createShareRequestFieldSandboxName = big.NewInt(1 << 0)
+	createShareRequestFieldPort        = big.NewInt(1 << 1)
+	createShareRequestFieldTTLSeconds  = big.NewInt(1 << 2)
 )
 
 type CreateShareRequest struct {
@@ -13,19 +20,135 @@ type CreateShareRequest struct {
 	SandboxName string `json:"-" url:"-"`
 	Port        int    `json:"port" url:"-"`
 	TTLSeconds  *int64 `json:"ttl_seconds,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (c *CreateShareRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetSandboxName sets the SandboxName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateShareRequest) SetSandboxName(sandboxName string) {
+	c.SandboxName = sandboxName
+	c.require(createShareRequestFieldSandboxName)
+}
+
+// SetPort sets the Port field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateShareRequest) SetPort(port int) {
+	c.Port = port
+	c.require(createShareRequestFieldPort)
+}
+
+// SetTTLSeconds sets the TTLSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateShareRequest) SetTTLSeconds(ttlSeconds *int64) {
+	c.TTLSeconds = ttlSeconds
+	c.require(createShareRequestFieldTTLSeconds)
+}
+
+func (c *CreateShareRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler CreateShareRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*c = CreateShareRequest(body)
+	return nil
+}
+
+func (c *CreateShareRequest) MarshalJSON() ([]byte, error) {
+	type embed CreateShareRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	listSharesRequestFieldSandboxName = big.NewInt(1 << 0)
+)
 
 type ListSharesRequest struct {
 	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListSharesRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetSandboxName sets the SandboxName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListSharesRequest) SetSandboxName(sandboxName string) {
+	l.SandboxName = sandboxName
+	l.require(listSharesRequestFieldSandboxName)
+}
+
+var (
+	revokeShareRequestFieldSandboxName = big.NewInt(1 << 0)
+	revokeShareRequestFieldShareID     = big.NewInt(1 << 1)
+)
 
 type RevokeShareRequest struct {
 	// Sandbox name
 	SandboxName string `json:"-" url:"-"`
 	// Share ID
 	ShareID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (r *RevokeShareRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if r.explicitFields != nil {
+		next.Set(r.explicitFields)
+	}
+	next.Or(next, field)
+	r.explicitFields = next
+}
+
+// SetSandboxName sets the SandboxName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RevokeShareRequest) SetSandboxName(sandboxName string) {
+	r.SandboxName = sandboxName
+	r.require(revokeShareRequestFieldSandboxName)
+}
+
+// SetShareID sets the ShareID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RevokeShareRequest) SetShareID(shareID string) {
+	r.ShareID = shareID
+	r.require(revokeShareRequestFieldShareID)
+}
+
+var (
+	shareResponseFieldCreatedAt = big.NewInt(1 << 0)
+	shareResponseFieldExpiresAt = big.NewInt(1 << 1)
+	shareResponseFieldPort      = big.NewInt(1 << 2)
+	shareResponseFieldShareID   = big.NewInt(1 << 3)
+	shareResponseFieldURL       = big.NewInt(1 << 4)
+)
 
 type ShareResponse struct {
 	CreatedAt string  `json:"created_at" url:"created_at"`
@@ -33,6 +156,9 @@ type ShareResponse struct {
 	Port      int     `json:"port" url:"port"`
 	ShareID   string  `json:"share_id" url:"share_id"`
 	URL       string  `json:"url" url:"url"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -74,7 +200,54 @@ func (s *ShareResponse) GetURL() string {
 }
 
 func (s *ShareResponse) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *ShareResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *ShareResponse) SetCreatedAt(createdAt string) {
+	s.CreatedAt = createdAt
+	s.require(shareResponseFieldCreatedAt)
+}
+
+// SetExpiresAt sets the ExpiresAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *ShareResponse) SetExpiresAt(expiresAt *string) {
+	s.ExpiresAt = expiresAt
+	s.require(shareResponseFieldExpiresAt)
+}
+
+// SetPort sets the Port field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *ShareResponse) SetPort(port int) {
+	s.Port = port
+	s.require(shareResponseFieldPort)
+}
+
+// SetShareID sets the ShareID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *ShareResponse) SetShareID(shareID string) {
+	s.ShareID = shareID
+	s.require(shareResponseFieldShareID)
+}
+
+// SetURL sets the URL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *ShareResponse) SetURL(url string) {
+	s.URL = url
+	s.require(shareResponseFieldURL)
 }
 
 func (s *ShareResponse) UnmarshalJSON(data []byte) error {
@@ -93,7 +266,21 @@ func (s *ShareResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *ShareResponse) MarshalJSON() ([]byte, error) {
+	type embed ShareResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *ShareResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value

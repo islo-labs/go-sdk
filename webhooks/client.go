@@ -4,407 +4,238 @@ package webhooks
 
 import (
 	context "context"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
 // List active incoming webhooks for the tenant.
+//
+// Example:
+//
+//	client.Webhooks.ListIncomingWebhooks(
+//	    context.TODO(),
+//	)
 func (c *Client) ListIncomingWebhooks(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) ([]*gosdk.IncomingWebhook, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := baseURL + "/webhooks/incoming"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.IncomingWebhook
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ListIncomingWebhooks(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Create a tenant-scoped incoming webhook receiver. The receiver URL accepts external webhook deliveries and routes them to a resolved sandbox.
+//
+// Example:
+//
+//	request := &gosdk.IncomingWebhookCreate{
+//	    Auth: &gosdk.IncomingWebhookAuth{
+//	        IncomingWebhookAuthZero: &gosdk.IncomingWebhookAuthZero{
+//	            AuthType: gosdk.IncomingWebhookAuthZeroAuthTypeNone,
+//	        },
+//	    },
+//	    Idempotency: &gosdk.IdempotencyConfig{
+//	        Header: &gosdk.IdempotencyConfigHeader{
+//	            Name: "name",
+//	        },
+//	    },
+//	    Name: "name",
+//	    Target: &gosdk.IncomingWebhookTarget{
+//	        FixedSandboxName: &gosdk.IncomingWebhookTargetFixedSandboxName{
+//	            SandboxName: "sandbox_name",
+//	        },
+//	    },
+//	}
+//	client.Webhooks.CreateIncomingWebhook(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) CreateIncomingWebhook(
 	ctx context.Context,
 	request *gosdk.IncomingWebhookCreate,
 	opts ...option.RequestOption,
 ) (*gosdk.IncomingWebhook, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := baseURL + "/webhooks/incoming"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.IncomingWebhook
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.CreateIncomingWebhook(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Get one incoming webhook by ID.
+//
+// Example:
+//
+//	request := &gosdk.GetIncomingWebhookRequest{
+//	    WebhookID: "webhook_id",
+//	}
+//	client.Webhooks.GetIncomingWebhook(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetIncomingWebhook(
 	ctx context.Context,
 	request *gosdk.GetIncomingWebhookRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.IncomingWebhook, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/webhooks/incoming/%v",
-		request.WebhookID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.IncomingWebhook
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetIncomingWebhook(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Soft-delete an incoming webhook receiver.
+//
+// Example:
+//
+//	request := &gosdk.DeleteIncomingWebhookRequest{
+//	    WebhookID: "webhook_id",
+//	}
+//	client.Webhooks.DeleteIncomingWebhook(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DeleteIncomingWebhook(
 	ctx context.Context,
 	request *gosdk.DeleteIncomingWebhookRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/webhooks/incoming/%v",
-		request.WebhookID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.DeleteIncomingWebhook(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
 // Partially update an incoming webhook receiver. Provided top-level fields replace the existing values.
+//
+// Example:
+//
+//	request := &gosdk.IncomingWebhookUpdate{
+//	    WebhookID: "webhook_id",
+//	}
+//	client.Webhooks.UpdateIncomingWebhook(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) UpdateIncomingWebhook(
 	ctx context.Context,
 	request *gosdk.IncomingWebhookUpdate,
 	opts ...option.RequestOption,
 ) (*gosdk.IncomingWebhook, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/webhooks/incoming/%v",
-		request.WebhookID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.IncomingWebhook
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.UpdateIncomingWebhook(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPatch,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // List delivery events for an incoming webhook, with optional status and date filters.
+//
+// Example:
+//
+//	request := &gosdk.ListWebhookDeliveriesRequest{
+//	    WebhookID: "webhook_id",
+//	}
+//	client.Webhooks.ListWebhookDeliveries(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListWebhookDeliveries(
 	ctx context.Context,
 	request *gosdk.ListWebhookDeliveriesRequest,
 	opts ...option.RequestOption,
 ) ([]*gosdk.WebhookDeliverySummary, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
+	response, err := c.WithRawResponse.ListWebhookDeliveries(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/webhooks/incoming/%v/deliveries",
-		request.WebhookID,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.WebhookDeliverySummary
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Get full detail for a single webhook delivery event, including a truncated body preview and action attempts.
+//
+// Example:
+//
+//	request := &gosdk.GetWebhookDeliveryRequest{
+//	    WebhookID: "webhook_id",
+//	    EventID: "event_id",
+//	}
+//	client.Webhooks.GetWebhookDelivery(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetWebhookDelivery(
 	ctx context.Context,
 	request *gosdk.GetWebhookDeliveryRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.WebhookDeliveryDetail, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/webhooks/incoming/%v/deliveries/%v",
-		request.WebhookID,
-		request.EventID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.WebhookDeliveryDetail
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetWebhookDelivery(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }

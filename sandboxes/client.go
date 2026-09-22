@@ -3,1132 +3,572 @@
 package sandboxes
 
 import (
-	bytes "bytes"
 	context "context"
+	io "io"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	io "io"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
 // List sandboxes for the authenticated tenant with optional filters and pagination.
+//
+// Example:
+//
+//	request := &gosdk.ListSandboxesRequest{}
+//	client.Sandboxes.ListSandboxes(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListSandboxes(
 	ctx context.Context,
 	request *gosdk.ListSandboxesRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.PaginatedSandboxResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
+	response, err := c.WithRawResponse.ListSandboxes(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := baseURL + "/sandboxes"
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.PaginatedSandboxResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Create a new sandbox VM with the requested resources.
+//
+// Example:
+//
+//	request := &gosdk.CreateSandboxRequest{}
+//	client.Sandboxes.CreateSandbox(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) CreateSandbox(
 	ctx context.Context,
 	request *gosdk.CreateSandboxRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.SandboxResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := baseURL + "/sandboxes"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		409: func(apiError *core.APIError) error {
-			return &gosdk.ConflictError{
-				APIError: apiError,
-			}
-		},
-		503: func(apiError *core.APIError) error {
-			return &gosdk.ServiceUnavailableError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.SandboxResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.CreateSandbox(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Return details for a sandbox by public ID.
+//
+// Example:
+//
+//	request := &gosdk.GetSandboxByIDRequest{
+//	    ID: "id",
+//	}
+//	client.Sandboxes.GetSandboxByID(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetSandboxByID(
 	ctx context.Context,
 	request *gosdk.GetSandboxByIDRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.SandboxResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/-/by-id/%v",
-		request.ID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.SandboxResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetSandboxByID(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Return details for a sandbox by name.
+//
+// Example:
+//
+//	request := &gosdk.GetSandboxRequest{
+//	    SandboxName: "sandbox_name",
+//	}
+//	client.Sandboxes.GetSandbox(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetSandbox(
 	ctx context.Context,
 	request *gosdk.GetSandboxRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.SandboxResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.SandboxResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetSandbox(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Delete a sandbox and clean up its running VM, if any.
+//
+// Example:
+//
+//	request := &gosdk.DeleteSandboxRequest{
+//	    SandboxName: "sandbox_name",
+//	}
+//	client.Sandboxes.DeleteSandbox(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DeleteSandbox(
 	ctx context.Context,
 	request *gosdk.DeleteSandboxRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.DeleteSandbox(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
 // Server-sent events for live sandbox creation progress.
+//
+// Example:
+//
+//	request := &gosdk.SandboxCreationEventsRequest{
+//	    SandboxName: "sandbox_name",
+//	}
+//	client.Sandboxes.SandboxCreationEvents(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) SandboxCreationEvents(
 	ctx context.Context,
 	request *gosdk.SandboxCreationEventsRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/events",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.SandboxCreationEvents(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
 // Start a command in a sandbox and return an exec ID for polling results.
+//
+// Example:
+//
+//	request := &gosdk.ExecInSandboxRequest{
+//	    SandboxName: "sandbox_name",
+//	    Body: &gosdk.ExecRequest{
+//	        Command: []string{
+//	            "command",
+//	        },
+//	    },
+//	}
+//	client.Sandboxes.ExecInSandbox(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ExecInSandbox(
 	ctx context.Context,
 	request *gosdk.ExecInSandboxRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.ExecResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/exec",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.ExecResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ExecInSandbox(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Stream command stdout, stderr, and exit events as Server-Sent Events.
+//
+// Example:
+//
+//	request := &gosdk.ExecInSandboxStreamRequest{
+//	    SandboxName: "sandbox_name",
+//	    Body: &gosdk.ExecRequest{
+//	        Command: []string{
+//	            "command",
+//	        },
+//	    },
+//	}
+//	client.Sandboxes.ExecInSandboxStream(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ExecInSandboxStream(
 	ctx context.Context,
 	request *gosdk.ExecInSandboxStreamRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/exec/stream",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.ExecInSandboxStream(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
 // Return the captured result for a previously started sandbox command.
+//
+// Example:
+//
+//	request := &gosdk.GetExecResultRequest{
+//	    SandboxName: "sandbox_name",
+//	    ExecID: "exec_id",
+//	}
+//	client.Sandboxes.GetExecResult(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetExecResult(
 	ctx context.Context,
 	request *gosdk.GetExecResultRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.ExecResultResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/exec/%v",
-		request.SandboxName,
-		request.ExecID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.ExecResultResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetExecResult(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Download a file from a sandbox.
+//
+// Example:
+//
+//	request := &gosdk.DownloadFileRequest{
+//	    SandboxName: "sandbox_name",
+//	    Path: "path",
+//	}
+//	client.Sandboxes.DownloadFile(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DownloadFile(
 	ctx context.Context,
 	request *gosdk.DownloadFileRequest,
 	opts ...option.RequestOption,
 ) (io.Reader, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
+	response, err := c.WithRawResponse.DownloadFile(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/files",
-		request.SandboxName,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	response := bytes.NewBuffer(nil)
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Upload a file to a path inside a sandbox.
+//
+// Example:
+//
+//	request := &gosdk.UploadFileRequest{
+//	    SandboxName: "sandbox_name",
+//	    Path: "path",
+//	    File: strings.NewReader(
+//	        "",
+//	    ),
+//	}
+//	client.Sandboxes.UploadFile(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) UploadFile(
 	ctx context.Context,
 	request *gosdk.UploadFileRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.FileUploadStatusResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
+	response, err := c.WithRawResponse.UploadFile(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/files",
-		request.SandboxName,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-	writer := internal.NewMultipartWriter()
-	if err := writer.WriteFile("file", request.File); err != nil {
-		return nil, err
-	}
-	if err := writer.Close(); err != nil {
-		return nil, err
-	}
-	headers.Set("Content-Type", writer.ContentType())
-
-	var response *gosdk.FileUploadStatusResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         writer.Buffer(),
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Download a sandbox directory as an archive.
+//
+// Example:
+//
+//	request := &gosdk.DownloadArchiveRequest{
+//	    SandboxName: "sandbox_name",
+//	    Path: "path",
+//	}
+//	client.Sandboxes.DownloadArchive(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DownloadArchive(
 	ctx context.Context,
 	request *gosdk.DownloadArchiveRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/files-archive",
-		request.SandboxName,
-	)
-	queryParams, err := internal.QueryValues(request)
-	if err != nil {
-		return err
-	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.DownloadArchive(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
 // Upload and extract an archive into a sandbox directory.
+//
+// Example:
+//
+//	request := &gosdk.UploadArchiveRequest{
+//	    SandboxName: "sandbox_name",
+//	    Path: "path",
+//	    File: strings.NewReader(
+//	        "",
+//	    ),
+//	}
+//	client.Sandboxes.UploadArchive(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) UploadArchive(
 	ctx context.Context,
 	request *gosdk.UploadArchiveRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.FileUploadStatusResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
+	response, err := c.WithRawResponse.UploadArchive(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/files-archive",
-		request.SandboxName,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-	writer := internal.NewMultipartWriter()
-	if err := writer.WriteFile("file", request.File); err != nil {
-		return nil, err
-	}
-	if err := writer.Close(); err != nil {
-		return nil, err
-	}
-	headers.Set("Content-Type", writer.ContentType())
-
-	var response *gosdk.FileUploadStatusResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         writer.Buffer(),
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Pause a running sandbox VM.
+//
+// Example:
+//
+//	request := &gosdk.PauseSandboxRequest{
+//	    SandboxName: "sandbox_name",
+//	}
+//	client.Sandboxes.PauseSandbox(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) PauseSandbox(
 	ctx context.Context,
 	request *gosdk.PauseSandboxRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.SandboxResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/pause",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		409: func(apiError *core.APIError) error {
-			return &gosdk.ConflictError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.SandboxResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.PauseSandbox(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Resume a paused sandbox VM.
+//
+// Example:
+//
+//	request := &gosdk.ResumeSandboxRequest{
+//	    SandboxName: "sandbox_name",
+//	}
+//	client.Sandboxes.ResumeSandbox(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ResumeSandbox(
 	ctx context.Context,
 	request *gosdk.ResumeSandboxRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.SandboxResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/resume",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		402: func(apiError *core.APIError) error {
-			return &gosdk.PaymentRequiredError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		409: func(apiError *core.APIError) error {
-			return &gosdk.ConflictError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.SandboxResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ResumeSandbox(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // List persistent shell sessions in a sandbox.
+//
+// Example:
+//
+//	request := &gosdk.ListSessionsRequest{
+//	    SandboxName: "sandbox_name",
+//	}
+//	client.Sandboxes.ListSessions(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListSessions(
 	ctx context.Context,
 	request *gosdk.ListSessionsRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.ListSessionsResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/sessions",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.ListSessionsResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ListSessions(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Create a persistent shell session in a sandbox.
+//
+// Example:
+//
+//	request := &gosdk.CreateSessionRequest{
+//	    SandboxName: "sandbox_name",
+//	    Name: "name",
+//	}
+//	client.Sandboxes.CreateSession(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) CreateSession(
 	ctx context.Context,
 	request *gosdk.CreateSessionRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.CreateSessionResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/sessions",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.CreateSessionResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.CreateSession(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Terminate a persistent shell session in a sandbox.
+//
+// Example:
+//
+//	request := &gosdk.KillSessionRequest{
+//	    SandboxName: "sandbox_name",
+//	    Session: "session",
+//	}
+//	client.Sandboxes.KillSession(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) KillSession(
 	ctx context.Context,
 	request *gosdk.KillSessionRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/sessions/%v",
-		request.SandboxName,
-		request.Session,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.KillSession(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
 // Stop the sandbox VM while keeping the sandbox record available.
+//
+// Example:
+//
+//	request := &gosdk.StopSandboxRequest{
+//	    SandboxName: "sandbox_name",
+//	}
+//	client.Sandboxes.StopSandbox(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) StopSandbox(
 	ctx context.Context,
 	request *gosdk.StopSandboxRequest,
 	opts ...option.RequestOption,
 ) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://ca.compute.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/sandboxes/%v/stop",
-		request.SandboxName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		409: func(apiError *core.APIError) error {
-			return &gosdk.ConflictError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
+	_, err := c.WithRawResponse.StopSandbox(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return err
 	}
 	return nil

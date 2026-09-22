@@ -6,7 +6,18 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
 	time "time"
+)
+
+var (
+	gatewayProfileCreateFieldName              = big.NewInt(1 << 0)
+	gatewayProfileCreateFieldDescription       = big.NewInt(1 << 1)
+	gatewayProfileCreateFieldDefaultAction     = big.NewInt(1 << 2)
+	gatewayProfileCreateFieldInternetEnabled   = big.NewInt(1 << 3)
+	gatewayProfileCreateFieldIsDefault         = big.NewInt(1 << 4)
+	gatewayProfileCreateFieldCloudRole         = big.NewInt(1 << 5)
+	gatewayProfileCreateFieldIntegrationPolicy = big.NewInt(1 << 6)
 )
 
 type GatewayProfileCreate struct {
@@ -18,7 +29,102 @@ type GatewayProfileCreate struct {
 	// Cloud role public ID (UUID)
 	CloudRole         *string                                `json:"cloud_role,omitempty" url:"-"`
 	IntegrationPolicy *GatewayProfileCreateIntegrationPolicy `json:"integration_policy,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GatewayProfileCreate) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileCreate) SetName(name string) {
+	g.Name = name
+	g.require(gatewayProfileCreateFieldName)
+}
+
+// SetDescription sets the Description field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileCreate) SetDescription(description *string) {
+	g.Description = description
+	g.require(gatewayProfileCreateFieldDescription)
+}
+
+// SetDefaultAction sets the DefaultAction field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileCreate) SetDefaultAction(defaultAction *GatewayAction) {
+	g.DefaultAction = defaultAction
+	g.require(gatewayProfileCreateFieldDefaultAction)
+}
+
+// SetInternetEnabled sets the InternetEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileCreate) SetInternetEnabled(internetEnabled *bool) {
+	g.InternetEnabled = internetEnabled
+	g.require(gatewayProfileCreateFieldInternetEnabled)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileCreate) SetIsDefault(isDefault *bool) {
+	g.IsDefault = isDefault
+	g.require(gatewayProfileCreateFieldIsDefault)
+}
+
+// SetCloudRole sets the CloudRole field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileCreate) SetCloudRole(cloudRole *string) {
+	g.CloudRole = cloudRole
+	g.require(gatewayProfileCreateFieldCloudRole)
+}
+
+// SetIntegrationPolicy sets the IntegrationPolicy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileCreate) SetIntegrationPolicy(integrationPolicy *GatewayProfileCreateIntegrationPolicy) {
+	g.IntegrationPolicy = integrationPolicy
+	g.require(gatewayProfileCreateFieldIntegrationPolicy)
+}
+
+func (g *GatewayProfileCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler GatewayProfileCreate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*g = GatewayProfileCreate(body)
+	return nil
+}
+
+func (g *GatewayProfileCreate) MarshalJSON() ([]byte, error) {
+	type embed GatewayProfileCreate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*g),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	gatewayRuleCreateFieldProfileID     = big.NewInt(1 << 0)
+	gatewayRuleCreateFieldHostPattern   = big.NewInt(1 << 1)
+	gatewayRuleCreateFieldPathPattern   = big.NewInt(1 << 2)
+	gatewayRuleCreateFieldMethods       = big.NewInt(1 << 3)
+	gatewayRuleCreateFieldRateLimitRpm  = big.NewInt(1 << 4)
+	gatewayRuleCreateFieldAuthStrategy  = big.NewInt(1 << 5)
+	gatewayRuleCreateFieldContentFilter = big.NewInt(1 << 6)
+	gatewayRuleCreateFieldPriority      = big.NewInt(1 << 7)
+	gatewayRuleCreateFieldAction        = big.NewInt(1 << 8)
+	gatewayRuleCreateFieldProviderKey   = big.NewInt(1 << 9)
+)
 
 type GatewayRuleCreate struct {
 	ProfileID     string                          `json:"-" url:"-"`
@@ -31,33 +137,281 @@ type GatewayRuleCreate struct {
 	Priority      *int                            `json:"priority,omitempty" url:"-"`
 	Action        *GatewayAction                  `json:"action,omitempty" url:"-"`
 	ProviderKey   *string                         `json:"provider_key,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GatewayRuleCreate) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetProfileID sets the ProfileID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetProfileID(profileID string) {
+	g.ProfileID = profileID
+	g.require(gatewayRuleCreateFieldProfileID)
+}
+
+// SetHostPattern sets the HostPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetHostPattern(hostPattern string) {
+	g.HostPattern = hostPattern
+	g.require(gatewayRuleCreateFieldHostPattern)
+}
+
+// SetPathPattern sets the PathPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetPathPattern(pathPattern *string) {
+	g.PathPattern = pathPattern
+	g.require(gatewayRuleCreateFieldPathPattern)
+}
+
+// SetMethods sets the Methods field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetMethods(methods []string) {
+	g.Methods = methods
+	g.require(gatewayRuleCreateFieldMethods)
+}
+
+// SetRateLimitRpm sets the RateLimitRpm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetRateLimitRpm(rateLimitRpm *int) {
+	g.RateLimitRpm = rateLimitRpm
+	g.require(gatewayRuleCreateFieldRateLimitRpm)
+}
+
+// SetAuthStrategy sets the AuthStrategy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetAuthStrategy(authStrategy *AuthStrategySchema) {
+	g.AuthStrategy = authStrategy
+	g.require(gatewayRuleCreateFieldAuthStrategy)
+}
+
+// SetContentFilter sets the ContentFilter field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetContentFilter(contentFilter *GatewayRuleCreateContentFilter) {
+	g.ContentFilter = contentFilter
+	g.require(gatewayRuleCreateFieldContentFilter)
+}
+
+// SetPriority sets the Priority field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetPriority(priority *int) {
+	g.Priority = priority
+	g.require(gatewayRuleCreateFieldPriority)
+}
+
+// SetAction sets the Action field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetAction(action *GatewayAction) {
+	g.Action = action
+	g.require(gatewayRuleCreateFieldAction)
+}
+
+// SetProviderKey sets the ProviderKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleCreate) SetProviderKey(providerKey *string) {
+	g.ProviderKey = providerKey
+	g.require(gatewayRuleCreateFieldProviderKey)
+}
+
+func (g *GatewayRuleCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler GatewayRuleCreate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*g = GatewayRuleCreate(body)
+	return nil
+}
+
+func (g *GatewayRuleCreate) MarshalJSON() ([]byte, error) {
+	type embed GatewayRuleCreate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*g),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	deleteGatewayProfileRequestFieldProfileID = big.NewInt(1 << 0)
+)
 
 type DeleteGatewayProfileRequest struct {
 	ProfileID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteGatewayProfileRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetProfileID sets the ProfileID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteGatewayProfileRequest) SetProfileID(profileID string) {
+	d.ProfileID = profileID
+	d.require(deleteGatewayProfileRequestFieldProfileID)
+}
+
+var (
+	deleteGatewayRuleRequestFieldProfileID = big.NewInt(1 << 0)
+	deleteGatewayRuleRequestFieldRuleID    = big.NewInt(1 << 1)
+)
 
 type DeleteGatewayRuleRequest struct {
 	ProfileID string `json:"-" url:"-"`
 	RuleID    string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteGatewayRuleRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetProfileID sets the ProfileID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteGatewayRuleRequest) SetProfileID(profileID string) {
+	d.ProfileID = profileID
+	d.require(deleteGatewayRuleRequestFieldProfileID)
+}
+
+// SetRuleID sets the RuleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteGatewayRuleRequest) SetRuleID(ruleID string) {
+	d.RuleID = ruleID
+	d.require(deleteGatewayRuleRequestFieldRuleID)
+}
+
+var (
+	getGatewayProfileRequestFieldProfileID = big.NewInt(1 << 0)
+)
 
 type GetGatewayProfileRequest struct {
 	ProfileID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetGatewayProfileRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetProfileID sets the ProfileID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetGatewayProfileRequest) SetProfileID(profileID string) {
+	g.ProfileID = profileID
+	g.require(getGatewayProfileRequestFieldProfileID)
+}
+
+var (
+	ruleReorderRequestFieldProfileID = big.NewInt(1 << 0)
+	ruleReorderRequestFieldRules     = big.NewInt(1 << 1)
+)
 
 type RuleReorderRequest struct {
 	ProfileID string             `json:"-" url:"-"`
-	Rules     []*RuleReorderItem `json:"rules,omitempty" url:"-"`
+	Rules     []*RuleReorderItem `json:"rules" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (r *RuleReorderRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if r.explicitFields != nil {
+		next.Set(r.explicitFields)
+	}
+	next.Or(next, field)
+	r.explicitFields = next
+}
+
+// SetProfileID sets the ProfileID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RuleReorderRequest) SetProfileID(profileID string) {
+	r.ProfileID = profileID
+	r.require(ruleReorderRequestFieldProfileID)
+}
+
+// SetRules sets the Rules field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RuleReorderRequest) SetRules(rules []*RuleReorderItem) {
+	r.Rules = rules
+	r.require(ruleReorderRequestFieldRules)
+}
+
+func (r *RuleReorderRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler RuleReorderRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*r = RuleReorderRequest(body)
+	return nil
+}
+
+func (r *RuleReorderRequest) MarshalJSON() ([]byte, error) {
+	type embed RuleReorderRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 type AllIntegrationsPolicy struct {
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
 func (a *AllIntegrationsPolicy) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
 	return a.extraProperties
+}
+
+func (a *AllIntegrationsPolicy) require(field *big.Int) {
+	next := new(big.Int)
+	if a.explicitFields != nil {
+		next.Set(a.explicitFields)
+	}
+	next.Or(next, field)
+	a.explicitFields = next
 }
 
 func (a *AllIntegrationsPolicy) UnmarshalJSON(data []byte) error {
@@ -76,7 +430,21 @@ func (a *AllIntegrationsPolicy) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AllIntegrationsPolicy) MarshalJSON() ([]byte, error) {
+	type embed AllIntegrationsPolicy
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (a *AllIntegrationsPolicy) String() string {
+	if a == nil {
+		return "<nil>"
+	}
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -88,10 +456,19 @@ func (a *AllIntegrationsPolicy) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	cloudRoleRefFieldID       = big.NewInt(1 << 0)
+	cloudRoleRefFieldProvider = big.NewInt(1 << 1)
+	cloudRoleRefFieldRoleArn  = big.NewInt(1 << 2)
+)
+
 type CloudRoleRef struct {
 	ID       string `json:"id" url:"id"`
 	Provider string `json:"provider" url:"provider"`
 	RoleArn  string `json:"role_arn" url:"role_arn"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -119,7 +496,40 @@ func (c *CloudRoleRef) GetRoleArn() string {
 }
 
 func (c *CloudRoleRef) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *CloudRoleRef) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleRef) SetID(id string) {
+	c.ID = id
+	c.require(cloudRoleRefFieldID)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleRef) SetProvider(provider string) {
+	c.Provider = provider
+	c.require(cloudRoleRefFieldProvider)
+}
+
+// SetRoleArn sets the RoleArn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleRef) SetRoleArn(roleArn string) {
+	c.RoleArn = roleArn
+	c.require(cloudRoleRefFieldRoleArn)
 }
 
 func (c *CloudRoleRef) UnmarshalJSON(data []byte) error {
@@ -138,7 +548,21 @@ func (c *CloudRoleRef) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *CloudRoleRef) MarshalJSON() ([]byte, error) {
+	type embed CloudRoleRef
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *CloudRoleRef) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -150,9 +574,17 @@ func (c *CloudRoleRef) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
+var (
+	contentTypeContentFilterFieldDirection = big.NewInt(1 << 0)
+	contentTypeContentFilterFieldPattern   = big.NewInt(1 << 1)
+)
+
 type ContentTypeContentFilter struct {
 	Direction ContentTypeContentFilterDirection `json:"direction" url:"direction"`
 	Pattern   string                            `json:"pattern" url:"pattern"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -173,7 +605,33 @@ func (c *ContentTypeContentFilter) GetPattern() string {
 }
 
 func (c *ContentTypeContentFilter) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *ContentTypeContentFilter) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetDirection sets the Direction field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContentTypeContentFilter) SetDirection(direction ContentTypeContentFilterDirection) {
+	c.Direction = direction
+	c.require(contentTypeContentFilterFieldDirection)
+}
+
+// SetPattern sets the Pattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContentTypeContentFilter) SetPattern(pattern string) {
+	c.Pattern = pattern
+	c.require(contentTypeContentFilterFieldPattern)
 }
 
 func (c *ContentTypeContentFilter) UnmarshalJSON(data []byte) error {
@@ -192,7 +650,21 @@ func (c *ContentTypeContentFilter) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *ContentTypeContentFilter) MarshalJSON() ([]byte, error) {
+	type embed ContentTypeContentFilter
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *ContentTypeContentFilter) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -229,8 +701,15 @@ func (c ContentTypeContentFilterDirection) Ptr() *ContentTypeContentFilterDirect
 	return &c
 }
 
+var (
+	customIntegrationsPolicyFieldKeys = big.NewInt(1 << 0)
+)
+
 type CustomIntegrationsPolicy struct {
 	Keys []string `json:"keys,omitempty" url:"keys,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -244,7 +723,26 @@ func (c *CustomIntegrationsPolicy) GetKeys() []string {
 }
 
 func (c *CustomIntegrationsPolicy) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *CustomIntegrationsPolicy) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetKeys sets the Keys field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CustomIntegrationsPolicy) SetKeys(keys []string) {
+	c.Keys = keys
+	c.require(customIntegrationsPolicyFieldKeys)
 }
 
 func (c *CustomIntegrationsPolicy) UnmarshalJSON(data []byte) error {
@@ -263,7 +761,21 @@ func (c *CustomIntegrationsPolicy) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *CustomIntegrationsPolicy) MarshalJSON() ([]byte, error) {
+	type embed CustomIntegrationsPolicy
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *CustomIntegrationsPolicy) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -297,6 +809,21 @@ func (g GatewayAction) Ptr() *GatewayAction {
 	return &g
 }
 
+var (
+	gatewayProfileDetailResponseFieldID                = big.NewInt(1 << 0)
+	gatewayProfileDetailResponseFieldName              = big.NewInt(1 << 1)
+	gatewayProfileDetailResponseFieldDescription       = big.NewInt(1 << 2)
+	gatewayProfileDetailResponseFieldDefaultAction     = big.NewInt(1 << 3)
+	gatewayProfileDetailResponseFieldInternetEnabled   = big.NewInt(1 << 4)
+	gatewayProfileDetailResponseFieldIsDefault         = big.NewInt(1 << 5)
+	gatewayProfileDetailResponseFieldCloudRole         = big.NewInt(1 << 6)
+	gatewayProfileDetailResponseFieldIntegrationPolicy = big.NewInt(1 << 7)
+	gatewayProfileDetailResponseFieldRuleCount         = big.NewInt(1 << 8)
+	gatewayProfileDetailResponseFieldCreatedAt         = big.NewInt(1 << 9)
+	gatewayProfileDetailResponseFieldUpdatedAt         = big.NewInt(1 << 10)
+	gatewayProfileDetailResponseFieldRules             = big.NewInt(1 << 11)
+)
+
 type GatewayProfileDetailResponse struct {
 	ID                string                                         `json:"id" url:"id"`
 	Name              string                                         `json:"name" url:"name"`
@@ -310,6 +837,9 @@ type GatewayProfileDetailResponse struct {
 	CreatedAt         *time.Time                                     `json:"created_at,omitempty" url:"created_at,omitempty"`
 	UpdatedAt         *time.Time                                     `json:"updated_at,omitempty" url:"updated_at,omitempty"`
 	Rules             []*GatewayRuleResponse                         `json:"rules,omitempty" url:"rules,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -400,7 +930,103 @@ func (g *GatewayProfileDetailResponse) GetRules() []*GatewayRuleResponse {
 }
 
 func (g *GatewayProfileDetailResponse) GetExtraProperties() map[string]interface{} {
+	if g == nil {
+		return nil
+	}
 	return g.extraProperties
+}
+
+func (g *GatewayProfileDetailResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetID(id string) {
+	g.ID = id
+	g.require(gatewayProfileDetailResponseFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetName(name string) {
+	g.Name = name
+	g.require(gatewayProfileDetailResponseFieldName)
+}
+
+// SetDescription sets the Description field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetDescription(description *string) {
+	g.Description = description
+	g.require(gatewayProfileDetailResponseFieldDescription)
+}
+
+// SetDefaultAction sets the DefaultAction field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetDefaultAction(defaultAction string) {
+	g.DefaultAction = defaultAction
+	g.require(gatewayProfileDetailResponseFieldDefaultAction)
+}
+
+// SetInternetEnabled sets the InternetEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetInternetEnabled(internetEnabled bool) {
+	g.InternetEnabled = internetEnabled
+	g.require(gatewayProfileDetailResponseFieldInternetEnabled)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetIsDefault(isDefault bool) {
+	g.IsDefault = isDefault
+	g.require(gatewayProfileDetailResponseFieldIsDefault)
+}
+
+// SetCloudRole sets the CloudRole field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetCloudRole(cloudRole *CloudRoleRef) {
+	g.CloudRole = cloudRole
+	g.require(gatewayProfileDetailResponseFieldCloudRole)
+}
+
+// SetIntegrationPolicy sets the IntegrationPolicy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetIntegrationPolicy(integrationPolicy *GatewayProfileDetailResponseIntegrationPolicy) {
+	g.IntegrationPolicy = integrationPolicy
+	g.require(gatewayProfileDetailResponseFieldIntegrationPolicy)
+}
+
+// SetRuleCount sets the RuleCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetRuleCount(ruleCount *int) {
+	g.RuleCount = ruleCount
+	g.require(gatewayProfileDetailResponseFieldRuleCount)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetCreatedAt(createdAt *time.Time) {
+	g.CreatedAt = createdAt
+	g.require(gatewayProfileDetailResponseFieldCreatedAt)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetUpdatedAt(updatedAt *time.Time) {
+	g.UpdatedAt = updatedAt
+	g.require(gatewayProfileDetailResponseFieldUpdatedAt)
+}
+
+// SetRules sets the Rules field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileDetailResponse) SetRules(rules []*GatewayRuleResponse) {
+	g.Rules = rules
+	g.require(gatewayProfileDetailResponseFieldRules)
 }
 
 func (g *GatewayProfileDetailResponse) UnmarshalJSON(data []byte) error {
@@ -438,10 +1064,14 @@ func (g *GatewayProfileDetailResponse) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewOptionalDateTime(g.CreatedAt),
 		UpdatedAt: internal.NewOptionalDateTime(g.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (g *GatewayProfileDetailResponse) String() string {
+	if g == nil {
+		return "<nil>"
+	}
 	if len(g.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
 			return value
@@ -457,6 +1087,8 @@ type GatewayProfileDetailResponseIntegrationPolicy struct {
 	Mode   string
 	All    *AllIntegrationsPolicy
 	Custom *CustomIntegrationsPolicy
+
+	rawJSON json.RawMessage
 }
 
 func (g *GatewayProfileDetailResponseIntegrationPolicy) GetMode() string {
@@ -505,6 +1137,7 @@ func (g *GatewayProfileDetailResponseIntegrationPolicy) UnmarshalJSON(data []byt
 		}
 		g.Custom = value
 	}
+	g.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -517,6 +1150,9 @@ func (g GatewayProfileDetailResponseIntegrationPolicy) MarshalJSON() ([]byte, er
 	}
 	if g.Custom != nil {
 		return internal.MarshalJSONWithExtraProperty(g.Custom, "mode", "custom")
+	}
+	if len(g.rawJSON) > 0 {
+		return g.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
 }
@@ -549,6 +1185,9 @@ func (g *GatewayProfileDetailResponseIntegrationPolicy) validate() error {
 	}
 	if len(fields) == 0 {
 		if g.Mode != "" {
+			if len(g.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.Mode)
 		}
 		return fmt.Errorf("type %T is empty", g)
@@ -570,6 +1209,20 @@ func (g *GatewayProfileDetailResponseIntegrationPolicy) validate() error {
 	return nil
 }
 
+var (
+	gatewayProfileResponseFieldID                = big.NewInt(1 << 0)
+	gatewayProfileResponseFieldName              = big.NewInt(1 << 1)
+	gatewayProfileResponseFieldDescription       = big.NewInt(1 << 2)
+	gatewayProfileResponseFieldDefaultAction     = big.NewInt(1 << 3)
+	gatewayProfileResponseFieldInternetEnabled   = big.NewInt(1 << 4)
+	gatewayProfileResponseFieldIsDefault         = big.NewInt(1 << 5)
+	gatewayProfileResponseFieldCloudRole         = big.NewInt(1 << 6)
+	gatewayProfileResponseFieldIntegrationPolicy = big.NewInt(1 << 7)
+	gatewayProfileResponseFieldRuleCount         = big.NewInt(1 << 8)
+	gatewayProfileResponseFieldCreatedAt         = big.NewInt(1 << 9)
+	gatewayProfileResponseFieldUpdatedAt         = big.NewInt(1 << 10)
+)
+
 type GatewayProfileResponse struct {
 	ID                string                                   `json:"id" url:"id"`
 	Name              string                                   `json:"name" url:"name"`
@@ -582,6 +1235,9 @@ type GatewayProfileResponse struct {
 	RuleCount         *int                                     `json:"rule_count,omitempty" url:"rule_count,omitempty"`
 	CreatedAt         *time.Time                               `json:"created_at,omitempty" url:"created_at,omitempty"`
 	UpdatedAt         *time.Time                               `json:"updated_at,omitempty" url:"updated_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -665,7 +1321,96 @@ func (g *GatewayProfileResponse) GetUpdatedAt() *time.Time {
 }
 
 func (g *GatewayProfileResponse) GetExtraProperties() map[string]interface{} {
+	if g == nil {
+		return nil
+	}
 	return g.extraProperties
+}
+
+func (g *GatewayProfileResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetID(id string) {
+	g.ID = id
+	g.require(gatewayProfileResponseFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetName(name string) {
+	g.Name = name
+	g.require(gatewayProfileResponseFieldName)
+}
+
+// SetDescription sets the Description field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetDescription(description *string) {
+	g.Description = description
+	g.require(gatewayProfileResponseFieldDescription)
+}
+
+// SetDefaultAction sets the DefaultAction field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetDefaultAction(defaultAction string) {
+	g.DefaultAction = defaultAction
+	g.require(gatewayProfileResponseFieldDefaultAction)
+}
+
+// SetInternetEnabled sets the InternetEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetInternetEnabled(internetEnabled bool) {
+	g.InternetEnabled = internetEnabled
+	g.require(gatewayProfileResponseFieldInternetEnabled)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetIsDefault(isDefault bool) {
+	g.IsDefault = isDefault
+	g.require(gatewayProfileResponseFieldIsDefault)
+}
+
+// SetCloudRole sets the CloudRole field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetCloudRole(cloudRole *CloudRoleRef) {
+	g.CloudRole = cloudRole
+	g.require(gatewayProfileResponseFieldCloudRole)
+}
+
+// SetIntegrationPolicy sets the IntegrationPolicy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetIntegrationPolicy(integrationPolicy *GatewayProfileResponseIntegrationPolicy) {
+	g.IntegrationPolicy = integrationPolicy
+	g.require(gatewayProfileResponseFieldIntegrationPolicy)
+}
+
+// SetRuleCount sets the RuleCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetRuleCount(ruleCount *int) {
+	g.RuleCount = ruleCount
+	g.require(gatewayProfileResponseFieldRuleCount)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetCreatedAt(createdAt *time.Time) {
+	g.CreatedAt = createdAt
+	g.require(gatewayProfileResponseFieldCreatedAt)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileResponse) SetUpdatedAt(updatedAt *time.Time) {
+	g.UpdatedAt = updatedAt
+	g.require(gatewayProfileResponseFieldUpdatedAt)
 }
 
 func (g *GatewayProfileResponse) UnmarshalJSON(data []byte) error {
@@ -703,10 +1448,14 @@ func (g *GatewayProfileResponse) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewOptionalDateTime(g.CreatedAt),
 		UpdatedAt: internal.NewOptionalDateTime(g.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (g *GatewayProfileResponse) String() string {
+	if g == nil {
+		return "<nil>"
+	}
 	if len(g.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
 			return value
@@ -722,6 +1471,8 @@ type GatewayProfileResponseIntegrationPolicy struct {
 	Mode   string
 	All    *AllIntegrationsPolicy
 	Custom *CustomIntegrationsPolicy
+
+	rawJSON json.RawMessage
 }
 
 func (g *GatewayProfileResponseIntegrationPolicy) GetMode() string {
@@ -770,6 +1521,7 @@ func (g *GatewayProfileResponseIntegrationPolicy) UnmarshalJSON(data []byte) err
 		}
 		g.Custom = value
 	}
+	g.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -782,6 +1534,9 @@ func (g GatewayProfileResponseIntegrationPolicy) MarshalJSON() ([]byte, error) {
 	}
 	if g.Custom != nil {
 		return internal.MarshalJSONWithExtraProperty(g.Custom, "mode", "custom")
+	}
+	if len(g.rawJSON) > 0 {
+		return g.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
 }
@@ -814,6 +1569,9 @@ func (g *GatewayProfileResponseIntegrationPolicy) validate() error {
 	}
 	if len(fields) == 0 {
 		if g.Mode != "" {
+			if len(g.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.Mode)
 		}
 		return fmt.Errorf("type %T is empty", g)
@@ -835,19 +1593,37 @@ func (g *GatewayProfileResponseIntegrationPolicy) validate() error {
 	return nil
 }
 
+var (
+	gatewayRuleResponseFieldID            = big.NewInt(1 << 0)
+	gatewayRuleResponseFieldPriority      = big.NewInt(1 << 1)
+	gatewayRuleResponseFieldHostPattern   = big.NewInt(1 << 2)
+	gatewayRuleResponseFieldPathPattern   = big.NewInt(1 << 3)
+	gatewayRuleResponseFieldMethods       = big.NewInt(1 << 4)
+	gatewayRuleResponseFieldAction        = big.NewInt(1 << 5)
+	gatewayRuleResponseFieldRateLimitRpm  = big.NewInt(1 << 6)
+	gatewayRuleResponseFieldProviderKey   = big.NewInt(1 << 7)
+	gatewayRuleResponseFieldAuthStrategy  = big.NewInt(1 << 8)
+	gatewayRuleResponseFieldContentFilter = big.NewInt(1 << 9)
+	gatewayRuleResponseFieldCreatedAt     = big.NewInt(1 << 10)
+	gatewayRuleResponseFieldUpdatedAt     = big.NewInt(1 << 11)
+)
+
 type GatewayRuleResponse struct {
-	ID            string                 `json:"id" url:"id"`
-	Priority      int                    `json:"priority" url:"priority"`
-	HostPattern   string                 `json:"host_pattern" url:"host_pattern"`
-	PathPattern   *string                `json:"path_pattern,omitempty" url:"path_pattern,omitempty"`
-	Methods       []string               `json:"methods,omitempty" url:"methods,omitempty"`
-	Action        string                 `json:"action" url:"action"`
-	RateLimitRpm  *int                   `json:"rate_limit_rpm,omitempty" url:"rate_limit_rpm,omitempty"`
-	ProviderKey   *string                `json:"provider_key,omitempty" url:"provider_key,omitempty"`
-	AuthStrategy  map[string]interface{} `json:"auth_strategy,omitempty" url:"auth_strategy,omitempty"`
-	ContentFilter map[string]interface{} `json:"content_filter,omitempty" url:"content_filter,omitempty"`
-	CreatedAt     *time.Time             `json:"created_at,omitempty" url:"created_at,omitempty"`
-	UpdatedAt     *time.Time             `json:"updated_at,omitempty" url:"updated_at,omitempty"`
+	ID            string         `json:"id" url:"id"`
+	Priority      int            `json:"priority" url:"priority"`
+	HostPattern   string         `json:"host_pattern" url:"host_pattern"`
+	PathPattern   *string        `json:"path_pattern,omitempty" url:"path_pattern,omitempty"`
+	Methods       []string       `json:"methods,omitempty" url:"methods,omitempty"`
+	Action        string         `json:"action" url:"action"`
+	RateLimitRpm  *int           `json:"rate_limit_rpm,omitempty" url:"rate_limit_rpm,omitempty"`
+	ProviderKey   *string        `json:"provider_key,omitempty" url:"provider_key,omitempty"`
+	AuthStrategy  map[string]any `json:"auth_strategy,omitempty" url:"auth_strategy,omitempty"`
+	ContentFilter map[string]any `json:"content_filter,omitempty" url:"content_filter,omitempty"`
+	CreatedAt     *time.Time     `json:"created_at,omitempty" url:"created_at,omitempty"`
+	UpdatedAt     *time.Time     `json:"updated_at,omitempty" url:"updated_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -909,14 +1685,14 @@ func (g *GatewayRuleResponse) GetProviderKey() *string {
 	return g.ProviderKey
 }
 
-func (g *GatewayRuleResponse) GetAuthStrategy() map[string]interface{} {
+func (g *GatewayRuleResponse) GetAuthStrategy() map[string]any {
 	if g == nil {
 		return nil
 	}
 	return g.AuthStrategy
 }
 
-func (g *GatewayRuleResponse) GetContentFilter() map[string]interface{} {
+func (g *GatewayRuleResponse) GetContentFilter() map[string]any {
 	if g == nil {
 		return nil
 	}
@@ -938,7 +1714,103 @@ func (g *GatewayRuleResponse) GetUpdatedAt() *time.Time {
 }
 
 func (g *GatewayRuleResponse) GetExtraProperties() map[string]interface{} {
+	if g == nil {
+		return nil
+	}
 	return g.extraProperties
+}
+
+func (g *GatewayRuleResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetID(id string) {
+	g.ID = id
+	g.require(gatewayRuleResponseFieldID)
+}
+
+// SetPriority sets the Priority field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetPriority(priority int) {
+	g.Priority = priority
+	g.require(gatewayRuleResponseFieldPriority)
+}
+
+// SetHostPattern sets the HostPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetHostPattern(hostPattern string) {
+	g.HostPattern = hostPattern
+	g.require(gatewayRuleResponseFieldHostPattern)
+}
+
+// SetPathPattern sets the PathPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetPathPattern(pathPattern *string) {
+	g.PathPattern = pathPattern
+	g.require(gatewayRuleResponseFieldPathPattern)
+}
+
+// SetMethods sets the Methods field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetMethods(methods []string) {
+	g.Methods = methods
+	g.require(gatewayRuleResponseFieldMethods)
+}
+
+// SetAction sets the Action field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetAction(action string) {
+	g.Action = action
+	g.require(gatewayRuleResponseFieldAction)
+}
+
+// SetRateLimitRpm sets the RateLimitRpm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetRateLimitRpm(rateLimitRpm *int) {
+	g.RateLimitRpm = rateLimitRpm
+	g.require(gatewayRuleResponseFieldRateLimitRpm)
+}
+
+// SetProviderKey sets the ProviderKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetProviderKey(providerKey *string) {
+	g.ProviderKey = providerKey
+	g.require(gatewayRuleResponseFieldProviderKey)
+}
+
+// SetAuthStrategy sets the AuthStrategy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetAuthStrategy(authStrategy map[string]any) {
+	g.AuthStrategy = authStrategy
+	g.require(gatewayRuleResponseFieldAuthStrategy)
+}
+
+// SetContentFilter sets the ContentFilter field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetContentFilter(contentFilter map[string]any) {
+	g.ContentFilter = contentFilter
+	g.require(gatewayRuleResponseFieldContentFilter)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetCreatedAt(createdAt *time.Time) {
+	g.CreatedAt = createdAt
+	g.require(gatewayRuleResponseFieldCreatedAt)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleResponse) SetUpdatedAt(updatedAt *time.Time) {
+	g.UpdatedAt = updatedAt
+	g.require(gatewayRuleResponseFieldUpdatedAt)
 }
 
 func (g *GatewayRuleResponse) UnmarshalJSON(data []byte) error {
@@ -976,10 +1848,14 @@ func (g *GatewayRuleResponse) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewOptionalDateTime(g.CreatedAt),
 		UpdatedAt: internal.NewOptionalDateTime(g.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (g *GatewayRuleResponse) String() string {
+	if g == nil {
+		return "<nil>"
+	}
 	if len(g.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
 			return value
@@ -991,6 +1867,17 @@ func (g *GatewayRuleResponse) String() string {
 	return fmt.Sprintf("%#v", g)
 }
 
+var (
+	judgeContentFilterFieldDirection      = big.NewInt(1 << 0)
+	judgeContentFilterFieldName           = big.NewInt(1 << 1)
+	judgeContentFilterFieldProviderKey    = big.NewInt(1 << 2)
+	judgeContentFilterFieldModel          = big.NewInt(1 << 3)
+	judgeContentFilterFieldPrompt         = big.NewInt(1 << 4)
+	judgeContentFilterFieldFallback       = big.NewInt(1 << 5)
+	judgeContentFilterFieldTimeoutSeconds = big.NewInt(1 << 6)
+	judgeContentFilterFieldMaxTokens      = big.NewInt(1 << 7)
+)
+
 type JudgeContentFilter struct {
 	Direction      JudgeContentFilterDirection   `json:"direction" url:"direction"`
 	Name           string                        `json:"name" url:"name"`
@@ -1000,6 +1887,9 @@ type JudgeContentFilter struct {
 	Fallback       *JudgeContentFilterFallback   `json:"fallback,omitempty" url:"fallback,omitempty"`
 	TimeoutSeconds *int                          `json:"timeout_seconds,omitempty" url:"timeout_seconds,omitempty"`
 	MaxTokens      *int                          `json:"max_tokens,omitempty" url:"max_tokens,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1062,7 +1952,75 @@ func (j *JudgeContentFilter) GetMaxTokens() *int {
 }
 
 func (j *JudgeContentFilter) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
 	return j.extraProperties
+}
+
+func (j *JudgeContentFilter) require(field *big.Int) {
+	next := new(big.Int)
+	if j.explicitFields != nil {
+		next.Set(j.explicitFields)
+	}
+	next.Or(next, field)
+	j.explicitFields = next
+}
+
+// SetDirection sets the Direction field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JudgeContentFilter) SetDirection(direction JudgeContentFilterDirection) {
+	j.Direction = direction
+	j.require(judgeContentFilterFieldDirection)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JudgeContentFilter) SetName(name string) {
+	j.Name = name
+	j.require(judgeContentFilterFieldName)
+}
+
+// SetProviderKey sets the ProviderKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JudgeContentFilter) SetProviderKey(providerKey JudgeContentFilterProviderKey) {
+	j.ProviderKey = providerKey
+	j.require(judgeContentFilterFieldProviderKey)
+}
+
+// SetModel sets the Model field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JudgeContentFilter) SetModel(model string) {
+	j.Model = model
+	j.require(judgeContentFilterFieldModel)
+}
+
+// SetPrompt sets the Prompt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JudgeContentFilter) SetPrompt(prompt string) {
+	j.Prompt = prompt
+	j.require(judgeContentFilterFieldPrompt)
+}
+
+// SetFallback sets the Fallback field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JudgeContentFilter) SetFallback(fallback *JudgeContentFilterFallback) {
+	j.Fallback = fallback
+	j.require(judgeContentFilterFieldFallback)
+}
+
+// SetTimeoutSeconds sets the TimeoutSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JudgeContentFilter) SetTimeoutSeconds(timeoutSeconds *int) {
+	j.TimeoutSeconds = timeoutSeconds
+	j.require(judgeContentFilterFieldTimeoutSeconds)
+}
+
+// SetMaxTokens sets the MaxTokens field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JudgeContentFilter) SetMaxTokens(maxTokens *int) {
+	j.MaxTokens = maxTokens
+	j.require(judgeContentFilterFieldMaxTokens)
 }
 
 func (j *JudgeContentFilter) UnmarshalJSON(data []byte) error {
@@ -1081,7 +2039,21 @@ func (j *JudgeContentFilter) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (j *JudgeContentFilter) MarshalJSON() ([]byte, error) {
+	type embed JudgeContentFilter
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (j *JudgeContentFilter) String() string {
+	if j == nil {
+		return "<nil>"
+	}
 	if len(j.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
 			return value
@@ -1145,6 +2117,7 @@ type JudgeContentFilterProviderKey string
 const (
 	JudgeContentFilterProviderKeyAnthropic JudgeContentFilterProviderKey = "anthropic"
 	JudgeContentFilterProviderKeyOpenai    JudgeContentFilterProviderKey = "openai"
+	JudgeContentFilterProviderKeyTypesafe  JudgeContentFilterProviderKey = "typesafe"
 )
 
 func NewJudgeContentFilterProviderKeyFromString(s string) (JudgeContentFilterProviderKey, error) {
@@ -1153,6 +2126,8 @@ func NewJudgeContentFilterProviderKeyFromString(s string) (JudgeContentFilterPro
 		return JudgeContentFilterProviderKeyAnthropic, nil
 	case "openai":
 		return JudgeContentFilterProviderKeyOpenai, nil
+	case "typesafe":
+		return JudgeContentFilterProviderKeyTypesafe, nil
 	}
 	var t JudgeContentFilterProviderKey
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -1162,9 +2137,17 @@ func (j JudgeContentFilterProviderKey) Ptr() *JudgeContentFilterProviderKey {
 	return &j
 }
 
+var (
+	regexContentFilterFieldDirection = big.NewInt(1 << 0)
+	regexContentFilterFieldPattern   = big.NewInt(1 << 1)
+)
+
 type RegexContentFilter struct {
 	Direction RegexContentFilterDirection `json:"direction" url:"direction"`
 	Pattern   string                      `json:"pattern" url:"pattern"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1185,7 +2168,33 @@ func (r *RegexContentFilter) GetPattern() string {
 }
 
 func (r *RegexContentFilter) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
 	return r.extraProperties
+}
+
+func (r *RegexContentFilter) require(field *big.Int) {
+	next := new(big.Int)
+	if r.explicitFields != nil {
+		next.Set(r.explicitFields)
+	}
+	next.Or(next, field)
+	r.explicitFields = next
+}
+
+// SetDirection sets the Direction field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RegexContentFilter) SetDirection(direction RegexContentFilterDirection) {
+	r.Direction = direction
+	r.require(regexContentFilterFieldDirection)
+}
+
+// SetPattern sets the Pattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RegexContentFilter) SetPattern(pattern string) {
+	r.Pattern = pattern
+	r.require(regexContentFilterFieldPattern)
 }
 
 func (r *RegexContentFilter) UnmarshalJSON(data []byte) error {
@@ -1204,7 +2213,21 @@ func (r *RegexContentFilter) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (r *RegexContentFilter) MarshalJSON() ([]byte, error) {
+	type embed RegexContentFilter
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (r *RegexContentFilter) String() string {
+	if r == nil {
+		return "<nil>"
+	}
 	if len(r.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
 			return value
@@ -1241,9 +2264,17 @@ func (r RegexContentFilterDirection) Ptr() *RegexContentFilterDirection {
 	return &r
 }
 
+var (
+	ruleReorderItemFieldRuleID   = big.NewInt(1 << 0)
+	ruleReorderItemFieldPriority = big.NewInt(1 << 1)
+)
+
 type RuleReorderItem struct {
 	RuleID   string `json:"rule_id" url:"rule_id"`
 	Priority int    `json:"priority" url:"priority"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1264,7 +2295,33 @@ func (r *RuleReorderItem) GetPriority() int {
 }
 
 func (r *RuleReorderItem) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
 	return r.extraProperties
+}
+
+func (r *RuleReorderItem) require(field *big.Int) {
+	next := new(big.Int)
+	if r.explicitFields != nil {
+		next.Set(r.explicitFields)
+	}
+	next.Or(next, field)
+	r.explicitFields = next
+}
+
+// SetRuleID sets the RuleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RuleReorderItem) SetRuleID(ruleID string) {
+	r.RuleID = ruleID
+	r.require(ruleReorderItemFieldRuleID)
+}
+
+// SetPriority sets the Priority field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RuleReorderItem) SetPriority(priority int) {
+	r.Priority = priority
+	r.require(ruleReorderItemFieldPriority)
 }
 
 func (r *RuleReorderItem) UnmarshalJSON(data []byte) error {
@@ -1283,7 +2340,21 @@ func (r *RuleReorderItem) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (r *RuleReorderItem) MarshalJSON() ([]byte, error) {
+	type embed RuleReorderItem
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (r *RuleReorderItem) String() string {
+	if r == nil {
+		return "<nil>"
+	}
 	if len(r.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
 			return value
@@ -1295,9 +2366,17 @@ func (r *RuleReorderItem) String() string {
 	return fmt.Sprintf("%#v", r)
 }
 
+var (
+	sizeLimitContentFilterFieldDirection = big.NewInt(1 << 0)
+	sizeLimitContentFilterFieldPattern   = big.NewInt(1 << 1)
+)
+
 type SizeLimitContentFilter struct {
 	Direction SizeLimitContentFilterDirection `json:"direction" url:"direction"`
 	Pattern   string                          `json:"pattern" url:"pattern"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1318,7 +2397,33 @@ func (s *SizeLimitContentFilter) GetPattern() string {
 }
 
 func (s *SizeLimitContentFilter) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *SizeLimitContentFilter) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetDirection sets the Direction field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizeLimitContentFilter) SetDirection(direction SizeLimitContentFilterDirection) {
+	s.Direction = direction
+	s.require(sizeLimitContentFilterFieldDirection)
+}
+
+// SetPattern sets the Pattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizeLimitContentFilter) SetPattern(pattern string) {
+	s.Pattern = pattern
+	s.require(sizeLimitContentFilterFieldPattern)
 }
 
 func (s *SizeLimitContentFilter) UnmarshalJSON(data []byte) error {
@@ -1337,7 +2442,21 @@ func (s *SizeLimitContentFilter) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (s *SizeLimitContentFilter) MarshalJSON() ([]byte, error) {
+	type embed SizeLimitContentFilter
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (s *SizeLimitContentFilter) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -1378,6 +2497,8 @@ type GatewayProfileCreateIntegrationPolicy struct {
 	Mode   string
 	All    *AllIntegrationsPolicy
 	Custom *CustomIntegrationsPolicy
+
+	rawJSON json.RawMessage
 }
 
 func (g *GatewayProfileCreateIntegrationPolicy) GetMode() string {
@@ -1426,6 +2547,7 @@ func (g *GatewayProfileCreateIntegrationPolicy) UnmarshalJSON(data []byte) error
 		}
 		g.Custom = value
 	}
+	g.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -1438,6 +2560,9 @@ func (g GatewayProfileCreateIntegrationPolicy) MarshalJSON() ([]byte, error) {
 	}
 	if g.Custom != nil {
 		return internal.MarshalJSONWithExtraProperty(g.Custom, "mode", "custom")
+	}
+	if len(g.rawJSON) > 0 {
+		return g.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
 }
@@ -1470,6 +2595,9 @@ func (g *GatewayProfileCreateIntegrationPolicy) validate() error {
 	}
 	if len(fields) == 0 {
 		if g.Mode != "" {
+			if len(g.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.Mode)
 		}
 		return fmt.Errorf("type %T is empty", g)
@@ -1495,6 +2623,8 @@ type GatewayProfileUpdateIntegrationPolicy struct {
 	Mode   string
 	All    *AllIntegrationsPolicy
 	Custom *CustomIntegrationsPolicy
+
+	rawJSON json.RawMessage
 }
 
 func (g *GatewayProfileUpdateIntegrationPolicy) GetMode() string {
@@ -1543,6 +2673,7 @@ func (g *GatewayProfileUpdateIntegrationPolicy) UnmarshalJSON(data []byte) error
 		}
 		g.Custom = value
 	}
+	g.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -1555,6 +2686,9 @@ func (g GatewayProfileUpdateIntegrationPolicy) MarshalJSON() ([]byte, error) {
 	}
 	if g.Custom != nil {
 		return internal.MarshalJSONWithExtraProperty(g.Custom, "mode", "custom")
+	}
+	if len(g.rawJSON) > 0 {
+		return g.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
 }
@@ -1587,6 +2721,9 @@ func (g *GatewayProfileUpdateIntegrationPolicy) validate() error {
 	}
 	if len(fields) == 0 {
 		if g.Mode != "" {
+			if len(g.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.Mode)
 		}
 		return fmt.Errorf("type %T is empty", g)
@@ -1614,6 +2751,8 @@ type GatewayRuleCreateContentFilter struct {
 	Judge       *JudgeContentFilter
 	Regex       *RegexContentFilter
 	SizeLimit   *SizeLimitContentFilter
+
+	rawJSON json.RawMessage
 }
 
 func (g *GatewayRuleCreateContentFilter) GetFilterType() string {
@@ -1688,6 +2827,7 @@ func (g *GatewayRuleCreateContentFilter) UnmarshalJSON(data []byte) error {
 		}
 		g.SizeLimit = value
 	}
+	g.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -1706,6 +2846,9 @@ func (g GatewayRuleCreateContentFilter) MarshalJSON() ([]byte, error) {
 	}
 	if g.SizeLimit != nil {
 		return internal.MarshalJSONWithExtraProperty(g.SizeLimit, "filter_type", "size_limit")
+	}
+	if len(g.rawJSON) > 0 {
+		return g.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
 }
@@ -1752,6 +2895,9 @@ func (g *GatewayRuleCreateContentFilter) validate() error {
 	}
 	if len(fields) == 0 {
 		if g.FilterType != "" {
+			if len(g.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.FilterType)
 		}
 		return fmt.Errorf("type %T is empty", g)
@@ -1779,6 +2925,8 @@ type GatewayRuleUpdateContentFilter struct {
 	Judge       *JudgeContentFilter
 	Regex       *RegexContentFilter
 	SizeLimit   *SizeLimitContentFilter
+
+	rawJSON json.RawMessage
 }
 
 func (g *GatewayRuleUpdateContentFilter) GetFilterType() string {
@@ -1853,6 +3001,7 @@ func (g *GatewayRuleUpdateContentFilter) UnmarshalJSON(data []byte) error {
 		}
 		g.SizeLimit = value
 	}
+	g.rawJSON = json.RawMessage(data)
 	return nil
 }
 
@@ -1871,6 +3020,9 @@ func (g GatewayRuleUpdateContentFilter) MarshalJSON() ([]byte, error) {
 	}
 	if g.SizeLimit != nil {
 		return internal.MarshalJSONWithExtraProperty(g.SizeLimit, "filter_type", "size_limit")
+	}
+	if len(g.rawJSON) > 0 {
+		return g.rawJSON, nil
 	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", g)
 }
@@ -1917,6 +3069,9 @@ func (g *GatewayRuleUpdateContentFilter) validate() error {
 	}
 	if len(fields) == 0 {
 		if g.FilterType != "" {
+			if len(g.rawJSON) > 0 {
+				return nil
+			}
 			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", g, g.FilterType)
 		}
 		return fmt.Errorf("type %T is empty", g)
@@ -1938,6 +3093,17 @@ func (g *GatewayRuleUpdateContentFilter) validate() error {
 	return nil
 }
 
+var (
+	gatewayProfileUpdateFieldProfileID         = big.NewInt(1 << 0)
+	gatewayProfileUpdateFieldName              = big.NewInt(1 << 1)
+	gatewayProfileUpdateFieldDescription       = big.NewInt(1 << 2)
+	gatewayProfileUpdateFieldDefaultAction     = big.NewInt(1 << 3)
+	gatewayProfileUpdateFieldInternetEnabled   = big.NewInt(1 << 4)
+	gatewayProfileUpdateFieldIsDefault         = big.NewInt(1 << 5)
+	gatewayProfileUpdateFieldCloudRole         = big.NewInt(1 << 6)
+	gatewayProfileUpdateFieldIntegrationPolicy = big.NewInt(1 << 7)
+)
+
 type GatewayProfileUpdate struct {
 	ProfileID       string         `json:"-" url:"-"`
 	Name            *string        `json:"name,omitempty" url:"-"`
@@ -1949,7 +3115,110 @@ type GatewayProfileUpdate struct {
 	CloudRole *string `json:"cloud_role,omitempty" url:"-"`
 	// Omit to leave unchanged; send {"mode": "all"} to allow all integrations
 	IntegrationPolicy *GatewayProfileUpdateIntegrationPolicy `json:"integration_policy,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GatewayProfileUpdate) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetProfileID sets the ProfileID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileUpdate) SetProfileID(profileID string) {
+	g.ProfileID = profileID
+	g.require(gatewayProfileUpdateFieldProfileID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileUpdate) SetName(name *string) {
+	g.Name = name
+	g.require(gatewayProfileUpdateFieldName)
+}
+
+// SetDescription sets the Description field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileUpdate) SetDescription(description *string) {
+	g.Description = description
+	g.require(gatewayProfileUpdateFieldDescription)
+}
+
+// SetDefaultAction sets the DefaultAction field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileUpdate) SetDefaultAction(defaultAction *GatewayAction) {
+	g.DefaultAction = defaultAction
+	g.require(gatewayProfileUpdateFieldDefaultAction)
+}
+
+// SetInternetEnabled sets the InternetEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileUpdate) SetInternetEnabled(internetEnabled *bool) {
+	g.InternetEnabled = internetEnabled
+	g.require(gatewayProfileUpdateFieldInternetEnabled)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileUpdate) SetIsDefault(isDefault *bool) {
+	g.IsDefault = isDefault
+	g.require(gatewayProfileUpdateFieldIsDefault)
+}
+
+// SetCloudRole sets the CloudRole field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileUpdate) SetCloudRole(cloudRole *string) {
+	g.CloudRole = cloudRole
+	g.require(gatewayProfileUpdateFieldCloudRole)
+}
+
+// SetIntegrationPolicy sets the IntegrationPolicy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayProfileUpdate) SetIntegrationPolicy(integrationPolicy *GatewayProfileUpdateIntegrationPolicy) {
+	g.IntegrationPolicy = integrationPolicy
+	g.require(gatewayProfileUpdateFieldIntegrationPolicy)
+}
+
+func (g *GatewayProfileUpdate) UnmarshalJSON(data []byte) error {
+	type unmarshaler GatewayProfileUpdate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*g = GatewayProfileUpdate(body)
+	return nil
+}
+
+func (g *GatewayProfileUpdate) MarshalJSON() ([]byte, error) {
+	type embed GatewayProfileUpdate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*g),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	gatewayRuleUpdateFieldProfileID     = big.NewInt(1 << 0)
+	gatewayRuleUpdateFieldRuleID        = big.NewInt(1 << 1)
+	gatewayRuleUpdateFieldPriority      = big.NewInt(1 << 2)
+	gatewayRuleUpdateFieldHostPattern   = big.NewInt(1 << 3)
+	gatewayRuleUpdateFieldPathPattern   = big.NewInt(1 << 4)
+	gatewayRuleUpdateFieldMethods       = big.NewInt(1 << 5)
+	gatewayRuleUpdateFieldAction        = big.NewInt(1 << 6)
+	gatewayRuleUpdateFieldRateLimitRpm  = big.NewInt(1 << 7)
+	gatewayRuleUpdateFieldProviderKey   = big.NewInt(1 << 8)
+	gatewayRuleUpdateFieldAuthStrategy  = big.NewInt(1 << 9)
+	gatewayRuleUpdateFieldContentFilter = big.NewInt(1 << 10)
+)
 
 type GatewayRuleUpdate struct {
 	ProfileID     string                          `json:"-" url:"-"`
@@ -1963,4 +3232,114 @@ type GatewayRuleUpdate struct {
 	ProviderKey   *string                         `json:"provider_key,omitempty" url:"-"`
 	AuthStrategy  *AuthStrategySchema             `json:"auth_strategy,omitempty" url:"-"`
 	ContentFilter *GatewayRuleUpdateContentFilter `json:"content_filter,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GatewayRuleUpdate) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetProfileID sets the ProfileID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetProfileID(profileID string) {
+	g.ProfileID = profileID
+	g.require(gatewayRuleUpdateFieldProfileID)
+}
+
+// SetRuleID sets the RuleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetRuleID(ruleID string) {
+	g.RuleID = ruleID
+	g.require(gatewayRuleUpdateFieldRuleID)
+}
+
+// SetPriority sets the Priority field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetPriority(priority *int) {
+	g.Priority = priority
+	g.require(gatewayRuleUpdateFieldPriority)
+}
+
+// SetHostPattern sets the HostPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetHostPattern(hostPattern *string) {
+	g.HostPattern = hostPattern
+	g.require(gatewayRuleUpdateFieldHostPattern)
+}
+
+// SetPathPattern sets the PathPattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetPathPattern(pathPattern *string) {
+	g.PathPattern = pathPattern
+	g.require(gatewayRuleUpdateFieldPathPattern)
+}
+
+// SetMethods sets the Methods field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetMethods(methods []string) {
+	g.Methods = methods
+	g.require(gatewayRuleUpdateFieldMethods)
+}
+
+// SetAction sets the Action field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetAction(action *GatewayAction) {
+	g.Action = action
+	g.require(gatewayRuleUpdateFieldAction)
+}
+
+// SetRateLimitRpm sets the RateLimitRpm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetRateLimitRpm(rateLimitRpm *int) {
+	g.RateLimitRpm = rateLimitRpm
+	g.require(gatewayRuleUpdateFieldRateLimitRpm)
+}
+
+// SetProviderKey sets the ProviderKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetProviderKey(providerKey *string) {
+	g.ProviderKey = providerKey
+	g.require(gatewayRuleUpdateFieldProviderKey)
+}
+
+// SetAuthStrategy sets the AuthStrategy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetAuthStrategy(authStrategy *AuthStrategySchema) {
+	g.AuthStrategy = authStrategy
+	g.require(gatewayRuleUpdateFieldAuthStrategy)
+}
+
+// SetContentFilter sets the ContentFilter field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GatewayRuleUpdate) SetContentFilter(contentFilter *GatewayRuleUpdateContentFilter) {
+	g.ContentFilter = contentFilter
+	g.require(gatewayRuleUpdateFieldContentFilter)
+}
+
+func (g *GatewayRuleUpdate) UnmarshalJSON(data []byte) error {
+	type unmarshaler GatewayRuleUpdate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*g = GatewayRuleUpdate(body)
+	return nil
+}
+
+func (g *GatewayRuleUpdate) MarshalJSON() ([]byte, error) {
+	type embed GatewayRuleUpdate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*g),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
