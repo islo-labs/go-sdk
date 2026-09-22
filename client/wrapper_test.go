@@ -11,6 +11,8 @@ import (
 	"sync/atomic"
 	"testing"
 
+	gosdk "github.com/islo-labs/go-sdk"
+	"github.com/islo-labs/go-sdk/core"
 	"github.com/islo-labs/go-sdk/option"
 )
 
@@ -81,6 +83,34 @@ func TestNewIslo_BaseURLFallback(t *testing.T) {
 	// assert non-nil so the call signature stays sane.
 	if c.Sandboxes == nil {
 		t.Fatal("c.Sandboxes is nil")
+	}
+}
+
+func TestGeneratedResumeSandboxReturnsInternalServerErrorWithoutRetry(t *testing.T) {
+	var requestCount int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&requestCount, 1)
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	c := NewClient(
+		option.WithAPIKey("test-token"),
+		option.WithBaseURL(server.URL),
+	)
+	_, err := c.Sandboxes.ResumeSandbox(context.Background(), &gosdk.ResumeSandboxRequest{
+		SandboxName: "sandbox-name",
+	})
+
+	apiErr, ok := err.(*core.APIError)
+	if !ok {
+		t.Fatalf("ResumeSandbox error = %T, want *core.APIError", err)
+	}
+	if apiErr.StatusCode != http.StatusInternalServerError {
+		t.Fatalf("ResumeSandbox status = %d, want %d", apiErr.StatusCode, http.StatusInternalServerError)
+	}
+	if got := atomic.LoadInt32(&requestCount); got != 1 {
+		t.Fatalf("ResumeSandbox sent %d requests after HTTP 500, want 1", got)
 	}
 }
 

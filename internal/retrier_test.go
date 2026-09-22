@@ -87,9 +87,12 @@ func TestRetrier(t *testing.T) {
 			giveStatusCodes: []int{http.StatusRequestTimeout, http.StatusOK},
 		},
 		{
-			description:     "retries occur on status code 500",
+			description:     "retry does not occur on status code 500",
 			giveAttempts:    2,
 			giveStatusCodes: []int{http.StatusInternalServerError, http.StatusOK},
+			wantError: &core.APIError{
+				StatusCode: http.StatusInternalServerError,
+			},
 		},
 	}
 
@@ -362,7 +365,7 @@ func TestDisableRetries(t *testing.T) {
 			var requestCount int
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				requestCount++
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusServiceUnavailable)
 			}))
 			defer server.Close()
 
