@@ -3,47 +3,198 @@
 package api
 
 import (
-	fmt "fmt"
+	big "math/big"
+)
+
+var (
+	getJobRunByIDRequestFieldRunID = big.NewInt(1 << 0)
 )
 
 type GetJobRunByIDRequest struct {
 	RunID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
 
-type ListAllJobRunsRequest struct {
-	Limit  *int `json:"-" url:"limit,omitempty"`
-	Offset *int `json:"-" url:"offset,omitempty"`
-	// Filter by run status
-	Status *JobRunStatus `json:"-" url:"status,omitempty"`
+func (g *GetJobRunByIDRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
 }
 
-type JobRunStatus string
+// SetRunID sets the RunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetJobRunByIDRequest) SetRunID(runID string) {
+	g.RunID = runID
+	g.require(getJobRunByIDRequestFieldRunID)
+}
 
-const (
-	JobRunStatusPending   JobRunStatus = "pending"
-	JobRunStatusRunning   JobRunStatus = "running"
-	JobRunStatusSucceeded JobRunStatus = "succeeded"
-	JobRunStatusFailed    JobRunStatus = "failed"
-	JobRunStatusCancelled JobRunStatus = "cancelled"
+var (
+	listAllJobRunsRequestFieldLimit     = big.NewInt(1 << 0)
+	listAllJobRunsRequestFieldOffset    = big.NewInt(1 << 1)
+	listAllJobRunsRequestFieldCursor    = big.NewInt(1 << 2)
+	listAllJobRunsRequestFieldSort      = big.NewInt(1 << 3)
+	listAllJobRunsRequestFieldInclude   = big.NewInt(1 << 4)
+	listAllJobRunsRequestFieldStatus    = big.NewInt(1 << 5)
+	listAllJobRunsRequestFieldJobName   = big.NewInt(1 << 6)
+	listAllJobRunsRequestFieldCreatedAt = big.NewInt(1 << 7)
+	listAllJobRunsRequestFieldQ         = big.NewInt(1 << 8)
 )
 
-func NewJobRunStatusFromString(s string) (JobRunStatus, error) {
-	switch s {
-	case "pending":
-		return JobRunStatusPending, nil
-	case "running":
-		return JobRunStatusRunning, nil
-	case "succeeded":
-		return JobRunStatusSucceeded, nil
-	case "failed":
-		return JobRunStatusFailed, nil
-	case "cancelled":
-		return JobRunStatusCancelled, nil
-	}
-	var t JobRunStatus
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
+type ListAllJobRunsRequest struct {
+	Limit  *int    `json:"-" url:"limit,omitempty"`
+	Offset *int    `json:"-" url:"offset,omitempty"`
+	Cursor *string `json:"-" url:"cursor,omitempty"`
+	// Sort order. Allowed: -created_at, created_at
+	Sort    *string   `json:"-" url:"sort,omitempty"`
+	Include []*string `json:"-" url:"include,omitempty"`
+	Status  []*string `json:"-" url:"status,omitempty"`
+	JobName []*string `json:"-" url:"job_name,omitempty"`
+	// created_at range. Operators: gte, gt, lte, lt. Serialized as created_at[gte]=…&created_at[lt]=…
+	CreatedAt *TimestampRange `json:"-" url:"created_at,omitempty"`
+	Q         *string         `json:"-" url:"q,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
 
-func (j JobRunStatus) Ptr() *JobRunStatus {
-	return &j
+func (l *ListAllJobRunsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListAllJobRunsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listAllJobRunsRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListAllJobRunsRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listAllJobRunsRequestFieldOffset)
+}
+
+// SetCursor sets the Cursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListAllJobRunsRequest) SetCursor(cursor *string) {
+	l.Cursor = cursor
+	l.require(listAllJobRunsRequestFieldCursor)
+}
+
+// SetSort sets the Sort field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListAllJobRunsRequest) SetSort(sort *string) {
+	l.Sort = sort
+	l.require(listAllJobRunsRequestFieldSort)
+}
+
+// SetInclude sets the Include field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListAllJobRunsRequest) SetInclude(include []*string) {
+	l.Include = include
+	l.require(listAllJobRunsRequestFieldInclude)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListAllJobRunsRequest) SetStatus(status []*string) {
+	l.Status = status
+	l.require(listAllJobRunsRequestFieldStatus)
+}
+
+// SetJobName sets the JobName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListAllJobRunsRequest) SetJobName(jobName []*string) {
+	l.JobName = jobName
+	l.require(listAllJobRunsRequestFieldJobName)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListAllJobRunsRequest) SetCreatedAt(createdAt *TimestampRange) {
+	l.CreatedAt = createdAt
+	l.require(listAllJobRunsRequestFieldCreatedAt)
+}
+
+// SetQ sets the Q field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListAllJobRunsRequest) SetQ(q *string) {
+	l.Q = q
+	l.require(listAllJobRunsRequestFieldQ)
+}
+
+var (
+	listJobRunFacetsRequestFieldFields    = big.NewInt(1 << 0)
+	listJobRunFacetsRequestFieldStatus    = big.NewInt(1 << 1)
+	listJobRunFacetsRequestFieldJobName   = big.NewInt(1 << 2)
+	listJobRunFacetsRequestFieldCreatedAt = big.NewInt(1 << 3)
+	listJobRunFacetsRequestFieldQ         = big.NewInt(1 << 4)
+)
+
+type ListJobRunFacetsRequest struct {
+	// Facet fields to return (e.g. job_name, status)
+	Fields  []*string `json:"-" url:"fields,omitempty"`
+	Status  []*string `json:"-" url:"status,omitempty"`
+	JobName []*string `json:"-" url:"job_name,omitempty"`
+	// created_at range. Operators: gte, gt, lte, lt. Serialized as created_at[gte]=…&created_at[lt]=…
+	CreatedAt *TimestampRange `json:"-" url:"created_at,omitempty"`
+	Q         *string         `json:"-" url:"q,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (l *ListJobRunFacetsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetFields sets the Fields field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobRunFacetsRequest) SetFields(fields []*string) {
+	l.Fields = fields
+	l.require(listJobRunFacetsRequestFieldFields)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobRunFacetsRequest) SetStatus(status []*string) {
+	l.Status = status
+	l.require(listJobRunFacetsRequestFieldStatus)
+}
+
+// SetJobName sets the JobName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobRunFacetsRequest) SetJobName(jobName []*string) {
+	l.JobName = jobName
+	l.require(listJobRunFacetsRequestFieldJobName)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobRunFacetsRequest) SetCreatedAt(createdAt *TimestampRange) {
+	l.CreatedAt = createdAt
+	l.require(listJobRunFacetsRequestFieldCreatedAt)
+}
+
+// SetQ sets the Q field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobRunFacetsRequest) SetQ(q *string) {
+	l.Q = q
+	l.require(listJobRunFacetsRequestFieldQ)
 }

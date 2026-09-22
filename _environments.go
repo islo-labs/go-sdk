@@ -2,20 +2,20 @@
 
 package api
 
+// Environment defines the environment with multiple base URLs.
+type Environment struct {
+	Control string
+	Compute string
+}
+
 // Environments defines all of the API environments.
 // These values can be used with the WithBaseURL
 // RequestOption to override the client's default environment,
 // if any.
 var Environments = struct {
-	Production struct {
-		Compute string
-		Control string
-	}
+	Production Environment
 }{
-	Production: struct {
-		Compute string
-		Control string
-	}{
+	Production: Environment{
 		Compute: "https://ca.compute.islo.dev",
 		Control: "https://api.islo.dev",
 	},

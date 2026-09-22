@@ -4,22 +4,89 @@ package api
 
 import (
 	json "encoding/json"
-	fmt "fmt"
-	internal "github.com/islo-labs/go-sdk/internal"
-	time "time"
+	big "math/big"
+)
+
+var (
+	deleteJobRequestFieldName = big.NewInt(1 << 0)
 )
 
 type DeleteJobRequest struct {
 	Name string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteJobRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteJobRequest) SetName(name string) {
+	d.Name = name
+	d.require(deleteJobRequestFieldName)
+}
+
+var (
+	deleteJobScheduleRequestFieldName = big.NewInt(1 << 0)
+)
 
 type DeleteJobScheduleRequest struct {
 	Name string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteJobScheduleRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteJobScheduleRequest) SetName(name string) {
+	d.Name = name
+	d.require(deleteJobScheduleRequestFieldName)
+}
+
+var (
+	deployJobRequestFieldName = big.NewInt(1 << 0)
+)
 
 type DeployJobRequest struct {
 	Name string            `json:"-" url:"-"`
 	Body *JobDeployRequest `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (d *DeployJobRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeployJobRequest) SetName(name string) {
+	d.Name = name
+	d.require(deployJobRequestFieldName)
 }
 
 func (d *DeployJobRequest) UnmarshalJSON(data []byte) error {
@@ -35,3630 +102,375 @@ func (d *DeployJobRequest) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.Body)
 }
 
+var (
+	getJobRequestFieldName = big.NewInt(1 << 0)
+)
+
 type GetJobRequest struct {
 	Name string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetJobRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetJobRequest) SetName(name string) {
+	g.Name = name
+	g.require(getJobRequestFieldName)
+}
+
+var (
+	getJobRunRequestFieldName  = big.NewInt(1 << 0)
+	getJobRunRequestFieldRunID = big.NewInt(1 << 1)
+)
 
 type GetJobRunRequest struct {
 	Name  string `json:"-" url:"-"`
 	RunID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetJobRunRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetJobRunRequest) SetName(name string) {
+	g.Name = name
+	g.require(getJobRunRequestFieldName)
+}
+
+// SetRunID sets the RunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetJobRunRequest) SetRunID(runID string) {
+	g.RunID = runID
+	g.require(getJobRunRequestFieldRunID)
+}
+
+var (
+	getJobScheduleRequestFieldName = big.NewInt(1 << 0)
+)
 
 type GetJobScheduleRequest struct {
 	Name string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetJobScheduleRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetJobScheduleRequest) SetName(name string) {
+	g.Name = name
+	g.require(getJobScheduleRequestFieldName)
+}
+
+var (
+	getJobVersionRequestFieldName      = big.NewInt(1 << 0)
+	getJobVersionRequestFieldVersionID = big.NewInt(1 << 1)
+)
 
 type GetJobVersionRequest struct {
 	Name      string `json:"-" url:"-"`
 	VersionID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetJobVersionRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetJobVersionRequest) SetName(name string) {
+	g.Name = name
+	g.require(getJobVersionRequestFieldName)
+}
+
+// SetVersionID sets the VersionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetJobVersionRequest) SetVersionID(versionID string) {
+	g.VersionID = versionID
+	g.require(getJobVersionRequestFieldVersionID)
+}
+
+var (
+	listJobRunsRequestFieldName   = big.NewInt(1 << 0)
+	listJobRunsRequestFieldLimit  = big.NewInt(1 << 1)
+	listJobRunsRequestFieldOffset = big.NewInt(1 << 2)
+)
 
 type ListJobRunsRequest struct {
 	Name   string `json:"-" url:"-"`
 	Limit  *int   `json:"-" url:"limit,omitempty"`
 	Offset *int   `json:"-" url:"offset,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListJobRunsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobRunsRequest) SetName(name string) {
+	l.Name = name
+	l.require(listJobRunsRequestFieldName)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobRunsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listJobRunsRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobRunsRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listJobRunsRequestFieldOffset)
+}
+
+var (
+	listJobVersionsRequestFieldName   = big.NewInt(1 << 0)
+	listJobVersionsRequestFieldLimit  = big.NewInt(1 << 1)
+	listJobVersionsRequestFieldOffset = big.NewInt(1 << 2)
+)
 
 type ListJobVersionsRequest struct {
 	Name   string `json:"-" url:"-"`
 	Limit  *int   `json:"-" url:"limit,omitempty"`
 	Offset *int   `json:"-" url:"offset,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListJobVersionsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobVersionsRequest) SetName(name string) {
+	l.Name = name
+	l.require(listJobVersionsRequestFieldName)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobVersionsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listJobVersionsRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobVersionsRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listJobVersionsRequestFieldOffset)
+}
+
+var (
+	listJobsRequestFieldLimit  = big.NewInt(1 << 0)
+	listJobsRequestFieldOffset = big.NewInt(1 << 1)
+)
 
 type ListJobsRequest struct {
 	Limit  *int `json:"-" url:"limit,omitempty"`
 	Offset *int `json:"-" url:"offset,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
 
-type JobRunStopRequest struct {
-	Name   string  `json:"-" url:"-"`
-	RunID  string  `json:"-" url:"-"`
-	Reason *string `json:"reason,omitempty" url:"-"`
-}
-
-type JobRunCreate struct {
-	Name string `json:"-" url:"-"`
-	// Deployed version to run; defaults to latest
-	VersionID *string `json:"version_id,omitempty" url:"-"`
-	// Compute region override
-	Region *string `json:"region,omitempty" url:"-"`
-	// Run-time parameter values (validated against [job.params])
-	Params map[string]interface{} `json:"params,omitempty" url:"-"`
-}
-
-type JobDeployRequest struct {
-	// Job manifest (authored as TOML or JSON, stored as JSON)
-	Manifest *JobManifestInput `json:"manifest" url:"manifest"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobDeployRequest) GetManifest() *JobManifestInput {
-	if j == nil {
-		return nil
+func (l *ListJobsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
 	}
-	return j.Manifest
+	next.Or(next, field)
+	l.explicitFields = next
 }
 
-func (j *JobDeployRequest) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listJobsRequestFieldLimit)
 }
 
-func (j *JobDeployRequest) UnmarshalJSON(data []byte) error {
-	type unmarshaler JobDeployRequest
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*j = JobDeployRequest(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListJobsRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listJobsRequestFieldOffset)
 }
 
-func (j *JobDeployRequest) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-type JobListItem struct {
-	ID                  string    `json:"id" url:"id"`
-	Name                string    `json:"name" url:"name"`
-	LatestVersionNumber *int      `json:"latest_version_number,omitempty" url:"latest_version_number,omitempty"`
-	CreatedAt           time.Time `json:"created_at" url:"created_at"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobListItem) GetID() string {
-	if j == nil {
-		return ""
-	}
-	return j.ID
-}
-
-func (j *JobListItem) GetName() string {
-	if j == nil {
-		return ""
-	}
-	return j.Name
-}
-
-func (j *JobListItem) GetLatestVersionNumber() *int {
-	if j == nil {
-		return nil
-	}
-	return j.LatestVersionNumber
-}
-
-func (j *JobListItem) GetCreatedAt() time.Time {
-	if j == nil {
-		return time.Time{}
-	}
-	return j.CreatedAt
-}
-
-func (j *JobListItem) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
-}
-
-func (j *JobListItem) UnmarshalJSON(data []byte) error {
-	type embed JobListItem
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-	}{
-		embed: embed(*j),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*j = JobListItem(unmarshaler.embed)
-	j.CreatedAt = unmarshaler.CreatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (j *JobListItem) MarshalJSON() ([]byte, error) {
-	type embed JobListItem
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-	}{
-		embed:     embed(*j),
-		CreatedAt: internal.NewDateTime(j.CreatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (j *JobListItem) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-// Full job.toml manifest (TOML or JSON authoring; stored as JSON).
-type JobManifestInput struct {
-	Job          *JobSection          `json:"job" url:"job"`
-	Run          *RunSectionInput     `json:"run" url:"run"`
-	Schedule     *ScheduleSection     `json:"schedule,omitempty" url:"schedule,omitempty"`
-	Verification *VerificationSection `json:"verification,omitempty" url:"verification,omitempty"`
-	// Public job output contract for the job and downstream lines.
-	Outputs map[string]*JobOutputSpec `json:"outputs,omitempty" url:"outputs,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobManifestInput) GetJob() *JobSection {
-	if j == nil {
-		return nil
-	}
-	return j.Job
-}
-
-func (j *JobManifestInput) GetRun() *RunSectionInput {
-	if j == nil {
-		return nil
-	}
-	return j.Run
-}
-
-func (j *JobManifestInput) GetSchedule() *ScheduleSection {
-	if j == nil {
-		return nil
-	}
-	return j.Schedule
-}
-
-func (j *JobManifestInput) GetVerification() *VerificationSection {
-	if j == nil {
-		return nil
-	}
-	return j.Verification
-}
-
-func (j *JobManifestInput) GetOutputs() map[string]*JobOutputSpec {
-	if j == nil {
-		return nil
-	}
-	return j.Outputs
-}
-
-func (j *JobManifestInput) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
-}
-
-func (j *JobManifestInput) UnmarshalJSON(data []byte) error {
-	type unmarshaler JobManifestInput
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*j = JobManifestInput(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (j *JobManifestInput) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-// Full job.toml manifest (TOML or JSON authoring; stored as JSON).
-type JobManifestOutput struct {
-	Job          *JobSection          `json:"job" url:"job"`
-	Run          *RunSectionOutput    `json:"run" url:"run"`
-	Schedule     *ScheduleSection     `json:"schedule,omitempty" url:"schedule,omitempty"`
-	Verification *VerificationSection `json:"verification,omitempty" url:"verification,omitempty"`
-	// Public job output contract for the job and downstream lines.
-	Outputs map[string]*JobOutputSpec `json:"outputs,omitempty" url:"outputs,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobManifestOutput) GetJob() *JobSection {
-	if j == nil {
-		return nil
-	}
-	return j.Job
-}
-
-func (j *JobManifestOutput) GetRun() *RunSectionOutput {
-	if j == nil {
-		return nil
-	}
-	return j.Run
-}
-
-func (j *JobManifestOutput) GetSchedule() *ScheduleSection {
-	if j == nil {
-		return nil
-	}
-	return j.Schedule
-}
-
-func (j *JobManifestOutput) GetVerification() *VerificationSection {
-	if j == nil {
-		return nil
-	}
-	return j.Verification
-}
-
-func (j *JobManifestOutput) GetOutputs() map[string]*JobOutputSpec {
-	if j == nil {
-		return nil
-	}
-	return j.Outputs
-}
-
-func (j *JobManifestOutput) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
-}
-
-func (j *JobManifestOutput) UnmarshalJSON(data []byte) error {
-	type unmarshaler JobManifestOutput
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*j = JobManifestOutput(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (j *JobManifestOutput) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-// Public job output contract.
-//
-// Writers emit the producer type; lines bind the published type after reduce.
-// Session agents and $ISLO_OUTPUT use producer types (collect/gather still send
-// the producer type, not the published array).
-type JobOutputSpec struct {
-	Type JobOutputSpecType `json:"type" url:"type"`
-	// Item type for array outputs. Required at deploy when type = array. Do not use reduce = collect with type = array; use gather to concatenate arrays.
-	Items       *JobOutputSpecItems `json:"items,omitempty" url:"items,omitempty"`
-	Required    *bool               `json:"required,omitempty" url:"required,omitempty"`
-	Description *string             `json:"description,omitempty" url:"description,omitempty"`
-	Enum        []interface{}       `json:"enum,omitempty" url:"enum,omitempty"`
-	// one: exactly one claiming step. last: last successful write in manifest task order. collect: published array of producer values (dense nulls for missing tasks); required collect must be claimed by every task. gather: concatenate arrays or collect scalars, skipping omissions.
-	Reduce *JobOutputSpecReduce `json:"reduce,omitempty" url:"reduce,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobOutputSpec) GetType() JobOutputSpecType {
-	if j == nil {
-		return ""
-	}
-	return j.Type
-}
-
-func (j *JobOutputSpec) GetItems() *JobOutputSpecItems {
-	if j == nil {
-		return nil
-	}
-	return j.Items
-}
-
-func (j *JobOutputSpec) GetRequired() *bool {
-	if j == nil {
-		return nil
-	}
-	return j.Required
-}
-
-func (j *JobOutputSpec) GetDescription() *string {
-	if j == nil {
-		return nil
-	}
-	return j.Description
-}
-
-func (j *JobOutputSpec) GetEnum() []interface{} {
-	if j == nil {
-		return nil
-	}
-	return j.Enum
-}
-
-func (j *JobOutputSpec) GetReduce() *JobOutputSpecReduce {
-	if j == nil {
-		return nil
-	}
-	return j.Reduce
-}
-
-func (j *JobOutputSpec) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
-}
-
-func (j *JobOutputSpec) UnmarshalJSON(data []byte) error {
-	type unmarshaler JobOutputSpec
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*j = JobOutputSpec(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (j *JobOutputSpec) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-type JobOutputSpecItems string
-
-const (
-	JobOutputSpecItemsString  JobOutputSpecItems = "string"
-	JobOutputSpecItemsInteger JobOutputSpecItems = "integer"
-	JobOutputSpecItemsNumber  JobOutputSpecItems = "number"
-	JobOutputSpecItemsBoolean JobOutputSpecItems = "boolean"
+var (
+	stopJobRunRequestFieldName  = big.NewInt(1 << 0)
+	stopJobRunRequestFieldRunID = big.NewInt(1 << 1)
 )
 
-func NewJobOutputSpecItemsFromString(s string) (JobOutputSpecItems, error) {
-	switch s {
-	case "string":
-		return JobOutputSpecItemsString, nil
-	case "integer":
-		return JobOutputSpecItemsInteger, nil
-	case "number":
-		return JobOutputSpecItemsNumber, nil
-	case "boolean":
-		return JobOutputSpecItemsBoolean, nil
+type StopJobRunRequest struct {
+	Name  string             `json:"-" url:"-"`
+	RunID string             `json:"-" url:"-"`
+	Body  *JobRunStopRequest `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (s *StopJobRunRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
 	}
-	var t JobOutputSpecItems
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
+	next.Or(next, field)
+	s.explicitFields = next
 }
 
-func (j JobOutputSpecItems) Ptr() *JobOutputSpecItems {
-	return &j
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StopJobRunRequest) SetName(name string) {
+	s.Name = name
+	s.require(stopJobRunRequestFieldName)
 }
 
-// one: exactly one claiming step. last: last successful write in manifest task order. collect: published array of producer values (dense nulls for missing tasks); required collect must be claimed by every task. gather: concatenate arrays or collect scalars, skipping omissions.
-type JobOutputSpecReduce string
+// SetRunID sets the RunID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StopJobRunRequest) SetRunID(runID string) {
+	s.RunID = runID
+	s.require(stopJobRunRequestFieldRunID)
+}
 
-const (
-	JobOutputSpecReduceOne     JobOutputSpecReduce = "one"
-	JobOutputSpecReduceLast    JobOutputSpecReduce = "last"
-	JobOutputSpecReduceCollect JobOutputSpecReduce = "collect"
-	JobOutputSpecReduceGather  JobOutputSpecReduce = "gather"
+func (s *StopJobRunRequest) UnmarshalJSON(data []byte) error {
+	body := new(JobRunStopRequest)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	s.Body = body
+	return nil
+}
+
+func (s *StopJobRunRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Body)
+}
+
+var (
+	triggerJobRunRequestFieldName = big.NewInt(1 << 0)
 )
 
-func NewJobOutputSpecReduceFromString(s string) (JobOutputSpecReduce, error) {
-	switch s {
-	case "one":
-		return JobOutputSpecReduceOne, nil
-	case "last":
-		return JobOutputSpecReduceLast, nil
-	case "collect":
-		return JobOutputSpecReduceCollect, nil
-	case "gather":
-		return JobOutputSpecReduceGather, nil
+type TriggerJobRunRequest struct {
+	Name string        `json:"-" url:"-"`
+	Body *JobRunCreate `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (t *TriggerJobRunRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if t.explicitFields != nil {
+		next.Set(t.explicitFields)
 	}
-	var t JobOutputSpecReduce
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
+	next.Or(next, field)
+	t.explicitFields = next
 }
 
-func (j JobOutputSpecReduce) Ptr() *JobOutputSpecReduce {
-	return &j
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TriggerJobRunRequest) SetName(name string) {
+	t.Name = name
+	t.require(triggerJobRunRequestFieldName)
 }
 
-type JobOutputSpecType string
+func (t *TriggerJobRunRequest) UnmarshalJSON(data []byte) error {
+	body := new(JobRunCreate)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	t.Body = body
+	return nil
+}
 
-const (
-	JobOutputSpecTypeString  JobOutputSpecType = "string"
-	JobOutputSpecTypeInteger JobOutputSpecType = "integer"
-	JobOutputSpecTypeNumber  JobOutputSpecType = "number"
-	JobOutputSpecTypeBoolean JobOutputSpecType = "boolean"
-	JobOutputSpecTypeArray   JobOutputSpecType = "array"
+func (t *TriggerJobRunRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.Body)
+}
+
+var (
+	validateJobManifestRequestFieldName = big.NewInt(1 << 0)
 )
-
-func NewJobOutputSpecTypeFromString(s string) (JobOutputSpecType, error) {
-	switch s {
-	case "string":
-		return JobOutputSpecTypeString, nil
-	case "integer":
-		return JobOutputSpecTypeInteger, nil
-	case "number":
-		return JobOutputSpecTypeNumber, nil
-	case "boolean":
-		return JobOutputSpecTypeBoolean, nil
-	case "array":
-		return JobOutputSpecTypeArray, nil
-	}
-	var t JobOutputSpecType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (j JobOutputSpecType) Ptr() *JobOutputSpecType {
-	return &j
-}
-
-type JobParamSpec struct {
-	Type *JobParamSpecType `json:"type" url:"type"`
-	// Item type when type = array.
-	Items *JobParamSpecItems `json:"items,omitempty" url:"items,omitempty"`
-	// Cannot combine required=true with a default.
-	Required *bool `json:"required,omitempty" url:"required,omitempty"`
-	// Required for every param used by a scheduled run before adding [schedule].
-	Default     interface{}   `json:"default,omitempty" url:"default,omitempty"`
-	Description *string       `json:"description,omitempty" url:"description,omitempty"`
-	Pattern     *string       `json:"pattern,omitempty" url:"pattern,omitempty"`
-	Prefix      *string       `json:"prefix,omitempty" url:"prefix,omitempty"`
-	Enum        []interface{} `json:"enum,omitempty" url:"enum,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobParamSpec) GetType() *JobParamSpecType {
-	if j == nil {
-		return nil
-	}
-	return j.Type
-}
-
-func (j *JobParamSpec) GetItems() *JobParamSpecItems {
-	if j == nil {
-		return nil
-	}
-	return j.Items
-}
-
-func (j *JobParamSpec) GetRequired() *bool {
-	if j == nil {
-		return nil
-	}
-	return j.Required
-}
-
-func (j *JobParamSpec) GetDefault() interface{} {
-	if j == nil {
-		return nil
-	}
-	return j.Default
-}
-
-func (j *JobParamSpec) GetDescription() *string {
-	if j == nil {
-		return nil
-	}
-	return j.Description
-}
-
-func (j *JobParamSpec) GetPattern() *string {
-	if j == nil {
-		return nil
-	}
-	return j.Pattern
-}
-
-func (j *JobParamSpec) GetPrefix() *string {
-	if j == nil {
-		return nil
-	}
-	return j.Prefix
-}
-
-func (j *JobParamSpec) GetEnum() []interface{} {
-	if j == nil {
-		return nil
-	}
-	return j.Enum
-}
-
-func (j *JobParamSpec) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
-}
-
-func (j *JobParamSpec) UnmarshalJSON(data []byte) error {
-	type unmarshaler JobParamSpec
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*j = JobParamSpec(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (j *JobParamSpec) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-type JobParamSpecItems string
-
-const (
-	JobParamSpecItemsString  JobParamSpecItems = "string"
-	JobParamSpecItemsInteger JobParamSpecItems = "integer"
-	JobParamSpecItemsNumber  JobParamSpecItems = "number"
-	JobParamSpecItemsBoolean JobParamSpecItems = "boolean"
-)
-
-func NewJobParamSpecItemsFromString(s string) (JobParamSpecItems, error) {
-	switch s {
-	case "string":
-		return JobParamSpecItemsString, nil
-	case "integer":
-		return JobParamSpecItemsInteger, nil
-	case "number":
-		return JobParamSpecItemsNumber, nil
-	case "boolean":
-		return JobParamSpecItemsBoolean, nil
-	}
-	var t JobParamSpecItems
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (j JobParamSpecItems) Ptr() *JobParamSpecItems {
-	return &j
-}
-
-type JobParamSpecType struct {
-	JobParamSpecTypeZero JobParamSpecTypeZero
-	JobParamSpecTypeOne  JobParamSpecTypeOne
-
-	typ string
-}
-
-func (j *JobParamSpecType) GetJobParamSpecTypeZero() JobParamSpecTypeZero {
-	if j == nil {
-		return ""
-	}
-	return j.JobParamSpecTypeZero
-}
-
-func (j *JobParamSpecType) GetJobParamSpecTypeOne() JobParamSpecTypeOne {
-	if j == nil {
-		return ""
-	}
-	return j.JobParamSpecTypeOne
-}
-
-func (j *JobParamSpecType) UnmarshalJSON(data []byte) error {
-	var valueJobParamSpecTypeZero JobParamSpecTypeZero
-	if err := json.Unmarshal(data, &valueJobParamSpecTypeZero); err == nil {
-		j.typ = "JobParamSpecTypeZero"
-		j.JobParamSpecTypeZero = valueJobParamSpecTypeZero
-		return nil
-	}
-	var valueJobParamSpecTypeOne JobParamSpecTypeOne
-	if err := json.Unmarshal(data, &valueJobParamSpecTypeOne); err == nil {
-		j.typ = "JobParamSpecTypeOne"
-		j.JobParamSpecTypeOne = valueJobParamSpecTypeOne
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, j)
-}
-
-func (j JobParamSpecType) MarshalJSON() ([]byte, error) {
-	if j.typ == "JobParamSpecTypeZero" || j.JobParamSpecTypeZero != "" {
-		return json.Marshal(j.JobParamSpecTypeZero)
-	}
-	if j.typ == "JobParamSpecTypeOne" || j.JobParamSpecTypeOne != "" {
-		return json.Marshal(j.JobParamSpecTypeOne)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", j)
-}
-
-type JobParamSpecTypeVisitor interface {
-	VisitJobParamSpecTypeZero(JobParamSpecTypeZero) error
-	VisitJobParamSpecTypeOne(JobParamSpecTypeOne) error
-}
-
-func (j *JobParamSpecType) Accept(visitor JobParamSpecTypeVisitor) error {
-	if j.typ == "JobParamSpecTypeZero" || j.JobParamSpecTypeZero != "" {
-		return visitor.VisitJobParamSpecTypeZero(j.JobParamSpecTypeZero)
-	}
-	if j.typ == "JobParamSpecTypeOne" || j.JobParamSpecTypeOne != "" {
-		return visitor.VisitJobParamSpecTypeOne(j.JobParamSpecTypeOne)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", j)
-}
-
-type JobParamSpecTypeOne string
-
-const (
-	JobParamSpecTypeOneArray JobParamSpecTypeOne = "array"
-)
-
-func NewJobParamSpecTypeOneFromString(s string) (JobParamSpecTypeOne, error) {
-	switch s {
-	case "array":
-		return JobParamSpecTypeOneArray, nil
-	}
-	var t JobParamSpecTypeOne
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (j JobParamSpecTypeOne) Ptr() *JobParamSpecTypeOne {
-	return &j
-}
-
-type JobParamSpecTypeZero string
-
-const (
-	JobParamSpecTypeZeroString  JobParamSpecTypeZero = "string"
-	JobParamSpecTypeZeroInteger JobParamSpecTypeZero = "integer"
-	JobParamSpecTypeZeroNumber  JobParamSpecTypeZero = "number"
-	JobParamSpecTypeZeroBoolean JobParamSpecTypeZero = "boolean"
-)
-
-func NewJobParamSpecTypeZeroFromString(s string) (JobParamSpecTypeZero, error) {
-	switch s {
-	case "string":
-		return JobParamSpecTypeZeroString, nil
-	case "integer":
-		return JobParamSpecTypeZeroInteger, nil
-	case "number":
-		return JobParamSpecTypeZeroNumber, nil
-	case "boolean":
-		return JobParamSpecTypeZeroBoolean, nil
-	}
-	var t JobParamSpecTypeZero
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (j JobParamSpecTypeZero) Ptr() *JobParamSpecTypeZero {
-	return &j
-}
-
-type JobResponse struct {
-	ID            string              `json:"id" url:"id"`
-	Name          string              `json:"name" url:"name"`
-	Description   *string             `json:"description,omitempty" url:"description,omitempty"`
-	LatestVersion *JobVersionResponse `json:"latest_version,omitempty" url:"latest_version,omitempty"`
-	// Typed run-parameter schema from the latest deployed manifest
-	Params    []*JobParamDefinition `json:"params,omitempty" url:"params,omitempty"`
-	CreatedAt time.Time             `json:"created_at" url:"created_at"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobResponse) GetID() string {
-	if j == nil {
-		return ""
-	}
-	return j.ID
-}
-
-func (j *JobResponse) GetName() string {
-	if j == nil {
-		return ""
-	}
-	return j.Name
-}
-
-func (j *JobResponse) GetDescription() *string {
-	if j == nil {
-		return nil
-	}
-	return j.Description
-}
-
-func (j *JobResponse) GetLatestVersion() *JobVersionResponse {
-	if j == nil {
-		return nil
-	}
-	return j.LatestVersion
-}
-
-func (j *JobResponse) GetParams() []*JobParamDefinition {
-	if j == nil {
-		return nil
-	}
-	return j.Params
-}
-
-func (j *JobResponse) GetCreatedAt() time.Time {
-	if j == nil {
-		return time.Time{}
-	}
-	return j.CreatedAt
-}
-
-func (j *JobResponse) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
-}
-
-func (j *JobResponse) UnmarshalJSON(data []byte) error {
-	type embed JobResponse
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-	}{
-		embed: embed(*j),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*j = JobResponse(unmarshaler.embed)
-	j.CreatedAt = unmarshaler.CreatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (j *JobResponse) MarshalJSON() ([]byte, error) {
-	type embed JobResponse
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-	}{
-		embed:     embed(*j),
-		CreatedAt: internal.NewDateTime(j.CreatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (j *JobResponse) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-type JobScheduleResponse struct {
-	Cron               string `json:"cron" url:"cron"`
-	Timezone           string `json:"timezone" url:"timezone"`
-	Enabled            bool   `json:"enabled" url:"enabled"`
-	ScheduleGeneration int    `json:"schedule_generation" url:"schedule_generation"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobScheduleResponse) GetCron() string {
-	if j == nil {
-		return ""
-	}
-	return j.Cron
-}
-
-func (j *JobScheduleResponse) GetTimezone() string {
-	if j == nil {
-		return ""
-	}
-	return j.Timezone
-}
-
-func (j *JobScheduleResponse) GetEnabled() bool {
-	if j == nil {
-		return false
-	}
-	return j.Enabled
-}
-
-func (j *JobScheduleResponse) GetScheduleGeneration() int {
-	if j == nil {
-		return 0
-	}
-	return j.ScheduleGeneration
-}
-
-func (j *JobScheduleResponse) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
-}
-
-func (j *JobScheduleResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler JobScheduleResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*j = JobScheduleResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (j *JobScheduleResponse) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-type JobSection struct {
-	// Job name; must match jobs/<name>/ and deploy path
-	Name        string  `json:"name" url:"name"`
-	Version     *string `json:"version,omitempty" url:"version,omitempty"`
-	Description *string `json:"description,omitempty" url:"description,omitempty"`
-	// Declared run parameters. Reference as {{name}} in manifest strings (substitution and undeclared-reference checks walk the whole manifest, not only step fields). Reserved: {{run_id}}.
-	Params map[string]*JobParamSpec `json:"params,omitempty" url:"params,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobSection) GetName() string {
-	if j == nil {
-		return ""
-	}
-	return j.Name
-}
-
-func (j *JobSection) GetVersion() *string {
-	if j == nil {
-		return nil
-	}
-	return j.Version
-}
-
-func (j *JobSection) GetDescription() *string {
-	if j == nil {
-		return nil
-	}
-	return j.Description
-}
-
-func (j *JobSection) GetParams() map[string]*JobParamSpec {
-	if j == nil {
-		return nil
-	}
-	return j.Params
-}
-
-func (j *JobSection) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
-}
-
-func (j *JobSection) UnmarshalJSON(data []byte) error {
-	type unmarshaler JobSection
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*j = JobSection(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (j *JobSection) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-type JobVersionResponse struct {
-	ID            string             `json:"id" url:"id"`
-	VersionNumber int                `json:"version_number" url:"version_number"`
-	ContentHash   string             `json:"content_hash" url:"content_hash"`
-	DeployedAt    time.Time          `json:"deployed_at" url:"deployed_at"`
-	Manifest      *JobManifestOutput `json:"manifest" url:"manifest"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (j *JobVersionResponse) GetID() string {
-	if j == nil {
-		return ""
-	}
-	return j.ID
-}
-
-func (j *JobVersionResponse) GetVersionNumber() int {
-	if j == nil {
-		return 0
-	}
-	return j.VersionNumber
-}
-
-func (j *JobVersionResponse) GetContentHash() string {
-	if j == nil {
-		return ""
-	}
-	return j.ContentHash
-}
-
-func (j *JobVersionResponse) GetDeployedAt() time.Time {
-	if j == nil {
-		return time.Time{}
-	}
-	return j.DeployedAt
-}
-
-func (j *JobVersionResponse) GetManifest() *JobManifestOutput {
-	if j == nil {
-		return nil
-	}
-	return j.Manifest
-}
-
-func (j *JobVersionResponse) GetExtraProperties() map[string]interface{} {
-	return j.extraProperties
-}
-
-func (j *JobVersionResponse) UnmarshalJSON(data []byte) error {
-	type embed JobVersionResponse
-	var unmarshaler = struct {
-		embed
-		DeployedAt *internal.DateTime `json:"deployed_at"`
-	}{
-		embed: embed(*j),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*j = JobVersionResponse(unmarshaler.embed)
-	j.DeployedAt = unmarshaler.DeployedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *j)
-	if err != nil {
-		return err
-	}
-	j.extraProperties = extraProperties
-	j.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (j *JobVersionResponse) MarshalJSON() ([]byte, error) {
-	type embed JobVersionResponse
-	var marshaler = struct {
-		embed
-		DeployedAt *internal.DateTime `json:"deployed_at"`
-	}{
-		embed:      embed(*j),
-		DeployedAt: internal.NewDateTime(j.DeployedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (j *JobVersionResponse) String() string {
-	if len(j.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(j); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", j)
-}
-
-// Exec-mode agent step. Uses the $ISLO_OUTPUT side channel like exec.
-type RunAgentExecStepAction struct {
-	Harness RunAgentExecStepActionHarness  `json:"harness" url:"harness"`
-	Command *RunAgentExecStepActionCommand `json:"command" url:"command"`
-	Model   *string                        `json:"model,omitempty" url:"model,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (r *RunAgentExecStepAction) GetHarness() RunAgentExecStepActionHarness {
-	if r == nil {
-		return ""
-	}
-	return r.Harness
-}
-
-func (r *RunAgentExecStepAction) GetCommand() *RunAgentExecStepActionCommand {
-	if r == nil {
-		return nil
-	}
-	return r.Command
-}
-
-func (r *RunAgentExecStepAction) GetModel() *string {
-	if r == nil {
-		return nil
-	}
-	return r.Model
-}
-
-func (r *RunAgentExecStepAction) GetExtraProperties() map[string]interface{} {
-	return r.extraProperties
-}
-
-func (r *RunAgentExecStepAction) UnmarshalJSON(data []byte) error {
-	type unmarshaler RunAgentExecStepAction
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*r = RunAgentExecStepAction(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *r)
-	if err != nil {
-		return err
-	}
-	r.extraProperties = extraProperties
-	r.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (r *RunAgentExecStepAction) String() string {
-	if len(r.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(r); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", r)
-}
-
-type RunAgentExecStepActionCommand struct {
-	StringList []string
-	String     string
-
-	typ string
-}
-
-func (r *RunAgentExecStepActionCommand) GetStringList() []string {
-	if r == nil {
-		return nil
-	}
-	return r.StringList
-}
-
-func (r *RunAgentExecStepActionCommand) GetString() string {
-	if r == nil {
-		return ""
-	}
-	return r.String
-}
-
-func (r *RunAgentExecStepActionCommand) UnmarshalJSON(data []byte) error {
-	var valueStringList []string
-	if err := json.Unmarshal(data, &valueStringList); err == nil {
-		r.typ = "StringList"
-		r.StringList = valueStringList
-		return nil
-	}
-	var valueString string
-	if err := json.Unmarshal(data, &valueString); err == nil {
-		r.typ = "String"
-		r.String = valueString
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, r)
-}
-
-func (r RunAgentExecStepActionCommand) MarshalJSON() ([]byte, error) {
-	if r.typ == "StringList" || r.StringList != nil {
-		return json.Marshal(r.StringList)
-	}
-	if r.typ == "String" || r.String != "" {
-		return json.Marshal(r.String)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", r)
-}
-
-type RunAgentExecStepActionCommandVisitor interface {
-	VisitStringList([]string) error
-	VisitString(string) error
-}
-
-func (r *RunAgentExecStepActionCommand) Accept(visitor RunAgentExecStepActionCommandVisitor) error {
-	if r.typ == "StringList" || r.StringList != nil {
-		return visitor.VisitStringList(r.StringList)
-	}
-	if r.typ == "String" || r.String != "" {
-		return visitor.VisitString(r.String)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", r)
-}
-
-type RunAgentExecStepActionHarness string
-
-const (
-	RunAgentExecStepActionHarnessCodex    RunAgentExecStepActionHarness = "codex"
-	RunAgentExecStepActionHarnessCursor   RunAgentExecStepActionHarness = "cursor"
-	RunAgentExecStepActionHarnessClaude   RunAgentExecStepActionHarness = "claude"
-	RunAgentExecStepActionHarnessOpencode RunAgentExecStepActionHarness = "opencode"
-	RunAgentExecStepActionHarnessCustom   RunAgentExecStepActionHarness = "custom"
-)
-
-func NewRunAgentExecStepActionHarnessFromString(s string) (RunAgentExecStepActionHarness, error) {
-	switch s {
-	case "codex":
-		return RunAgentExecStepActionHarnessCodex, nil
-	case "cursor":
-		return RunAgentExecStepActionHarnessCursor, nil
-	case "claude":
-		return RunAgentExecStepActionHarnessClaude, nil
-	case "opencode":
-		return RunAgentExecStepActionHarnessOpencode, nil
-	case "custom":
-		return RunAgentExecStepActionHarnessCustom, nil
-	}
-	var t RunAgentExecStepActionHarness
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (r RunAgentExecStepActionHarness) Ptr() *RunAgentExecStepActionHarness {
-	return &r
-}
-
-type RunAgentSessionStepAction struct {
-	// Session outputs require claude, codex, cursor, or opencode.
-	Harness       RunAgentSessionStepActionHarness        `json:"harness" url:"harness"`
-	Model         *string                                 `json:"model,omitempty" url:"model,omitempty"`
-	ModelProvider *RunAgentSessionStepActionModelProvider `json:"model_provider,omitempty" url:"model_provider,omitempty"`
-	Prompt        *RunAgentSessionStepActionPrompt        `json:"prompt,omitempty" url:"prompt,omitempty"`
-	ResumePrompt  *RunAgentSessionStepActionResumePrompt  `json:"resume_prompt,omitempty" url:"resume_prompt,omitempty"`
-	Knowledge     []*KnowledgeBinding                     `json:"knowledge,omitempty" url:"knowledge,omitempty"`
-	Session       *string                                 `json:"session,omitempty" url:"session,omitempty"`
-	Command       *RunAgentSessionStepActionCommand       `json:"command,omitempty" url:"command,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (r *RunAgentSessionStepAction) GetHarness() RunAgentSessionStepActionHarness {
-	if r == nil {
-		return ""
-	}
-	return r.Harness
-}
-
-func (r *RunAgentSessionStepAction) GetModel() *string {
-	if r == nil {
-		return nil
-	}
-	return r.Model
-}
-
-func (r *RunAgentSessionStepAction) GetModelProvider() *RunAgentSessionStepActionModelProvider {
-	if r == nil {
-		return nil
-	}
-	return r.ModelProvider
-}
-
-func (r *RunAgentSessionStepAction) GetPrompt() *RunAgentSessionStepActionPrompt {
-	if r == nil {
-		return nil
-	}
-	return r.Prompt
-}
-
-func (r *RunAgentSessionStepAction) GetResumePrompt() *RunAgentSessionStepActionResumePrompt {
-	if r == nil {
-		return nil
-	}
-	return r.ResumePrompt
-}
-
-func (r *RunAgentSessionStepAction) GetKnowledge() []*KnowledgeBinding {
-	if r == nil {
-		return nil
-	}
-	return r.Knowledge
-}
-
-func (r *RunAgentSessionStepAction) GetSession() *string {
-	if r == nil {
-		return nil
-	}
-	return r.Session
-}
-
-func (r *RunAgentSessionStepAction) GetCommand() *RunAgentSessionStepActionCommand {
-	if r == nil {
-		return nil
-	}
-	return r.Command
-}
-
-func (r *RunAgentSessionStepAction) GetExtraProperties() map[string]interface{} {
-	return r.extraProperties
-}
-
-func (r *RunAgentSessionStepAction) UnmarshalJSON(data []byte) error {
-	type unmarshaler RunAgentSessionStepAction
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*r = RunAgentSessionStepAction(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *r)
-	if err != nil {
-		return err
-	}
-	r.extraProperties = extraProperties
-	r.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (r *RunAgentSessionStepAction) String() string {
-	if len(r.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(r); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", r)
-}
-
-type RunAgentSessionStepActionCommand struct {
-	StringList []string
-	String     string
-
-	typ string
-}
-
-func (r *RunAgentSessionStepActionCommand) GetStringList() []string {
-	if r == nil {
-		return nil
-	}
-	return r.StringList
-}
-
-func (r *RunAgentSessionStepActionCommand) GetString() string {
-	if r == nil {
-		return ""
-	}
-	return r.String
-}
-
-func (r *RunAgentSessionStepActionCommand) UnmarshalJSON(data []byte) error {
-	var valueStringList []string
-	if err := json.Unmarshal(data, &valueStringList); err == nil {
-		r.typ = "StringList"
-		r.StringList = valueStringList
-		return nil
-	}
-	var valueString string
-	if err := json.Unmarshal(data, &valueString); err == nil {
-		r.typ = "String"
-		r.String = valueString
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, r)
-}
-
-func (r RunAgentSessionStepActionCommand) MarshalJSON() ([]byte, error) {
-	if r.typ == "StringList" || r.StringList != nil {
-		return json.Marshal(r.StringList)
-	}
-	if r.typ == "String" || r.String != "" {
-		return json.Marshal(r.String)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", r)
-}
-
-type RunAgentSessionStepActionCommandVisitor interface {
-	VisitStringList([]string) error
-	VisitString(string) error
-}
-
-func (r *RunAgentSessionStepActionCommand) Accept(visitor RunAgentSessionStepActionCommandVisitor) error {
-	if r.typ == "StringList" || r.StringList != nil {
-		return visitor.VisitStringList(r.StringList)
-	}
-	if r.typ == "String" || r.String != "" {
-		return visitor.VisitString(r.String)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", r)
-}
-
-// Session outputs require claude, codex, cursor, or opencode.
-type RunAgentSessionStepActionHarness string
-
-const (
-	RunAgentSessionStepActionHarnessCodex    RunAgentSessionStepActionHarness = "codex"
-	RunAgentSessionStepActionHarnessCursor   RunAgentSessionStepActionHarness = "cursor"
-	RunAgentSessionStepActionHarnessClaude   RunAgentSessionStepActionHarness = "claude"
-	RunAgentSessionStepActionHarnessOpencode RunAgentSessionStepActionHarness = "opencode"
-)
-
-func NewRunAgentSessionStepActionHarnessFromString(s string) (RunAgentSessionStepActionHarness, error) {
-	switch s {
-	case "codex":
-		return RunAgentSessionStepActionHarnessCodex, nil
-	case "cursor":
-		return RunAgentSessionStepActionHarnessCursor, nil
-	case "claude":
-		return RunAgentSessionStepActionHarnessClaude, nil
-	case "opencode":
-		return RunAgentSessionStepActionHarnessOpencode, nil
-	}
-	var t RunAgentSessionStepActionHarness
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (r RunAgentSessionStepActionHarness) Ptr() *RunAgentSessionStepActionHarness {
-	return &r
-}
-
-type RunAgentSessionStepActionModelProvider string
-
-const (
-	RunAgentSessionStepActionModelProviderIslo          RunAgentSessionStepActionModelProvider = "islo"
-	RunAgentSessionStepActionModelProviderIsloInference RunAgentSessionStepActionModelProvider = "islo_inference"
-)
-
-func NewRunAgentSessionStepActionModelProviderFromString(s string) (RunAgentSessionStepActionModelProvider, error) {
-	switch s {
-	case "islo":
-		return RunAgentSessionStepActionModelProviderIslo, nil
-	case "islo_inference":
-		return RunAgentSessionStepActionModelProviderIsloInference, nil
-	}
-	var t RunAgentSessionStepActionModelProvider
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (r RunAgentSessionStepActionModelProvider) Ptr() *RunAgentSessionStepActionModelProvider {
-	return &r
-}
-
-type RunAgentSessionStepActionPrompt struct {
-	Type      string
-	Knowledge *KnowledgeBinding
-	Literal   *LiteralBinding
-}
-
-func (r *RunAgentSessionStepActionPrompt) GetType() string {
-	if r == nil {
-		return ""
-	}
-	return r.Type
-}
-
-func (r *RunAgentSessionStepActionPrompt) GetKnowledge() *KnowledgeBinding {
-	if r == nil {
-		return nil
-	}
-	return r.Knowledge
-}
-
-func (r *RunAgentSessionStepActionPrompt) GetLiteral() *LiteralBinding {
-	if r == nil {
-		return nil
-	}
-	return r.Literal
-}
-
-func (r *RunAgentSessionStepActionPrompt) UnmarshalJSON(data []byte) error {
-	var unmarshaler struct {
-		Type string `json:"type"`
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	r.Type = unmarshaler.Type
-	if unmarshaler.Type == "" {
-		return fmt.Errorf("%T did not include discriminant type", r)
-	}
-	switch unmarshaler.Type {
-	case "knowledge":
-		value := new(KnowledgeBinding)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		r.Knowledge = value
-	case "literal":
-		value := new(LiteralBinding)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		r.Literal = value
-	}
-	return nil
-}
-
-func (r RunAgentSessionStepActionPrompt) MarshalJSON() ([]byte, error) {
-	if err := r.validate(); err != nil {
-		return nil, err
-	}
-	if r.Knowledge != nil {
-		return internal.MarshalJSONWithExtraProperty(r.Knowledge, "type", "knowledge")
-	}
-	if r.Literal != nil {
-		return internal.MarshalJSONWithExtraProperty(r.Literal, "type", "literal")
-	}
-	return nil, fmt.Errorf("type %T does not define a non-empty union type", r)
-}
-
-type RunAgentSessionStepActionPromptVisitor interface {
-	VisitKnowledge(*KnowledgeBinding) error
-	VisitLiteral(*LiteralBinding) error
-}
-
-func (r *RunAgentSessionStepActionPrompt) Accept(visitor RunAgentSessionStepActionPromptVisitor) error {
-	if r.Knowledge != nil {
-		return visitor.VisitKnowledge(r.Knowledge)
-	}
-	if r.Literal != nil {
-		return visitor.VisitLiteral(r.Literal)
-	}
-	return fmt.Errorf("type %T does not define a non-empty union type", r)
-}
-
-func (r *RunAgentSessionStepActionPrompt) validate() error {
-	if r == nil {
-		return fmt.Errorf("type %T is nil", r)
-	}
-	var fields []string
-	if r.Knowledge != nil {
-		fields = append(fields, "knowledge")
-	}
-	if r.Literal != nil {
-		fields = append(fields, "literal")
-	}
-	if len(fields) == 0 {
-		if r.Type != "" {
-			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", r, r.Type)
-		}
-		return fmt.Errorf("type %T is empty", r)
-	}
-	if len(fields) > 1 {
-		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", r, fields)
-	}
-	if r.Type != "" {
-		field := fields[0]
-		if r.Type != field {
-			return fmt.Errorf(
-				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
-				r,
-				r.Type,
-				r,
-			)
-		}
-	}
-	return nil
-}
-
-type RunAgentSessionStepActionResumePrompt struct {
-	Type      string
-	Knowledge *KnowledgeBinding
-	Literal   *LiteralBinding
-}
-
-func (r *RunAgentSessionStepActionResumePrompt) GetType() string {
-	if r == nil {
-		return ""
-	}
-	return r.Type
-}
-
-func (r *RunAgentSessionStepActionResumePrompt) GetKnowledge() *KnowledgeBinding {
-	if r == nil {
-		return nil
-	}
-	return r.Knowledge
-}
-
-func (r *RunAgentSessionStepActionResumePrompt) GetLiteral() *LiteralBinding {
-	if r == nil {
-		return nil
-	}
-	return r.Literal
-}
-
-func (r *RunAgentSessionStepActionResumePrompt) UnmarshalJSON(data []byte) error {
-	var unmarshaler struct {
-		Type string `json:"type"`
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	r.Type = unmarshaler.Type
-	if unmarshaler.Type == "" {
-		return fmt.Errorf("%T did not include discriminant type", r)
-	}
-	switch unmarshaler.Type {
-	case "knowledge":
-		value := new(KnowledgeBinding)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		r.Knowledge = value
-	case "literal":
-		value := new(LiteralBinding)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		r.Literal = value
-	}
-	return nil
-}
-
-func (r RunAgentSessionStepActionResumePrompt) MarshalJSON() ([]byte, error) {
-	if err := r.validate(); err != nil {
-		return nil, err
-	}
-	if r.Knowledge != nil {
-		return internal.MarshalJSONWithExtraProperty(r.Knowledge, "type", "knowledge")
-	}
-	if r.Literal != nil {
-		return internal.MarshalJSONWithExtraProperty(r.Literal, "type", "literal")
-	}
-	return nil, fmt.Errorf("type %T does not define a non-empty union type", r)
-}
-
-type RunAgentSessionStepActionResumePromptVisitor interface {
-	VisitKnowledge(*KnowledgeBinding) error
-	VisitLiteral(*LiteralBinding) error
-}
-
-func (r *RunAgentSessionStepActionResumePrompt) Accept(visitor RunAgentSessionStepActionResumePromptVisitor) error {
-	if r.Knowledge != nil {
-		return visitor.VisitKnowledge(r.Knowledge)
-	}
-	if r.Literal != nil {
-		return visitor.VisitLiteral(r.Literal)
-	}
-	return fmt.Errorf("type %T does not define a non-empty union type", r)
-}
-
-func (r *RunAgentSessionStepActionResumePrompt) validate() error {
-	if r == nil {
-		return fmt.Errorf("type %T is nil", r)
-	}
-	var fields []string
-	if r.Knowledge != nil {
-		fields = append(fields, "knowledge")
-	}
-	if r.Literal != nil {
-		fields = append(fields, "literal")
-	}
-	if len(fields) == 0 {
-		if r.Type != "" {
-			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", r, r.Type)
-		}
-		return fmt.Errorf("type %T is empty", r)
-	}
-	if len(fields) > 1 {
-		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", r, fields)
-	}
-	if r.Type != "" {
-		field := fields[0]
-		if r.Type != field {
-			return fmt.Errorf(
-				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
-				r,
-				r.Type,
-				r,
-			)
-		}
-	}
-	return nil
-}
-
-type RunSectionInput struct {
-	FailFast    *bool `json:"fail_fast,omitempty" url:"fail_fast,omitempty"`
-	Fanout      *bool `json:"fanout,omitempty" url:"fanout,omitempty"`
-	Concurrency *int  `json:"concurrency,omitempty" url:"concurrency,omitempty"`
-	// Working directory for every exec and run_agent step. Defaults to ".". Falls back to run.sandbox.workdir when omitted.
-	Workdir            *string                 `json:"workdir,omitempty" url:"workdir,omitempty"`
-	Timeout            *RunSectionInputTimeout `json:"timeout,omitempty" url:"timeout,omitempty"`
-	Region             *string                 `json:"region,omitempty" url:"region,omitempty"`
-	TeardownOnComplete *bool                   `json:"teardown_on_complete,omitempty" url:"teardown_on_complete,omitempty"`
-	ResumeOnStart      *bool                   `json:"resume_on_start,omitempty" url:"resume_on_start,omitempty"`
-	Sandbox            *SandboxConfig          `json:"sandbox,omitempty" url:"sandbox,omitempty"`
-	Tasks              []*TaskInput            `json:"tasks" url:"tasks"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (r *RunSectionInput) GetFailFast() *bool {
-	if r == nil {
-		return nil
-	}
-	return r.FailFast
-}
-
-func (r *RunSectionInput) GetFanout() *bool {
-	if r == nil {
-		return nil
-	}
-	return r.Fanout
-}
-
-func (r *RunSectionInput) GetConcurrency() *int {
-	if r == nil {
-		return nil
-	}
-	return r.Concurrency
-}
-
-func (r *RunSectionInput) GetWorkdir() *string {
-	if r == nil {
-		return nil
-	}
-	return r.Workdir
-}
-
-func (r *RunSectionInput) GetTimeout() *RunSectionInputTimeout {
-	if r == nil {
-		return nil
-	}
-	return r.Timeout
-}
-
-func (r *RunSectionInput) GetRegion() *string {
-	if r == nil {
-		return nil
-	}
-	return r.Region
-}
-
-func (r *RunSectionInput) GetTeardownOnComplete() *bool {
-	if r == nil {
-		return nil
-	}
-	return r.TeardownOnComplete
-}
-
-func (r *RunSectionInput) GetResumeOnStart() *bool {
-	if r == nil {
-		return nil
-	}
-	return r.ResumeOnStart
-}
-
-func (r *RunSectionInput) GetSandbox() *SandboxConfig {
-	if r == nil {
-		return nil
-	}
-	return r.Sandbox
-}
-
-func (r *RunSectionInput) GetTasks() []*TaskInput {
-	if r == nil {
-		return nil
-	}
-	return r.Tasks
-}
-
-func (r *RunSectionInput) GetExtraProperties() map[string]interface{} {
-	return r.extraProperties
-}
-
-func (r *RunSectionInput) UnmarshalJSON(data []byte) error {
-	type unmarshaler RunSectionInput
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*r = RunSectionInput(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *r)
-	if err != nil {
-		return err
-	}
-	r.extraProperties = extraProperties
-	r.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (r *RunSectionInput) String() string {
-	if len(r.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(r); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", r)
-}
-
-type RunSectionInputTimeout struct {
-	String  string
-	Integer int
-
-	typ string
-}
-
-func (r *RunSectionInputTimeout) GetString() string {
-	if r == nil {
-		return ""
-	}
-	return r.String
-}
-
-func (r *RunSectionInputTimeout) GetInteger() int {
-	if r == nil {
-		return 0
-	}
-	return r.Integer
-}
-
-func (r *RunSectionInputTimeout) UnmarshalJSON(data []byte) error {
-	var valueString string
-	if err := json.Unmarshal(data, &valueString); err == nil {
-		r.typ = "String"
-		r.String = valueString
-		return nil
-	}
-	var valueInteger int
-	if err := json.Unmarshal(data, &valueInteger); err == nil {
-		r.typ = "Integer"
-		r.Integer = valueInteger
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, r)
-}
-
-func (r RunSectionInputTimeout) MarshalJSON() ([]byte, error) {
-	if r.typ == "String" || r.String != "" {
-		return json.Marshal(r.String)
-	}
-	if r.typ == "Integer" || r.Integer != 0 {
-		return json.Marshal(r.Integer)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", r)
-}
-
-type RunSectionInputTimeoutVisitor interface {
-	VisitString(string) error
-	VisitInteger(int) error
-}
-
-func (r *RunSectionInputTimeout) Accept(visitor RunSectionInputTimeoutVisitor) error {
-	if r.typ == "String" || r.String != "" {
-		return visitor.VisitString(r.String)
-	}
-	if r.typ == "Integer" || r.Integer != 0 {
-		return visitor.VisitInteger(r.Integer)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", r)
-}
-
-type RunSectionOutput struct {
-	FailFast    *bool `json:"fail_fast,omitempty" url:"fail_fast,omitempty"`
-	Fanout      *bool `json:"fanout,omitempty" url:"fanout,omitempty"`
-	Concurrency *int  `json:"concurrency,omitempty" url:"concurrency,omitempty"`
-	// Working directory for every exec and run_agent step. Defaults to ".". Falls back to run.sandbox.workdir when omitted.
-	Workdir            *string                  `json:"workdir,omitempty" url:"workdir,omitempty"`
-	Timeout            *RunSectionOutputTimeout `json:"timeout,omitempty" url:"timeout,omitempty"`
-	Region             *string                  `json:"region,omitempty" url:"region,omitempty"`
-	TeardownOnComplete *bool                    `json:"teardown_on_complete,omitempty" url:"teardown_on_complete,omitempty"`
-	ResumeOnStart      *bool                    `json:"resume_on_start,omitempty" url:"resume_on_start,omitempty"`
-	Sandbox            *SandboxConfig           `json:"sandbox,omitempty" url:"sandbox,omitempty"`
-	Tasks              []*TaskOutput            `json:"tasks" url:"tasks"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (r *RunSectionOutput) GetFailFast() *bool {
-	if r == nil {
-		return nil
-	}
-	return r.FailFast
-}
-
-func (r *RunSectionOutput) GetFanout() *bool {
-	if r == nil {
-		return nil
-	}
-	return r.Fanout
-}
-
-func (r *RunSectionOutput) GetConcurrency() *int {
-	if r == nil {
-		return nil
-	}
-	return r.Concurrency
-}
-
-func (r *RunSectionOutput) GetWorkdir() *string {
-	if r == nil {
-		return nil
-	}
-	return r.Workdir
-}
-
-func (r *RunSectionOutput) GetTimeout() *RunSectionOutputTimeout {
-	if r == nil {
-		return nil
-	}
-	return r.Timeout
-}
-
-func (r *RunSectionOutput) GetRegion() *string {
-	if r == nil {
-		return nil
-	}
-	return r.Region
-}
-
-func (r *RunSectionOutput) GetTeardownOnComplete() *bool {
-	if r == nil {
-		return nil
-	}
-	return r.TeardownOnComplete
-}
-
-func (r *RunSectionOutput) GetResumeOnStart() *bool {
-	if r == nil {
-		return nil
-	}
-	return r.ResumeOnStart
-}
-
-func (r *RunSectionOutput) GetSandbox() *SandboxConfig {
-	if r == nil {
-		return nil
-	}
-	return r.Sandbox
-}
-
-func (r *RunSectionOutput) GetTasks() []*TaskOutput {
-	if r == nil {
-		return nil
-	}
-	return r.Tasks
-}
-
-func (r *RunSectionOutput) GetExtraProperties() map[string]interface{} {
-	return r.extraProperties
-}
-
-func (r *RunSectionOutput) UnmarshalJSON(data []byte) error {
-	type unmarshaler RunSectionOutput
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*r = RunSectionOutput(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *r)
-	if err != nil {
-		return err
-	}
-	r.extraProperties = extraProperties
-	r.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (r *RunSectionOutput) String() string {
-	if len(r.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(r); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", r)
-}
-
-type RunSectionOutputTimeout struct {
-	String  string
-	Integer int
-
-	typ string
-}
-
-func (r *RunSectionOutputTimeout) GetString() string {
-	if r == nil {
-		return ""
-	}
-	return r.String
-}
-
-func (r *RunSectionOutputTimeout) GetInteger() int {
-	if r == nil {
-		return 0
-	}
-	return r.Integer
-}
-
-func (r *RunSectionOutputTimeout) UnmarshalJSON(data []byte) error {
-	var valueString string
-	if err := json.Unmarshal(data, &valueString); err == nil {
-		r.typ = "String"
-		r.String = valueString
-		return nil
-	}
-	var valueInteger int
-	if err := json.Unmarshal(data, &valueInteger); err == nil {
-		r.typ = "Integer"
-		r.Integer = valueInteger
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, r)
-}
-
-func (r RunSectionOutputTimeout) MarshalJSON() ([]byte, error) {
-	if r.typ == "String" || r.String != "" {
-		return json.Marshal(r.String)
-	}
-	if r.typ == "Integer" || r.Integer != 0 {
-		return json.Marshal(r.Integer)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", r)
-}
-
-type RunSectionOutputTimeoutVisitor interface {
-	VisitString(string) error
-	VisitInteger(int) error
-}
-
-func (r *RunSectionOutputTimeout) Accept(visitor RunSectionOutputTimeoutVisitor) error {
-	if r.typ == "String" || r.String != "" {
-		return visitor.VisitString(r.String)
-	}
-	if r.typ == "Integer" || r.Integer != 0 {
-		return visitor.VisitInteger(r.Integer)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", r)
-}
-
-// Sandbox requirements for job runs (matches compute IncomingWebhookSandboxTemplate shape).
-type SandboxConfig struct {
-	Mode *SandboxConfigMode `json:"mode,omitempty" url:"mode,omitempty"`
-	// Required for ensure/reuse. Supports {{param}} substitution.
-	Name *string `json:"name,omitempty" url:"name,omitempty"`
-	// Required for provision/ensure.
-	Image           *string            `json:"image,omitempty" url:"image,omitempty"`
-	Vcpus           *int               `json:"vcpus,omitempty" url:"vcpus,omitempty"`
-	MemoryMb        *int               `json:"memory_mb,omitempty" url:"memory_mb,omitempty"`
-	DiskGb          *int               `json:"disk_gb,omitempty" url:"disk_gb,omitempty"`
-	SnapshotName    *string            `json:"snapshot_name,omitempty" url:"snapshot_name,omitempty"`
-	GatewayProfile  *string            `json:"gateway_profile,omitempty" url:"gateway_profile,omitempty"`
-	Environment     *string            `json:"environment,omitempty" url:"environment,omitempty"`
-	Init            *SandboxConfigInit `json:"init,omitempty" url:"init,omitempty"`
-	InternetEnabled *bool              `json:"internet_enabled,omitempty" url:"internet_enabled,omitempty"`
-	// Sandbox default working directory. Used when [run].workdir is omitted.
-	Workdir      *string            `json:"workdir,omitempty" url:"workdir,omitempty"`
-	CacheKey     *string            `json:"cache_key,omitempty" url:"cache_key,omitempty"`
-	Env          map[string]*string `json:"env,omitempty" url:"env,omitempty"`
-	Sources      []*GitSource       `json:"sources,omitempty" url:"sources,omitempty"`
-	SetupScripts []*SetupScript     `json:"setup_scripts,omitempty" url:"setup_scripts,omitempty"`
-	Lifecycle    *LifecyclePolicy   `json:"lifecycle,omitempty" url:"lifecycle,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (s *SandboxConfig) GetMode() *SandboxConfigMode {
-	if s == nil {
-		return nil
-	}
-	return s.Mode
-}
-
-func (s *SandboxConfig) GetName() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Name
-}
-
-func (s *SandboxConfig) GetImage() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Image
-}
-
-func (s *SandboxConfig) GetVcpus() *int {
-	if s == nil {
-		return nil
-	}
-	return s.Vcpus
-}
-
-func (s *SandboxConfig) GetMemoryMb() *int {
-	if s == nil {
-		return nil
-	}
-	return s.MemoryMb
-}
-
-func (s *SandboxConfig) GetDiskGb() *int {
-	if s == nil {
-		return nil
-	}
-	return s.DiskGb
-}
-
-func (s *SandboxConfig) GetSnapshotName() *string {
-	if s == nil {
-		return nil
-	}
-	return s.SnapshotName
-}
-
-func (s *SandboxConfig) GetGatewayProfile() *string {
-	if s == nil {
-		return nil
-	}
-	return s.GatewayProfile
-}
-
-func (s *SandboxConfig) GetEnvironment() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Environment
-}
-
-func (s *SandboxConfig) GetInit() *SandboxConfigInit {
-	if s == nil {
-		return nil
-	}
-	return s.Init
-}
-
-func (s *SandboxConfig) GetInternetEnabled() *bool {
-	if s == nil {
-		return nil
-	}
-	return s.InternetEnabled
-}
-
-func (s *SandboxConfig) GetWorkdir() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Workdir
-}
-
-func (s *SandboxConfig) GetCacheKey() *string {
-	if s == nil {
-		return nil
-	}
-	return s.CacheKey
-}
-
-func (s *SandboxConfig) GetEnv() map[string]*string {
-	if s == nil {
-		return nil
-	}
-	return s.Env
-}
-
-func (s *SandboxConfig) GetSources() []*GitSource {
-	if s == nil {
-		return nil
-	}
-	return s.Sources
-}
-
-func (s *SandboxConfig) GetSetupScripts() []*SetupScript {
-	if s == nil {
-		return nil
-	}
-	return s.SetupScripts
-}
-
-func (s *SandboxConfig) GetLifecycle() *LifecyclePolicy {
-	if s == nil {
-		return nil
-	}
-	return s.Lifecycle
-}
-
-func (s *SandboxConfig) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *SandboxConfig) UnmarshalJSON(data []byte) error {
-	type unmarshaler SandboxConfig
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*s = SandboxConfig(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
-	if err != nil {
-		return err
-	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (s *SandboxConfig) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(s); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", s)
-}
-
-type SandboxConfigInit struct {
-	Type    string
-	Custom  *SandboxInitCustom
-	Full    *SandboxInitFull
-	Minimal *SandboxInitMinimal
-}
-
-func (s *SandboxConfigInit) GetType() string {
-	if s == nil {
-		return ""
-	}
-	return s.Type
-}
-
-func (s *SandboxConfigInit) GetCustom() *SandboxInitCustom {
-	if s == nil {
-		return nil
-	}
-	return s.Custom
-}
-
-func (s *SandboxConfigInit) GetFull() *SandboxInitFull {
-	if s == nil {
-		return nil
-	}
-	return s.Full
-}
-
-func (s *SandboxConfigInit) GetMinimal() *SandboxInitMinimal {
-	if s == nil {
-		return nil
-	}
-	return s.Minimal
-}
-
-func (s *SandboxConfigInit) UnmarshalJSON(data []byte) error {
-	var unmarshaler struct {
-		Type string `json:"type"`
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	s.Type = unmarshaler.Type
-	if unmarshaler.Type == "" {
-		return fmt.Errorf("%T did not include discriminant type", s)
-	}
-	switch unmarshaler.Type {
-	case "custom":
-		value := new(SandboxInitCustom)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		s.Custom = value
-	case "full":
-		value := new(SandboxInitFull)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		s.Full = value
-	case "minimal":
-		value := new(SandboxInitMinimal)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		s.Minimal = value
-	}
-	return nil
-}
-
-func (s SandboxConfigInit) MarshalJSON() ([]byte, error) {
-	if err := s.validate(); err != nil {
-		return nil, err
-	}
-	if s.Custom != nil {
-		return internal.MarshalJSONWithExtraProperty(s.Custom, "type", "custom")
-	}
-	if s.Full != nil {
-		return internal.MarshalJSONWithExtraProperty(s.Full, "type", "full")
-	}
-	if s.Minimal != nil {
-		return internal.MarshalJSONWithExtraProperty(s.Minimal, "type", "minimal")
-	}
-	return nil, fmt.Errorf("type %T does not define a non-empty union type", s)
-}
-
-type SandboxConfigInitVisitor interface {
-	VisitCustom(*SandboxInitCustom) error
-	VisitFull(*SandboxInitFull) error
-	VisitMinimal(*SandboxInitMinimal) error
-}
-
-func (s *SandboxConfigInit) Accept(visitor SandboxConfigInitVisitor) error {
-	if s.Custom != nil {
-		return visitor.VisitCustom(s.Custom)
-	}
-	if s.Full != nil {
-		return visitor.VisitFull(s.Full)
-	}
-	if s.Minimal != nil {
-		return visitor.VisitMinimal(s.Minimal)
-	}
-	return fmt.Errorf("type %T does not define a non-empty union type", s)
-}
-
-func (s *SandboxConfigInit) validate() error {
-	if s == nil {
-		return fmt.Errorf("type %T is nil", s)
-	}
-	var fields []string
-	if s.Custom != nil {
-		fields = append(fields, "custom")
-	}
-	if s.Full != nil {
-		fields = append(fields, "full")
-	}
-	if s.Minimal != nil {
-		fields = append(fields, "minimal")
-	}
-	if len(fields) == 0 {
-		if s.Type != "" {
-			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", s, s.Type)
-		}
-		return fmt.Errorf("type %T is empty", s)
-	}
-	if len(fields) > 1 {
-		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", s, fields)
-	}
-	if s.Type != "" {
-		field := fields[0]
-		if s.Type != field {
-			return fmt.Errorf(
-				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
-				s,
-				s.Type,
-				s,
-			)
-		}
-	}
-	return nil
-}
-
-type SandboxConfigMode string
-
-const (
-	SandboxConfigModeProvision SandboxConfigMode = "provision"
-	SandboxConfigModeEnsure    SandboxConfigMode = "ensure"
-	SandboxConfigModeReuse     SandboxConfigMode = "reuse"
-)
-
-func NewSandboxConfigModeFromString(s string) (SandboxConfigMode, error) {
-	switch s {
-	case "provision":
-		return SandboxConfigModeProvision, nil
-	case "ensure":
-		return SandboxConfigModeEnsure, nil
-	case "reuse":
-		return SandboxConfigModeReuse, nil
-	}
-	var t SandboxConfigMode
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (s SandboxConfigMode) Ptr() *SandboxConfigMode {
-	return &s
-}
-
-type ScheduleSection struct {
-	// Cron expression; validated at deploy time. Every param the schedule uses must have a default before you add [schedule].
-	Cron     string  `json:"cron" url:"cron"`
-	Timezone *string `json:"timezone,omitempty" url:"timezone,omitempty"`
-	Enabled  *bool   `json:"enabled,omitempty" url:"enabled,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (s *ScheduleSection) GetCron() string {
-	if s == nil {
-		return ""
-	}
-	return s.Cron
-}
-
-func (s *ScheduleSection) GetTimezone() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Timezone
-}
-
-func (s *ScheduleSection) GetEnabled() *bool {
-	if s == nil {
-		return nil
-	}
-	return s.Enabled
-}
-
-func (s *ScheduleSection) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *ScheduleSection) UnmarshalJSON(data []byte) error {
-	type unmarshaler ScheduleSection
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*s = ScheduleSection(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
-	if err != nil {
-		return err
-	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (s *ScheduleSection) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(s); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", s)
-}
-
-type SnapshotStepAction struct {
-	Name string `json:"name" url:"name"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (s *SnapshotStepAction) GetName() string {
-	if s == nil {
-		return ""
-	}
-	return s.Name
-}
-
-func (s *SnapshotStepAction) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *SnapshotStepAction) UnmarshalJSON(data []byte) error {
-	type unmarshaler SnapshotStepAction
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*s = SnapshotStepAction(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
-	if err != nil {
-		return err
-	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (s *SnapshotStepAction) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(s); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", s)
-}
-
-type StepOutputClaim struct {
-	// Writer key. Defaults to the job output key.
-	From *string `json:"from,omitempty" url:"from,omitempty"`
-	// May tighten the job-level required flag, not loosen it.
-	Required *bool `json:"required,omitempty" url:"required,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (s *StepOutputClaim) GetFrom() *string {
-	if s == nil {
-		return nil
-	}
-	return s.From
-}
-
-func (s *StepOutputClaim) GetRequired() *bool {
-	if s == nil {
-		return nil
-	}
-	return s.Required
-}
-
-func (s *StepOutputClaim) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *StepOutputClaim) UnmarshalJSON(data []byte) error {
-	type unmarshaler StepOutputClaim
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*s = StepOutputClaim(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
-	if err != nil {
-		return err
-	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (s *StepOutputClaim) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(s); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", s)
-}
-
-type TaskInput struct {
-	Name    string           `json:"name" url:"name"`
-	Sandbox *SandboxConfig   `json:"sandbox,omitempty" url:"sandbox,omitempty"`
-	Steps   []*TaskStepInput `json:"steps" url:"steps"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TaskInput) GetName() string {
-	if t == nil {
-		return ""
-	}
-	return t.Name
-}
-
-func (t *TaskInput) GetSandbox() *SandboxConfig {
-	if t == nil {
-		return nil
-	}
-	return t.Sandbox
-}
-
-func (t *TaskInput) GetSteps() []*TaskStepInput {
-	if t == nil {
-		return nil
-	}
-	return t.Steps
-}
-
-func (t *TaskInput) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TaskInput) UnmarshalJSON(data []byte) error {
-	type unmarshaler TaskInput
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TaskInput(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TaskInput) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TaskOutput struct {
-	Name    string            `json:"name" url:"name"`
-	Sandbox *SandboxConfig    `json:"sandbox,omitempty" url:"sandbox,omitempty"`
-	Steps   []*TaskStepOutput `json:"steps" url:"steps"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TaskOutput) GetName() string {
-	if t == nil {
-		return ""
-	}
-	return t.Name
-}
-
-func (t *TaskOutput) GetSandbox() *SandboxConfig {
-	if t == nil {
-		return nil
-	}
-	return t.Sandbox
-}
-
-func (t *TaskOutput) GetSteps() []*TaskStepOutput {
-	if t == nil {
-		return nil
-	}
-	return t.Steps
-}
-
-func (t *TaskOutput) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TaskOutput) UnmarshalJSON(data []byte) error {
-	type unmarshaler TaskOutput
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TaskOutput(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TaskOutput) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-// One compute action per step.
-//
-// Define exactly one action key (exec, run_agent, snapshot, pause, resume, or
-// delete). Task names and step names must be unique and non-blank. A job with
-// [outputs], exactly one session run_agent step, and no step listing outputs
-// implicitly claims every output key. More than one potential writer, or any
-// explicit outputs list, requires every writer to claim.
-type TaskStepInput struct {
-	// Unique non-blank step name within the task.
-	Name *string `json:"name,omitempty" url:"name,omitempty"`
-	// Override [run].workdir for this step. Supports {{name}} placeholders.
-	Workdir *string `json:"workdir,omitempty" url:"workdir,omitempty"`
-	// Max wall-clock duration for this step in seconds.
-	Timeout *int    `json:"timeout,omitempty" url:"timeout,omitempty"`
-	User    *string `json:"user,omitempty" url:"user,omitempty"`
-	// Shell command. Supports {{name}} placeholders in each argv element. Control plane sets $ISLO_OUTPUT to /dev/null when the step claims no output keys, or /tmp/islo_output.<job_run_id>.<random> when it claims keys. Write key=value lines (JSON after =, raw string fallback for type=string). Do not pre-create the file. Cap is 64 KiB.
-	Exec *TaskStepInputExec `json:"exec,omitempty" url:"exec,omitempty"`
-	// Run an agent step. Session mode publishes claimed producer keys as structured JSON. Exec mode uses $ISLO_OUTPUT like exec.
-	RunAgent *TaskStepInputRunAgent `json:"run_agent,omitempty" url:"run_agent,omitempty"`
-	Snapshot *SnapshotStepAction    `json:"snapshot,omitempty" url:"snapshot,omitempty"`
-	Pause    *bool                  `json:"pause,omitempty" url:"pause,omitempty"`
-	Resume   *bool                  `json:"resume,omitempty" url:"resume,omitempty"`
-	Delete   *bool                  `json:"delete,omitempty" url:"delete,omitempty"`
-	// Not implemented yet; do not author.
-	Upload *string `json:"upload,omitempty" url:"upload,omitempty"`
-	// Not implemented yet; do not author.
-	Download *string `json:"download,omitempty" url:"download,omitempty"`
-	// Claim job output keys. List shortcut: outputs = ["summary"]. Table: [run.tasks.steps.outputs.summary] from = "agent_key", required = true.
-	Outputs *TaskStepInputOutputs `json:"outputs,omitempty" url:"outputs,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TaskStepInput) GetName() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Name
-}
-
-func (t *TaskStepInput) GetWorkdir() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Workdir
-}
-
-func (t *TaskStepInput) GetTimeout() *int {
-	if t == nil {
-		return nil
-	}
-	return t.Timeout
-}
-
-func (t *TaskStepInput) GetUser() *string {
-	if t == nil {
-		return nil
-	}
-	return t.User
-}
-
-func (t *TaskStepInput) GetExec() *TaskStepInputExec {
-	if t == nil {
-		return nil
-	}
-	return t.Exec
-}
-
-func (t *TaskStepInput) GetRunAgent() *TaskStepInputRunAgent {
-	if t == nil {
-		return nil
-	}
-	return t.RunAgent
-}
-
-func (t *TaskStepInput) GetSnapshot() *SnapshotStepAction {
-	if t == nil {
-		return nil
-	}
-	return t.Snapshot
-}
-
-func (t *TaskStepInput) GetPause() *bool {
-	if t == nil {
-		return nil
-	}
-	return t.Pause
-}
-
-func (t *TaskStepInput) GetResume() *bool {
-	if t == nil {
-		return nil
-	}
-	return t.Resume
-}
-
-func (t *TaskStepInput) GetDelete() *bool {
-	if t == nil {
-		return nil
-	}
-	return t.Delete
-}
-
-func (t *TaskStepInput) GetUpload() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Upload
-}
-
-func (t *TaskStepInput) GetDownload() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Download
-}
-
-func (t *TaskStepInput) GetOutputs() *TaskStepInputOutputs {
-	if t == nil {
-		return nil
-	}
-	return t.Outputs
-}
-
-func (t *TaskStepInput) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TaskStepInput) UnmarshalJSON(data []byte) error {
-	type unmarshaler TaskStepInput
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TaskStepInput(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TaskStepInput) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-// Shell command. Supports {{name}} placeholders in each argv element. Control plane sets $ISLO_OUTPUT to /dev/null when the step claims no output keys, or /tmp/islo_output.<job_run_id>.<random> when it claims keys. Write key=value lines (JSON after =, raw string fallback for type=string). Do not pre-create the file. Cap is 64 KiB.
-type TaskStepInputExec struct {
-	StringList []string
-	String     string
-
-	typ string
-}
-
-func (t *TaskStepInputExec) GetStringList() []string {
-	if t == nil {
-		return nil
-	}
-	return t.StringList
-}
-
-func (t *TaskStepInputExec) GetString() string {
-	if t == nil {
-		return ""
-	}
-	return t.String
-}
-
-func (t *TaskStepInputExec) UnmarshalJSON(data []byte) error {
-	var valueStringList []string
-	if err := json.Unmarshal(data, &valueStringList); err == nil {
-		t.typ = "StringList"
-		t.StringList = valueStringList
-		return nil
-	}
-	var valueString string
-	if err := json.Unmarshal(data, &valueString); err == nil {
-		t.typ = "String"
-		t.String = valueString
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, t)
-}
-
-func (t TaskStepInputExec) MarshalJSON() ([]byte, error) {
-	if t.typ == "StringList" || t.StringList != nil {
-		return json.Marshal(t.StringList)
-	}
-	if t.typ == "String" || t.String != "" {
-		return json.Marshal(t.String)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", t)
-}
-
-type TaskStepInputExecVisitor interface {
-	VisitStringList([]string) error
-	VisitString(string) error
-}
-
-func (t *TaskStepInputExec) Accept(visitor TaskStepInputExecVisitor) error {
-	if t.typ == "StringList" || t.StringList != nil {
-		return visitor.VisitStringList(t.StringList)
-	}
-	if t.typ == "String" || t.String != "" {
-		return visitor.VisitString(t.String)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", t)
-}
-
-// Claim job output keys. List shortcut: outputs = ["summary"]. Table: [run.tasks.steps.outputs.summary] from = "agent_key", required = true.
-type TaskStepInputOutputs struct {
-	StringList               []string
-	StringStepOutputClaimMap map[string]*StepOutputClaim
-
-	typ string
-}
-
-func (t *TaskStepInputOutputs) GetStringList() []string {
-	if t == nil {
-		return nil
-	}
-	return t.StringList
-}
-
-func (t *TaskStepInputOutputs) GetStringStepOutputClaimMap() map[string]*StepOutputClaim {
-	if t == nil {
-		return nil
-	}
-	return t.StringStepOutputClaimMap
-}
-
-func (t *TaskStepInputOutputs) UnmarshalJSON(data []byte) error {
-	var valueStringList []string
-	if err := json.Unmarshal(data, &valueStringList); err == nil {
-		t.typ = "StringList"
-		t.StringList = valueStringList
-		return nil
-	}
-	var valueStringStepOutputClaimMap map[string]*StepOutputClaim
-	if err := json.Unmarshal(data, &valueStringStepOutputClaimMap); err == nil {
-		t.typ = "StringStepOutputClaimMap"
-		t.StringStepOutputClaimMap = valueStringStepOutputClaimMap
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, t)
-}
-
-func (t TaskStepInputOutputs) MarshalJSON() ([]byte, error) {
-	if t.typ == "StringList" || t.StringList != nil {
-		return json.Marshal(t.StringList)
-	}
-	if t.typ == "StringStepOutputClaimMap" || t.StringStepOutputClaimMap != nil {
-		return json.Marshal(t.StringStepOutputClaimMap)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", t)
-}
-
-type TaskStepInputOutputsVisitor interface {
-	VisitStringList([]string) error
-	VisitStringStepOutputClaimMap(map[string]*StepOutputClaim) error
-}
-
-func (t *TaskStepInputOutputs) Accept(visitor TaskStepInputOutputsVisitor) error {
-	if t.typ == "StringList" || t.StringList != nil {
-		return visitor.VisitStringList(t.StringList)
-	}
-	if t.typ == "StringStepOutputClaimMap" || t.StringStepOutputClaimMap != nil {
-		return visitor.VisitStringStepOutputClaimMap(t.StringStepOutputClaimMap)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", t)
-}
-
-type TaskStepInputRunAgent struct {
-	Mode    string
-	Exec    *RunAgentExecStepAction
-	Session *RunAgentSessionStepAction
-}
-
-func (t *TaskStepInputRunAgent) GetMode() string {
-	if t == nil {
-		return ""
-	}
-	return t.Mode
-}
-
-func (t *TaskStepInputRunAgent) GetExec() *RunAgentExecStepAction {
-	if t == nil {
-		return nil
-	}
-	return t.Exec
-}
-
-func (t *TaskStepInputRunAgent) GetSession() *RunAgentSessionStepAction {
-	if t == nil {
-		return nil
-	}
-	return t.Session
-}
-
-func (t *TaskStepInputRunAgent) UnmarshalJSON(data []byte) error {
-	var unmarshaler struct {
-		Mode string `json:"mode"`
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	t.Mode = unmarshaler.Mode
-	if unmarshaler.Mode == "" {
-		return fmt.Errorf("%T did not include discriminant mode", t)
-	}
-	switch unmarshaler.Mode {
-	case "exec":
-		value := new(RunAgentExecStepAction)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		t.Exec = value
-	case "session":
-		value := new(RunAgentSessionStepAction)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		t.Session = value
-	}
-	return nil
-}
-
-func (t TaskStepInputRunAgent) MarshalJSON() ([]byte, error) {
-	if err := t.validate(); err != nil {
-		return nil, err
-	}
-	if t.Exec != nil {
-		return internal.MarshalJSONWithExtraProperty(t.Exec, "mode", "exec")
-	}
-	if t.Session != nil {
-		return internal.MarshalJSONWithExtraProperty(t.Session, "mode", "session")
-	}
-	return nil, fmt.Errorf("type %T does not define a non-empty union type", t)
-}
-
-type TaskStepInputRunAgentVisitor interface {
-	VisitExec(*RunAgentExecStepAction) error
-	VisitSession(*RunAgentSessionStepAction) error
-}
-
-func (t *TaskStepInputRunAgent) Accept(visitor TaskStepInputRunAgentVisitor) error {
-	if t.Exec != nil {
-		return visitor.VisitExec(t.Exec)
-	}
-	if t.Session != nil {
-		return visitor.VisitSession(t.Session)
-	}
-	return fmt.Errorf("type %T does not define a non-empty union type", t)
-}
-
-func (t *TaskStepInputRunAgent) validate() error {
-	if t == nil {
-		return fmt.Errorf("type %T is nil", t)
-	}
-	var fields []string
-	if t.Exec != nil {
-		fields = append(fields, "exec")
-	}
-	if t.Session != nil {
-		fields = append(fields, "session")
-	}
-	if len(fields) == 0 {
-		if t.Mode != "" {
-			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", t, t.Mode)
-		}
-		return fmt.Errorf("type %T is empty", t)
-	}
-	if len(fields) > 1 {
-		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", t, fields)
-	}
-	if t.Mode != "" {
-		field := fields[0]
-		if t.Mode != field {
-			return fmt.Errorf(
-				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
-				t,
-				t.Mode,
-				t,
-			)
-		}
-	}
-	return nil
-}
-
-// One compute action per step.
-//
-// Define exactly one action key (exec, run_agent, snapshot, pause, resume, or
-// delete). Task names and step names must be unique and non-blank. A job with
-// [outputs], exactly one session run_agent step, and no step listing outputs
-// implicitly claims every output key. More than one potential writer, or any
-// explicit outputs list, requires every writer to claim.
-type TaskStepOutput struct {
-	// Unique non-blank step name within the task.
-	Name *string `json:"name,omitempty" url:"name,omitempty"`
-	// Override [run].workdir for this step. Supports {{name}} placeholders.
-	Workdir *string `json:"workdir,omitempty" url:"workdir,omitempty"`
-	// Max wall-clock duration for this step in seconds.
-	Timeout *int    `json:"timeout,omitempty" url:"timeout,omitempty"`
-	User    *string `json:"user,omitempty" url:"user,omitempty"`
-	// Shell command. Supports {{name}} placeholders in each argv element. Control plane sets $ISLO_OUTPUT to /dev/null when the step claims no output keys, or /tmp/islo_output.<job_run_id>.<random> when it claims keys. Write key=value lines (JSON after =, raw string fallback for type=string). Do not pre-create the file. Cap is 64 KiB.
-	Exec *TaskStepOutputExec `json:"exec,omitempty" url:"exec,omitempty"`
-	// Run an agent step. Session mode publishes claimed producer keys as structured JSON. Exec mode uses $ISLO_OUTPUT like exec.
-	RunAgent *TaskStepOutputRunAgent `json:"run_agent,omitempty" url:"run_agent,omitempty"`
-	Snapshot *SnapshotStepAction     `json:"snapshot,omitempty" url:"snapshot,omitempty"`
-	Pause    *bool                   `json:"pause,omitempty" url:"pause,omitempty"`
-	Resume   *bool                   `json:"resume,omitempty" url:"resume,omitempty"`
-	Delete   *bool                   `json:"delete,omitempty" url:"delete,omitempty"`
-	// Not implemented yet; do not author.
-	Upload *string `json:"upload,omitempty" url:"upload,omitempty"`
-	// Not implemented yet; do not author.
-	Download *string `json:"download,omitempty" url:"download,omitempty"`
-	// Claim job output keys. List shortcut: outputs = ["summary"]. Table: [run.tasks.steps.outputs.summary] from = "agent_key", required = true.
-	Outputs *TaskStepOutputOutputs `json:"outputs,omitempty" url:"outputs,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TaskStepOutput) GetName() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Name
-}
-
-func (t *TaskStepOutput) GetWorkdir() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Workdir
-}
-
-func (t *TaskStepOutput) GetTimeout() *int {
-	if t == nil {
-		return nil
-	}
-	return t.Timeout
-}
-
-func (t *TaskStepOutput) GetUser() *string {
-	if t == nil {
-		return nil
-	}
-	return t.User
-}
-
-func (t *TaskStepOutput) GetExec() *TaskStepOutputExec {
-	if t == nil {
-		return nil
-	}
-	return t.Exec
-}
-
-func (t *TaskStepOutput) GetRunAgent() *TaskStepOutputRunAgent {
-	if t == nil {
-		return nil
-	}
-	return t.RunAgent
-}
-
-func (t *TaskStepOutput) GetSnapshot() *SnapshotStepAction {
-	if t == nil {
-		return nil
-	}
-	return t.Snapshot
-}
-
-func (t *TaskStepOutput) GetPause() *bool {
-	if t == nil {
-		return nil
-	}
-	return t.Pause
-}
-
-func (t *TaskStepOutput) GetResume() *bool {
-	if t == nil {
-		return nil
-	}
-	return t.Resume
-}
-
-func (t *TaskStepOutput) GetDelete() *bool {
-	if t == nil {
-		return nil
-	}
-	return t.Delete
-}
-
-func (t *TaskStepOutput) GetUpload() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Upload
-}
-
-func (t *TaskStepOutput) GetDownload() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Download
-}
-
-func (t *TaskStepOutput) GetOutputs() *TaskStepOutputOutputs {
-	if t == nil {
-		return nil
-	}
-	return t.Outputs
-}
-
-func (t *TaskStepOutput) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TaskStepOutput) UnmarshalJSON(data []byte) error {
-	type unmarshaler TaskStepOutput
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TaskStepOutput(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TaskStepOutput) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-// Shell command. Supports {{name}} placeholders in each argv element. Control plane sets $ISLO_OUTPUT to /dev/null when the step claims no output keys, or /tmp/islo_output.<job_run_id>.<random> when it claims keys. Write key=value lines (JSON after =, raw string fallback for type=string). Do not pre-create the file. Cap is 64 KiB.
-type TaskStepOutputExec struct {
-	StringList []string
-	String     string
-
-	typ string
-}
-
-func (t *TaskStepOutputExec) GetStringList() []string {
-	if t == nil {
-		return nil
-	}
-	return t.StringList
-}
-
-func (t *TaskStepOutputExec) GetString() string {
-	if t == nil {
-		return ""
-	}
-	return t.String
-}
-
-func (t *TaskStepOutputExec) UnmarshalJSON(data []byte) error {
-	var valueStringList []string
-	if err := json.Unmarshal(data, &valueStringList); err == nil {
-		t.typ = "StringList"
-		t.StringList = valueStringList
-		return nil
-	}
-	var valueString string
-	if err := json.Unmarshal(data, &valueString); err == nil {
-		t.typ = "String"
-		t.String = valueString
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, t)
-}
-
-func (t TaskStepOutputExec) MarshalJSON() ([]byte, error) {
-	if t.typ == "StringList" || t.StringList != nil {
-		return json.Marshal(t.StringList)
-	}
-	if t.typ == "String" || t.String != "" {
-		return json.Marshal(t.String)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", t)
-}
-
-type TaskStepOutputExecVisitor interface {
-	VisitStringList([]string) error
-	VisitString(string) error
-}
-
-func (t *TaskStepOutputExec) Accept(visitor TaskStepOutputExecVisitor) error {
-	if t.typ == "StringList" || t.StringList != nil {
-		return visitor.VisitStringList(t.StringList)
-	}
-	if t.typ == "String" || t.String != "" {
-		return visitor.VisitString(t.String)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", t)
-}
-
-// Claim job output keys. List shortcut: outputs = ["summary"]. Table: [run.tasks.steps.outputs.summary] from = "agent_key", required = true.
-type TaskStepOutputOutputs struct {
-	StringList               []string
-	StringStepOutputClaimMap map[string]*StepOutputClaim
-
-	typ string
-}
-
-func (t *TaskStepOutputOutputs) GetStringList() []string {
-	if t == nil {
-		return nil
-	}
-	return t.StringList
-}
-
-func (t *TaskStepOutputOutputs) GetStringStepOutputClaimMap() map[string]*StepOutputClaim {
-	if t == nil {
-		return nil
-	}
-	return t.StringStepOutputClaimMap
-}
-
-func (t *TaskStepOutputOutputs) UnmarshalJSON(data []byte) error {
-	var valueStringList []string
-	if err := json.Unmarshal(data, &valueStringList); err == nil {
-		t.typ = "StringList"
-		t.StringList = valueStringList
-		return nil
-	}
-	var valueStringStepOutputClaimMap map[string]*StepOutputClaim
-	if err := json.Unmarshal(data, &valueStringStepOutputClaimMap); err == nil {
-		t.typ = "StringStepOutputClaimMap"
-		t.StringStepOutputClaimMap = valueStringStepOutputClaimMap
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, t)
-}
-
-func (t TaskStepOutputOutputs) MarshalJSON() ([]byte, error) {
-	if t.typ == "StringList" || t.StringList != nil {
-		return json.Marshal(t.StringList)
-	}
-	if t.typ == "StringStepOutputClaimMap" || t.StringStepOutputClaimMap != nil {
-		return json.Marshal(t.StringStepOutputClaimMap)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", t)
-}
-
-type TaskStepOutputOutputsVisitor interface {
-	VisitStringList([]string) error
-	VisitStringStepOutputClaimMap(map[string]*StepOutputClaim) error
-}
-
-func (t *TaskStepOutputOutputs) Accept(visitor TaskStepOutputOutputsVisitor) error {
-	if t.typ == "StringList" || t.StringList != nil {
-		return visitor.VisitStringList(t.StringList)
-	}
-	if t.typ == "StringStepOutputClaimMap" || t.StringStepOutputClaimMap != nil {
-		return visitor.VisitStringStepOutputClaimMap(t.StringStepOutputClaimMap)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", t)
-}
-
-type TaskStepOutputRunAgent struct {
-	Mode    string
-	Exec    *RunAgentExecStepAction
-	Session *RunAgentSessionStepAction
-}
-
-func (t *TaskStepOutputRunAgent) GetMode() string {
-	if t == nil {
-		return ""
-	}
-	return t.Mode
-}
-
-func (t *TaskStepOutputRunAgent) GetExec() *RunAgentExecStepAction {
-	if t == nil {
-		return nil
-	}
-	return t.Exec
-}
-
-func (t *TaskStepOutputRunAgent) GetSession() *RunAgentSessionStepAction {
-	if t == nil {
-		return nil
-	}
-	return t.Session
-}
-
-func (t *TaskStepOutputRunAgent) UnmarshalJSON(data []byte) error {
-	var unmarshaler struct {
-		Mode string `json:"mode"`
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	t.Mode = unmarshaler.Mode
-	if unmarshaler.Mode == "" {
-		return fmt.Errorf("%T did not include discriminant mode", t)
-	}
-	switch unmarshaler.Mode {
-	case "exec":
-		value := new(RunAgentExecStepAction)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		t.Exec = value
-	case "session":
-		value := new(RunAgentSessionStepAction)
-		if err := json.Unmarshal(data, &value); err != nil {
-			return err
-		}
-		t.Session = value
-	}
-	return nil
-}
-
-func (t TaskStepOutputRunAgent) MarshalJSON() ([]byte, error) {
-	if err := t.validate(); err != nil {
-		return nil, err
-	}
-	if t.Exec != nil {
-		return internal.MarshalJSONWithExtraProperty(t.Exec, "mode", "exec")
-	}
-	if t.Session != nil {
-		return internal.MarshalJSONWithExtraProperty(t.Session, "mode", "session")
-	}
-	return nil, fmt.Errorf("type %T does not define a non-empty union type", t)
-}
-
-type TaskStepOutputRunAgentVisitor interface {
-	VisitExec(*RunAgentExecStepAction) error
-	VisitSession(*RunAgentSessionStepAction) error
-}
-
-func (t *TaskStepOutputRunAgent) Accept(visitor TaskStepOutputRunAgentVisitor) error {
-	if t.Exec != nil {
-		return visitor.VisitExec(t.Exec)
-	}
-	if t.Session != nil {
-		return visitor.VisitSession(t.Session)
-	}
-	return fmt.Errorf("type %T does not define a non-empty union type", t)
-}
-
-func (t *TaskStepOutputRunAgent) validate() error {
-	if t == nil {
-		return fmt.Errorf("type %T is nil", t)
-	}
-	var fields []string
-	if t.Exec != nil {
-		fields = append(fields, "exec")
-	}
-	if t.Session != nil {
-		fields = append(fields, "session")
-	}
-	if len(fields) == 0 {
-		if t.Mode != "" {
-			return fmt.Errorf("type %T defines a discriminant set to %q but the field is not set", t, t.Mode)
-		}
-		return fmt.Errorf("type %T is empty", t)
-	}
-	if len(fields) > 1 {
-		return fmt.Errorf("type %T defines values for %s, but only one value is allowed", t, fields)
-	}
-	if t.Mode != "" {
-		field := fields[0]
-		if t.Mode != field {
-			return fmt.Errorf(
-				"type %T defines a discriminant set to %q, but it does not match the %T field; either remove or update the discriminant to match",
-				t,
-				t.Mode,
-				t,
-			)
-		}
-	}
-	return nil
-}
-
-type VerificationGate struct {
-	CompareTo   *string  `json:"compare_to,omitempty" url:"compare_to,omitempty"`
-	MinPassRate *float64 `json:"min_pass_rate,omitempty" url:"min_pass_rate,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (v *VerificationGate) GetCompareTo() *string {
-	if v == nil {
-		return nil
-	}
-	return v.CompareTo
-}
-
-func (v *VerificationGate) GetMinPassRate() *float64 {
-	if v == nil {
-		return nil
-	}
-	return v.MinPassRate
-}
-
-func (v *VerificationGate) GetExtraProperties() map[string]interface{} {
-	return v.extraProperties
-}
-
-func (v *VerificationGate) UnmarshalJSON(data []byte) error {
-	type unmarshaler VerificationGate
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*v = VerificationGate(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *v)
-	if err != nil {
-		return err
-	}
-	v.extraProperties = extraProperties
-	v.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (v *VerificationGate) String() string {
-	if len(v.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(v); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", v)
-}
-
-type VerificationSection struct {
-	Enabled *bool             `json:"enabled,omitempty" url:"enabled,omitempty"`
-	Gate    *VerificationGate `json:"gate,omitempty" url:"gate,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (v *VerificationSection) GetEnabled() *bool {
-	if v == nil {
-		return nil
-	}
-	return v.Enabled
-}
-
-func (v *VerificationSection) GetGate() *VerificationGate {
-	if v == nil {
-		return nil
-	}
-	return v.Gate
-}
-
-func (v *VerificationSection) GetExtraProperties() map[string]interface{} {
-	return v.extraProperties
-}
-
-func (v *VerificationSection) UnmarshalJSON(data []byte) error {
-	type unmarshaler VerificationSection
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*v = VerificationSection(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *v)
-	if err != nil {
-		return err
-	}
-	v.extraProperties = extraProperties
-	v.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (v *VerificationSection) String() string {
-	if len(v.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(v.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(v); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", v)
-}
 
 type ValidateJobManifestRequest struct {
 	Name string            `json:"-" url:"-"`
 	Body *JobDeployRequest `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (v *ValidateJobManifestRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if v.explicitFields != nil {
+		next.Set(v.explicitFields)
+	}
+	next.Or(next, field)
+	v.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *ValidateJobManifestRequest) SetName(name string) {
+	v.Name = name
+	v.require(validateJobManifestRequestFieldName)
 }
 
 func (v *ValidateJobManifestRequest) UnmarshalJSON(data []byte) error {

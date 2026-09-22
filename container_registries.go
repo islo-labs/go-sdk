@@ -6,7 +6,16 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
 	time "time"
+)
+
+var (
+	containerRegistryCreateFieldProvider           = big.NewInt(1 << 0)
+	containerRegistryCreateFieldRegistryHost       = big.NewInt(1 << 1)
+	containerRegistryCreateFieldRepositoryPrefixes = big.NewInt(1 << 2)
+	containerRegistryCreateFieldCloudRoleID        = big.NewInt(1 << 3)
+	containerRegistryCreateFieldRegion             = big.NewInt(1 << 4)
 )
 
 type ContainerRegistryCreate struct {
@@ -15,15 +24,141 @@ type ContainerRegistryCreate struct {
 	RepositoryPrefixes []string         `json:"repository_prefixes,omitempty" url:"-"`
 	CloudRoleID        string           `json:"cloud_role_id" url:"-"`
 	Region             string           `json:"region" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (c *ContainerRegistryCreate) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryCreate) SetProvider(provider RegistryProvider) {
+	c.Provider = provider
+	c.require(containerRegistryCreateFieldProvider)
+}
+
+// SetRegistryHost sets the RegistryHost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryCreate) SetRegistryHost(registryHost string) {
+	c.RegistryHost = registryHost
+	c.require(containerRegistryCreateFieldRegistryHost)
+}
+
+// SetRepositoryPrefixes sets the RepositoryPrefixes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryCreate) SetRepositoryPrefixes(repositoryPrefixes []string) {
+	c.RepositoryPrefixes = repositoryPrefixes
+	c.require(containerRegistryCreateFieldRepositoryPrefixes)
+}
+
+// SetCloudRoleID sets the CloudRoleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryCreate) SetCloudRoleID(cloudRoleID string) {
+	c.CloudRoleID = cloudRoleID
+	c.require(containerRegistryCreateFieldCloudRoleID)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryCreate) SetRegion(region string) {
+	c.Region = region
+	c.require(containerRegistryCreateFieldRegion)
+}
+
+func (c *ContainerRegistryCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContainerRegistryCreate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*c = ContainerRegistryCreate(body)
+	return nil
+}
+
+func (c *ContainerRegistryCreate) MarshalJSON() ([]byte, error) {
+	type embed ContainerRegistryCreate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	deleteContainerRegistryRequestFieldID = big.NewInt(1 << 0)
+)
 
 type DeleteContainerRegistryRequest struct {
 	ID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteContainerRegistryRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteContainerRegistryRequest) SetID(id string) {
+	d.ID = id
+	d.require(deleteContainerRegistryRequestFieldID)
+}
+
+var (
+	getContainerRegistryRequestFieldID = big.NewInt(1 << 0)
+)
 
 type GetContainerRegistryRequest struct {
 	ID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetContainerRegistryRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetContainerRegistryRequest) SetID(id string) {
+	g.ID = id
+	g.require(getContainerRegistryRequestFieldID)
+}
+
+var (
+	containerRegistryResponseFieldID                 = big.NewInt(1 << 0)
+	containerRegistryResponseFieldProvider           = big.NewInt(1 << 1)
+	containerRegistryResponseFieldRegistryHost       = big.NewInt(1 << 2)
+	containerRegistryResponseFieldRepositoryPrefixes = big.NewInt(1 << 3)
+	containerRegistryResponseFieldCloudRoleID        = big.NewInt(1 << 4)
+	containerRegistryResponseFieldRegion             = big.NewInt(1 << 5)
+	containerRegistryResponseFieldIsEnabled          = big.NewInt(1 << 6)
+	containerRegistryResponseFieldCreatedAt          = big.NewInt(1 << 7)
+	containerRegistryResponseFieldUpdatedAt          = big.NewInt(1 << 8)
+)
 
 type ContainerRegistryResponse struct {
 	ID                 string     `json:"id" url:"id"`
@@ -35,6 +170,9 @@ type ContainerRegistryResponse struct {
 	IsEnabled          bool       `json:"is_enabled" url:"is_enabled"`
 	CreatedAt          *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
 	UpdatedAt          *time.Time `json:"updated_at,omitempty" url:"updated_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -104,7 +242,82 @@ func (c *ContainerRegistryResponse) GetUpdatedAt() *time.Time {
 }
 
 func (c *ContainerRegistryResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *ContainerRegistryResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryResponse) SetID(id string) {
+	c.ID = id
+	c.require(containerRegistryResponseFieldID)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryResponse) SetProvider(provider string) {
+	c.Provider = provider
+	c.require(containerRegistryResponseFieldProvider)
+}
+
+// SetRegistryHost sets the RegistryHost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryResponse) SetRegistryHost(registryHost string) {
+	c.RegistryHost = registryHost
+	c.require(containerRegistryResponseFieldRegistryHost)
+}
+
+// SetRepositoryPrefixes sets the RepositoryPrefixes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryResponse) SetRepositoryPrefixes(repositoryPrefixes []string) {
+	c.RepositoryPrefixes = repositoryPrefixes
+	c.require(containerRegistryResponseFieldRepositoryPrefixes)
+}
+
+// SetCloudRoleID sets the CloudRoleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryResponse) SetCloudRoleID(cloudRoleID string) {
+	c.CloudRoleID = cloudRoleID
+	c.require(containerRegistryResponseFieldCloudRoleID)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryResponse) SetRegion(region string) {
+	c.Region = region
+	c.require(containerRegistryResponseFieldRegion)
+}
+
+// SetIsEnabled sets the IsEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryResponse) SetIsEnabled(isEnabled bool) {
+	c.IsEnabled = isEnabled
+	c.require(containerRegistryResponseFieldIsEnabled)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryResponse) SetCreatedAt(createdAt *time.Time) {
+	c.CreatedAt = createdAt
+	c.require(containerRegistryResponseFieldCreatedAt)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryResponse) SetUpdatedAt(updatedAt *time.Time) {
+	c.UpdatedAt = updatedAt
+	c.require(containerRegistryResponseFieldUpdatedAt)
 }
 
 func (c *ContainerRegistryResponse) UnmarshalJSON(data []byte) error {
@@ -142,10 +355,14 @@ func (c *ContainerRegistryResponse) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewOptionalDateTime(c.CreatedAt),
 		UpdatedAt: internal.NewOptionalDateTime(c.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (c *ContainerRegistryResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -176,9 +393,77 @@ func (r RegistryProvider) Ptr() *RegistryProvider {
 	return &r
 }
 
+var (
+	containerRegistryUpdateFieldID                 = big.NewInt(1 << 0)
+	containerRegistryUpdateFieldRepositoryPrefixes = big.NewInt(1 << 1)
+	containerRegistryUpdateFieldCloudRoleID        = big.NewInt(1 << 2)
+	containerRegistryUpdateFieldIsEnabled          = big.NewInt(1 << 3)
+)
+
 type ContainerRegistryUpdate struct {
 	ID                 string   `json:"-" url:"-"`
 	RepositoryPrefixes []string `json:"repository_prefixes,omitempty" url:"-"`
 	CloudRoleID        *string  `json:"cloud_role_id,omitempty" url:"-"`
 	IsEnabled          *bool    `json:"is_enabled,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (c *ContainerRegistryUpdate) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryUpdate) SetID(id string) {
+	c.ID = id
+	c.require(containerRegistryUpdateFieldID)
+}
+
+// SetRepositoryPrefixes sets the RepositoryPrefixes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryUpdate) SetRepositoryPrefixes(repositoryPrefixes []string) {
+	c.RepositoryPrefixes = repositoryPrefixes
+	c.require(containerRegistryUpdateFieldRepositoryPrefixes)
+}
+
+// SetCloudRoleID sets the CloudRoleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryUpdate) SetCloudRoleID(cloudRoleID *string) {
+	c.CloudRoleID = cloudRoleID
+	c.require(containerRegistryUpdateFieldCloudRoleID)
+}
+
+// SetIsEnabled sets the IsEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerRegistryUpdate) SetIsEnabled(isEnabled *bool) {
+	c.IsEnabled = isEnabled
+	c.require(containerRegistryUpdateFieldIsEnabled)
+}
+
+func (c *ContainerRegistryUpdate) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContainerRegistryUpdate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*c = ContainerRegistryUpdate(body)
+	return nil
+}
+
+func (c *ContainerRegistryUpdate) MarshalJSON() ([]byte, error) {
+	type embed ContainerRegistryUpdate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }

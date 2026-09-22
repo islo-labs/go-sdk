@@ -4,154 +4,107 @@ package integrations
 
 import (
 	context "context"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
 // Return the integration providers available to connect from Islo, including the supported authentication methods and connection scopes.
+//
+// Example:
+//
+//	client.Integrations.ListIntegrationProviders(
+//	    context.TODO(),
+//	)
 func (c *Client) ListIntegrationProviders(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) (*gosdk.IntegrationProvidersResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/integrations/providers"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-
-	var response *gosdk.IntegrationProvidersResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ListIntegrationProviders(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-		},
-	); err != nil {
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	client.Integrations.ListIntegrationTriggers(
+//	    context.TODO(),
+//	)
 func (c *Client) ListIntegrationTriggers(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) (*gosdk.TriggerCatalogListResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/integrations/triggers"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-
-	var response *gosdk.TriggerCatalogListResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ListIntegrationTriggers(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-		},
-	); err != nil {
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	request := &gosdk.GetIntegrationTriggerRequest{
+//	    Provider: "provider",
+//	    TriggerName: "trigger_name",
+//	}
+//	client.Integrations.GetIntegrationTrigger(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetIntegrationTrigger(
 	ctx context.Context,
 	request *gosdk.GetIntegrationTriggerRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.TriggerCatalogItem, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/integrations/triggers/%v/%v",
-		request.Provider,
-		request.TriggerName,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.TriggerCatalogItem
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetIntegrationTrigger(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // List the integrations the user/tenant has connected.
@@ -163,57 +116,24 @@ func (c *Client) GetIntegrationTrigger(
 // appear twice. Disconnected slots are not emitted; clients that need a
 // list of available-but-not-connected providers should call
 // “GET /integrations/providers“ instead.
+//
+// Example:
+//
+//	client.Integrations.ListIntegrations(
+//	    context.TODO(),
+//	)
 func (c *Client) ListIntegrations(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) (*gosdk.IntegrationListResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/integrations"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.IntegrationListResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ListIntegrations(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // List custom service definitions in the current tenant (catalog view).
@@ -223,57 +143,24 @@ func (c *Client) ListIntegrations(
 // any tenant member to connect to. Connection state (per-user/per-workspace
 // tokens) lives on “GET /integrations“; this endpoint is purely the
 // service catalog.
+//
+// Example:
+//
+//	client.Integrations.ListCustomServices(
+//	    context.TODO(),
+//	)
 func (c *Client) ListCustomServices(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) (*gosdk.CustomServicesResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/integrations/custom-services"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.CustomServicesResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ListCustomServices(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Create a tenant-scoped custom Descope outbound app.
@@ -282,211 +169,95 @@ func (c *Client) ListCustomServices(
 // connect flow (OAuth) or surface the API key form. Presets do not pass
 // through this endpoint -- their app ids come straight from
 // “GET /integrations/providers“.
+//
+// Example:
+//
+//	request := &gosdk.CustomServiceCreateRequest{
+//	    Custom: &gosdk.CustomIntegration{
+//	        Name: "name",
+//	        Slug: "slug",
+//	    },
+//	}
+//	client.Integrations.CreateCustomService(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) CreateCustomService(
 	ctx context.Context,
 	request *gosdk.CustomServiceCreateRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.CustomServiceCreateResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/integrations/custom-services"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.CustomServiceCreateResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.CreateCustomService(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
-// Disconnect a custom integration by its Descope app ID.
+// Disconnect a custom integration by its stable provider slug.
 //
-// Authorization is by deterministic-ID prefix: only apps whose ID matches
-// “cust-{tenant-prefix}-“ are accepted, which scopes the operation to the
-// caller's workspace without a DB lookup. “scope“ selects which side's
-// tokens to revoke (per-user vs tenant-wide); “delete_app=true“ removes
-// the Descope app entirely (affects every user in the workspace).
+// The provider is resolved only within the authenticated tenant's custom
+// service catalog, so callers cannot target another workspace. “scope“ selects
+// which side's tokens to revoke (per-user vs tenant-wide);
+// “delete_app=true“ removes the Descope app entirely (affects every user in
+// the workspace).
+//
+// Example:
+//
+//	request := &gosdk.DisconnectCustomIntegrationRequest{
+//	    Provider: "provider",
+//	}
+//	client.Integrations.DisconnectCustomIntegration(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DisconnectCustomIntegration(
 	ctx context.Context,
 	request *gosdk.DisconnectCustomIntegrationRequest,
 	opts ...option.RequestOption,
-) (map[string]interface{}, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
+) (map[string]any, error) {
+	response, err := c.WithRawResponse.DisconnectCustomIntegration(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/integrations/custom/%v",
-		request.DescopeAppID,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response map[string]interface{}
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Get the detailed status of a specific integration.
 //
 // Returns both user-level and tenant-level connection status independently.
+//
+// Example:
+//
+//	request := &gosdk.GetIntegrationStatusRequest{
+//	    Provider: "provider",
+//	}
+//	client.Integrations.GetIntegrationStatus(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetIntegrationStatus(
 	ctx context.Context,
 	request *gosdk.GetIntegrationStatusRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.IntegrationDetailResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/integrations/%v",
-		request.Provider,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.IntegrationDetailResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetIntegrationStatus(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }
 
 // Disconnect/revoke an integration.
@@ -496,119 +267,47 @@ func (c *Client) GetIntegrationStatus(
 //	provider: Provider name
 //	level: Which level to disconnect (USER or TENANT)
 //	auth_type: Optional. Defaults to provider's primary type.
+//
+// Example:
+//
+//	request := &gosdk.DisconnectIntegrationRequest{
+//	    Provider: "provider",
+//	}
+//	client.Integrations.DisconnectIntegration(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) DisconnectIntegration(
 	ctx context.Context,
 	request *gosdk.DisconnectIntegrationRequest,
 	opts ...option.RequestOption,
-) (map[string]interface{}, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
+) (map[string]any, error) {
+	response, err := c.WithRawResponse.DisconnectIntegration(
+		ctx,
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/integrations/%v",
-		request.Provider,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &gosdk.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &gosdk.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &gosdk.NotFoundError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response map[string]interface{}
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
+	return response.Body, nil
 }
 
+// Example:
+//
+//	client.Integrations.ListConnectedIntegrationTriggers(
+//	    context.TODO(),
+//	)
 func (c *Client) ListConnectedIntegrationTriggers(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) (*gosdk.TriggerCatalogListResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := baseURL + "/integrations/triggers/connected"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.TriggerCatalogListResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.ListConnectedIntegrationTriggers(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }

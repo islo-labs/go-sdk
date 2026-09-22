@@ -4,55 +4,196 @@ package api
 
 import (
 	json "encoding/json"
-	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
 	io "io"
-	time "time"
+	big "math/big"
 )
-
-type KnowledgeItemCreate struct {
-	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
-	Slug     string                 `json:"slug" url:"-"`
-	Level    *KnowledgeLevel        `json:"level,omitempty" url:"-"`
-	Type     *KnowledgeLevel        `json:"type,omitempty" url:"-"`
-	Format   *string                `json:"format,omitempty" url:"-"`
-	Body     *string                `json:"body,omitempty" url:"-"`
-	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
-	Links    []*KnowledgeLinkInput  `json:"links,omitempty" url:"-"`
-}
 
 type BodyCreateKnowledgeMedia struct {
 	File io.Reader `json:"-" url:"-"`
 	// JSON metadata for the knowledge item
 	Item string `json:"item" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (b *BodyCreateKnowledgeMedia) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+var (
+	deleteKnowledgeRequestFieldIdentifier = big.NewInt(1 << 0)
+)
 
 type DeleteKnowledgeRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteKnowledgeRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteKnowledgeRequest) SetIdentifier(identifier string) {
+	d.Identifier = identifier
+	d.require(deleteKnowledgeRequestFieldIdentifier)
+}
+
+var (
+	getKnowledgeRequestFieldIdentifier = big.NewInt(1 << 0)
+)
 
 type GetKnowledgeRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetKnowledgeRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeRequest) SetIdentifier(identifier string) {
+	g.Identifier = identifier
+	g.require(getKnowledgeRequestFieldIdentifier)
+}
+
+var (
+	getKnowledgeContentRequestFieldIdentifier = big.NewInt(1 << 0)
+)
 
 type GetKnowledgeContentRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetKnowledgeContentRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeContentRequest) SetIdentifier(identifier string) {
+	g.Identifier = identifier
+	g.require(getKnowledgeContentRequestFieldIdentifier)
+}
+
+var (
+	getKnowledgeVersionRequestFieldIdentifier    = big.NewInt(1 << 0)
+	getKnowledgeVersionRequestFieldVersionNumber = big.NewInt(1 << 1)
+)
 
 type GetKnowledgeVersionRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier    string `json:"-" url:"-"`
 	VersionNumber int    `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetKnowledgeVersionRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeVersionRequest) SetIdentifier(identifier string) {
+	g.Identifier = identifier
+	g.require(getKnowledgeVersionRequestFieldIdentifier)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeVersionRequest) SetVersionNumber(versionNumber int) {
+	g.VersionNumber = versionNumber
+	g.require(getKnowledgeVersionRequestFieldVersionNumber)
+}
+
+var (
+	getKnowledgeVersionContentRequestFieldIdentifier    = big.NewInt(1 << 0)
+	getKnowledgeVersionContentRequestFieldVersionNumber = big.NewInt(1 << 1)
+)
 
 type GetKnowledgeVersionContentRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier    string `json:"-" url:"-"`
 	VersionNumber int    `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetKnowledgeVersionContentRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeVersionContentRequest) SetIdentifier(identifier string) {
+	g.Identifier = identifier
+	g.require(getKnowledgeVersionContentRequestFieldIdentifier)
+}
+
+// SetVersionNumber sets the VersionNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetKnowledgeVersionContentRequest) SetVersionNumber(versionNumber int) {
+	g.VersionNumber = versionNumber
+	g.require(getKnowledgeVersionContentRequestFieldVersionNumber)
+}
+
+var (
+	listKnowledgeRequestFieldLevel      = big.NewInt(1 << 0)
+	listKnowledgeRequestFieldType       = big.NewInt(1 << 1)
+	listKnowledgeRequestFieldTag        = big.NewInt(1 << 2)
+	listKnowledgeRequestFieldRepository = big.NewInt(1 << 3)
+	listKnowledgeRequestFieldQ          = big.NewInt(1 << 4)
+	listKnowledgeRequestFieldCursor     = big.NewInt(1 << 5)
+	listKnowledgeRequestFieldLimit      = big.NewInt(1 << 6)
+)
 
 type ListKnowledgeRequest struct {
 	Level      *KnowledgeLevel `json:"-" url:"level,omitempty"`
@@ -63,870 +204,245 @@ type ListKnowledgeRequest struct {
 	Q      *string `json:"-" url:"q,omitempty"`
 	Cursor *string `json:"-" url:"cursor,omitempty"`
 	Limit  *int    `json:"-" url:"limit,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListKnowledgeRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetLevel sets the Level field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetLevel(level *KnowledgeLevel) {
+	l.Level = level
+	l.require(listKnowledgeRequestFieldLevel)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetType(type_ *KnowledgeLevel) {
+	l.Type = type_
+	l.require(listKnowledgeRequestFieldType)
+}
+
+// SetTag sets the Tag field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetTag(tag *string) {
+	l.Tag = tag
+	l.require(listKnowledgeRequestFieldTag)
+}
+
+// SetRepository sets the Repository field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetRepository(repository *string) {
+	l.Repository = repository
+	l.require(listKnowledgeRequestFieldRepository)
+}
+
+// SetQ sets the Q field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetQ(q *string) {
+	l.Q = q
+	l.require(listKnowledgeRequestFieldQ)
+}
+
+// SetCursor sets the Cursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetCursor(cursor *string) {
+	l.Cursor = cursor
+	l.require(listKnowledgeRequestFieldCursor)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listKnowledgeRequestFieldLimit)
+}
+
+var (
+	listKnowledgeVersionsRequestFieldIdentifier = big.NewInt(1 << 0)
+	listKnowledgeVersionsRequestFieldCursor     = big.NewInt(1 << 1)
+	listKnowledgeVersionsRequestFieldLimit      = big.NewInt(1 << 2)
+)
 
 type ListKnowledgeVersionsRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string  `json:"-" url:"-"`
 	Cursor     *string `json:"-" url:"cursor,omitempty"`
 	Limit      *int    `json:"-" url:"limit,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListKnowledgeVersionsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeVersionsRequest) SetIdentifier(identifier string) {
+	l.Identifier = identifier
+	l.require(listKnowledgeVersionsRequestFieldIdentifier)
+}
+
+// SetCursor sets the Cursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeVersionsRequest) SetCursor(cursor *string) {
+	l.Cursor = cursor
+	l.require(listKnowledgeVersionsRequestFieldCursor)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListKnowledgeVersionsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listKnowledgeVersionsRequestFieldLimit)
+}
+
+var (
+	bodyPutKnowledgeContentFieldIdentifier = big.NewInt(1 << 0)
+)
 
 type BodyPutKnowledgeContent struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
 	Identifier string    `json:"-" url:"-"`
 	File       io.Reader `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
 
-type KnowledgeRestoreRequest struct {
-	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
-	Identifier    string `json:"-" url:"-"`
-	VersionNumber int    `json:"version_number" url:"-"`
-}
-
-type KnowledgeItemListResponse struct {
-	ID string `json:"id" url:"id"`
-	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
-	Slug          string                   `json:"slug" url:"slug"`
-	Type          KnowledgeLevel           `json:"type" url:"type"`
-	Level         KnowledgeLevel           `json:"level" url:"level"`
-	Status        KnowledgeStatus          `json:"status" url:"status"`
-	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
-	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
-	UpdatedAt     time.Time                `json:"updated_at" url:"updated_at"`
-	VersionNumber *int                     `json:"version_number,omitempty" url:"version_number,omitempty"`
-	ByteSize      *int                     `json:"byte_size,omitempty" url:"byte_size,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (k *KnowledgeItemListResponse) GetID() string {
-	if k == nil {
-		return ""
+func (b *BodyPutKnowledgeContent) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
 	}
-	return k.ID
+	next.Or(next, field)
+	b.explicitFields = next
 }
 
-func (k *KnowledgeItemListResponse) GetSlug() string {
-	if k == nil {
-		return ""
-	}
-	return k.Slug
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BodyPutKnowledgeContent) SetIdentifier(identifier string) {
+	b.Identifier = identifier
+	b.require(bodyPutKnowledgeContentFieldIdentifier)
 }
 
-func (k *KnowledgeItemListResponse) GetType() KnowledgeLevel {
-	if k == nil {
-		return ""
-	}
-	return k.Type
-}
-
-func (k *KnowledgeItemListResponse) GetLevel() KnowledgeLevel {
-	if k == nil {
-		return ""
-	}
-	return k.Level
-}
-
-func (k *KnowledgeItemListResponse) GetStatus() KnowledgeStatus {
-	if k == nil {
-		return ""
-	}
-	return k.Status
-}
-
-func (k *KnowledgeItemListResponse) GetLinks() []*KnowledgeLinkResponse {
-	if k == nil {
-		return nil
-	}
-	return k.Links
-}
-
-func (k *KnowledgeItemListResponse) GetCreatedAt() time.Time {
-	if k == nil {
-		return time.Time{}
-	}
-	return k.CreatedAt
-}
-
-func (k *KnowledgeItemListResponse) GetUpdatedAt() time.Time {
-	if k == nil {
-		return time.Time{}
-	}
-	return k.UpdatedAt
-}
-
-func (k *KnowledgeItemListResponse) GetVersionNumber() *int {
-	if k == nil {
-		return nil
-	}
-	return k.VersionNumber
-}
-
-func (k *KnowledgeItemListResponse) GetByteSize() *int {
-	if k == nil {
-		return nil
-	}
-	return k.ByteSize
-}
-
-func (k *KnowledgeItemListResponse) GetExtraProperties() map[string]interface{} {
-	return k.extraProperties
-}
-
-func (k *KnowledgeItemListResponse) UnmarshalJSON(data []byte) error {
-	type embed KnowledgeItemListResponse
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-		UpdatedAt *internal.DateTime `json:"updated_at"`
-	}{
-		embed: embed(*k),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+func (b *BodyPutKnowledgeContent) UnmarshalJSON(data []byte) error {
+	type unmarshaler BodyPutKnowledgeContent
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	*k = KnowledgeItemListResponse(unmarshaler.embed)
-	k.CreatedAt = unmarshaler.CreatedAt.Time()
-	k.UpdatedAt = unmarshaler.UpdatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *k)
-	if err != nil {
-		return err
-	}
-	k.extraProperties = extraProperties
-	k.rawJSON = json.RawMessage(data)
+	*b = BodyPutKnowledgeContent(body)
 	return nil
 }
 
-func (k *KnowledgeItemListResponse) MarshalJSON() ([]byte, error) {
-	type embed KnowledgeItemListResponse
+func (b *BodyPutKnowledgeContent) MarshalJSON() ([]byte, error) {
+	type embed BodyPutKnowledgeContent
 	var marshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-		UpdatedAt *internal.DateTime `json:"updated_at"`
 	}{
-		embed:     embed(*k),
-		CreatedAt: internal.NewDateTime(k.CreatedAt),
-		UpdatedAt: internal.NewDateTime(k.UpdatedAt),
+		embed: embed(*b),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
-func (k *KnowledgeItemListResponse) String() string {
-	if len(k.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(k); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", k)
-}
-
-type KnowledgeItemResponse struct {
-	ID string `json:"id" url:"id"`
-	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
-	Slug          string                   `json:"slug" url:"slug"`
-	Type          KnowledgeLevel           `json:"type" url:"type"`
-	Level         KnowledgeLevel           `json:"level" url:"level"`
-	Format        string                   `json:"format" url:"format"`
-	Body          string                   `json:"body" url:"body"`
-	Metadata      map[string]interface{}   `json:"metadata" url:"metadata"`
-	Status        KnowledgeStatus          `json:"status" url:"status"`
-	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
-	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
-	UpdatedAt     time.Time                `json:"updated_at" url:"updated_at"`
-	VersionID     *string                  `json:"version_id,omitempty" url:"version_id,omitempty"`
-	VersionNumber *int                     `json:"version_number,omitempty" url:"version_number,omitempty"`
-	ByteSize      *int                     `json:"byte_size,omitempty" url:"byte_size,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (k *KnowledgeItemResponse) GetID() string {
-	if k == nil {
-		return ""
-	}
-	return k.ID
-}
-
-func (k *KnowledgeItemResponse) GetSlug() string {
-	if k == nil {
-		return ""
-	}
-	return k.Slug
-}
-
-func (k *KnowledgeItemResponse) GetType() KnowledgeLevel {
-	if k == nil {
-		return ""
-	}
-	return k.Type
-}
-
-func (k *KnowledgeItemResponse) GetLevel() KnowledgeLevel {
-	if k == nil {
-		return ""
-	}
-	return k.Level
-}
-
-func (k *KnowledgeItemResponse) GetFormat() string {
-	if k == nil {
-		return ""
-	}
-	return k.Format
-}
-
-func (k *KnowledgeItemResponse) GetBody() string {
-	if k == nil {
-		return ""
-	}
-	return k.Body
-}
-
-func (k *KnowledgeItemResponse) GetMetadata() map[string]interface{} {
-	if k == nil {
-		return nil
-	}
-	return k.Metadata
-}
-
-func (k *KnowledgeItemResponse) GetStatus() KnowledgeStatus {
-	if k == nil {
-		return ""
-	}
-	return k.Status
-}
-
-func (k *KnowledgeItemResponse) GetLinks() []*KnowledgeLinkResponse {
-	if k == nil {
-		return nil
-	}
-	return k.Links
-}
-
-func (k *KnowledgeItemResponse) GetCreatedAt() time.Time {
-	if k == nil {
-		return time.Time{}
-	}
-	return k.CreatedAt
-}
-
-func (k *KnowledgeItemResponse) GetUpdatedAt() time.Time {
-	if k == nil {
-		return time.Time{}
-	}
-	return k.UpdatedAt
-}
-
-func (k *KnowledgeItemResponse) GetVersionID() *string {
-	if k == nil {
-		return nil
-	}
-	return k.VersionID
-}
-
-func (k *KnowledgeItemResponse) GetVersionNumber() *int {
-	if k == nil {
-		return nil
-	}
-	return k.VersionNumber
-}
-
-func (k *KnowledgeItemResponse) GetByteSize() *int {
-	if k == nil {
-		return nil
-	}
-	return k.ByteSize
-}
-
-func (k *KnowledgeItemResponse) GetExtraProperties() map[string]interface{} {
-	return k.extraProperties
-}
-
-func (k *KnowledgeItemResponse) UnmarshalJSON(data []byte) error {
-	type embed KnowledgeItemResponse
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-		UpdatedAt *internal.DateTime `json:"updated_at"`
-	}{
-		embed: embed(*k),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*k = KnowledgeItemResponse(unmarshaler.embed)
-	k.CreatedAt = unmarshaler.CreatedAt.Time()
-	k.UpdatedAt = unmarshaler.UpdatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *k)
-	if err != nil {
-		return err
-	}
-	k.extraProperties = extraProperties
-	k.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (k *KnowledgeItemResponse) MarshalJSON() ([]byte, error) {
-	type embed KnowledgeItemResponse
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-		UpdatedAt *internal.DateTime `json:"updated_at"`
-	}{
-		embed:     embed(*k),
-		CreatedAt: internal.NewDateTime(k.CreatedAt),
-		UpdatedAt: internal.NewDateTime(k.UpdatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (k *KnowledgeItemResponse) String() string {
-	if len(k.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(k); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", k)
-}
-
-type KnowledgeLevel string
-
-const (
-	KnowledgeLevelEpisodic    KnowledgeLevel = "episodic"
-	KnowledgeLevelProcedural  KnowledgeLevel = "procedural"
-	KnowledgeLevelDeclarative KnowledgeLevel = "declarative"
-	KnowledgeLevelPrompt      KnowledgeLevel = "prompt"
-	KnowledgeLevelImage       KnowledgeLevel = "image"
-	KnowledgeLevelVideo       KnowledgeLevel = "video"
-	KnowledgeLevelAudio       KnowledgeLevel = "audio"
+var (
+	restoreKnowledgeVersionRequestFieldIdentifier = big.NewInt(1 << 0)
 )
 
-func NewKnowledgeLevelFromString(s string) (KnowledgeLevel, error) {
-	switch s {
-	case "episodic":
-		return KnowledgeLevelEpisodic, nil
-	case "procedural":
-		return KnowledgeLevelProcedural, nil
-	case "declarative":
-		return KnowledgeLevelDeclarative, nil
-	case "prompt":
-		return KnowledgeLevelPrompt, nil
-	case "image":
-		return KnowledgeLevelImage, nil
-	case "video":
-		return KnowledgeLevelVideo, nil
-	case "audio":
-		return KnowledgeLevelAudio, nil
-	}
-	var t KnowledgeLevel
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (k KnowledgeLevel) Ptr() *KnowledgeLevel {
-	return &k
-}
-
-type KnowledgeLinkInput struct {
-	LinkType KnowledgeLinkType `json:"link_type" url:"link_type"`
-	Value    string            `json:"value" url:"value"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (k *KnowledgeLinkInput) GetLinkType() KnowledgeLinkType {
-	if k == nil {
-		return ""
-	}
-	return k.LinkType
-}
-
-func (k *KnowledgeLinkInput) GetValue() string {
-	if k == nil {
-		return ""
-	}
-	return k.Value
-}
-
-func (k *KnowledgeLinkInput) GetExtraProperties() map[string]interface{} {
-	return k.extraProperties
-}
-
-func (k *KnowledgeLinkInput) UnmarshalJSON(data []byte) error {
-	type unmarshaler KnowledgeLinkInput
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*k = KnowledgeLinkInput(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *k)
-	if err != nil {
-		return err
-	}
-	k.extraProperties = extraProperties
-	k.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (k *KnowledgeLinkInput) String() string {
-	if len(k.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(k); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", k)
-}
-
-type KnowledgeLinkResponse struct {
-	LinkType KnowledgeLinkType `json:"link_type" url:"link_type"`
-	Value    string            `json:"value" url:"value"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (k *KnowledgeLinkResponse) GetLinkType() KnowledgeLinkType {
-	if k == nil {
-		return ""
-	}
-	return k.LinkType
-}
-
-func (k *KnowledgeLinkResponse) GetValue() string {
-	if k == nil {
-		return ""
-	}
-	return k.Value
-}
-
-func (k *KnowledgeLinkResponse) GetExtraProperties() map[string]interface{} {
-	return k.extraProperties
-}
-
-func (k *KnowledgeLinkResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler KnowledgeLinkResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*k = KnowledgeLinkResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *k)
-	if err != nil {
-		return err
-	}
-	k.extraProperties = extraProperties
-	k.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (k *KnowledgeLinkResponse) String() string {
-	if len(k.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(k); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", k)
-}
-
-type KnowledgeLinkType string
-
-const (
-	KnowledgeLinkTypeRepository KnowledgeLinkType = "repository"
-	KnowledgeLinkTypeTag        KnowledgeLinkType = "tag"
-)
-
-func NewKnowledgeLinkTypeFromString(s string) (KnowledgeLinkType, error) {
-	switch s {
-	case "repository":
-		return KnowledgeLinkTypeRepository, nil
-	case "tag":
-		return KnowledgeLinkTypeTag, nil
-	}
-	var t KnowledgeLinkType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (k KnowledgeLinkType) Ptr() *KnowledgeLinkType {
-	return &k
-}
-
-type KnowledgeStatus string
-
-const (
-	KnowledgeStatusActive   KnowledgeStatus = "active"
-	KnowledgeStatusArchived KnowledgeStatus = "archived"
-)
-
-func NewKnowledgeStatusFromString(s string) (KnowledgeStatus, error) {
-	switch s {
-	case "active":
-		return KnowledgeStatusActive, nil
-	case "archived":
-		return KnowledgeStatusArchived, nil
-	}
-	var t KnowledgeStatus
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (k KnowledgeStatus) Ptr() *KnowledgeStatus {
-	return &k
-}
-
-type KnowledgeVersionListResponse struct {
-	ID            string    `json:"id" url:"id"`
-	VersionNumber int       `json:"version_number" url:"version_number"`
-	CreatedAt     time.Time `json:"created_at" url:"created_at"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (k *KnowledgeVersionListResponse) GetID() string {
-	if k == nil {
-		return ""
-	}
-	return k.ID
-}
-
-func (k *KnowledgeVersionListResponse) GetVersionNumber() int {
-	if k == nil {
-		return 0
-	}
-	return k.VersionNumber
-}
-
-func (k *KnowledgeVersionListResponse) GetCreatedAt() time.Time {
-	if k == nil {
-		return time.Time{}
-	}
-	return k.CreatedAt
-}
-
-func (k *KnowledgeVersionListResponse) GetExtraProperties() map[string]interface{} {
-	return k.extraProperties
-}
-
-func (k *KnowledgeVersionListResponse) UnmarshalJSON(data []byte) error {
-	type embed KnowledgeVersionListResponse
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-	}{
-		embed: embed(*k),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*k = KnowledgeVersionListResponse(unmarshaler.embed)
-	k.CreatedAt = unmarshaler.CreatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *k)
-	if err != nil {
-		return err
-	}
-	k.extraProperties = extraProperties
-	k.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (k *KnowledgeVersionListResponse) MarshalJSON() ([]byte, error) {
-	type embed KnowledgeVersionListResponse
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-	}{
-		embed:     embed(*k),
-		CreatedAt: internal.NewDateTime(k.CreatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (k *KnowledgeVersionListResponse) String() string {
-	if len(k.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(k); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", k)
-}
-
-type KnowledgeVersionResponse struct {
-	ID            string                   `json:"id" url:"id"`
-	VersionNumber int                      `json:"version_number" url:"version_number"`
-	Type          KnowledgeLevel           `json:"type" url:"type"`
-	Level         KnowledgeLevel           `json:"level" url:"level"`
-	Format        string                   `json:"format" url:"format"`
-	Body          string                   `json:"body" url:"body"`
-	Metadata      map[string]interface{}   `json:"metadata" url:"metadata"`
-	Links         []*KnowledgeLinkResponse `json:"links" url:"links"`
-	ContentHash   string                   `json:"content_hash" url:"content_hash"`
-	CreatedAt     time.Time                `json:"created_at" url:"created_at"`
-	ByteSize      *int                     `json:"byte_size,omitempty" url:"byte_size,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (k *KnowledgeVersionResponse) GetID() string {
-	if k == nil {
-		return ""
-	}
-	return k.ID
-}
-
-func (k *KnowledgeVersionResponse) GetVersionNumber() int {
-	if k == nil {
-		return 0
-	}
-	return k.VersionNumber
-}
-
-func (k *KnowledgeVersionResponse) GetType() KnowledgeLevel {
-	if k == nil {
-		return ""
-	}
-	return k.Type
-}
-
-func (k *KnowledgeVersionResponse) GetLevel() KnowledgeLevel {
-	if k == nil {
-		return ""
-	}
-	return k.Level
-}
-
-func (k *KnowledgeVersionResponse) GetFormat() string {
-	if k == nil {
-		return ""
-	}
-	return k.Format
-}
-
-func (k *KnowledgeVersionResponse) GetBody() string {
-	if k == nil {
-		return ""
-	}
-	return k.Body
-}
-
-func (k *KnowledgeVersionResponse) GetMetadata() map[string]interface{} {
-	if k == nil {
-		return nil
-	}
-	return k.Metadata
-}
-
-func (k *KnowledgeVersionResponse) GetLinks() []*KnowledgeLinkResponse {
-	if k == nil {
-		return nil
-	}
-	return k.Links
-}
-
-func (k *KnowledgeVersionResponse) GetContentHash() string {
-	if k == nil {
-		return ""
-	}
-	return k.ContentHash
-}
-
-func (k *KnowledgeVersionResponse) GetCreatedAt() time.Time {
-	if k == nil {
-		return time.Time{}
-	}
-	return k.CreatedAt
-}
-
-func (k *KnowledgeVersionResponse) GetByteSize() *int {
-	if k == nil {
-		return nil
-	}
-	return k.ByteSize
-}
-
-func (k *KnowledgeVersionResponse) GetExtraProperties() map[string]interface{} {
-	return k.extraProperties
-}
-
-func (k *KnowledgeVersionResponse) UnmarshalJSON(data []byte) error {
-	type embed KnowledgeVersionResponse
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-	}{
-		embed: embed(*k),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*k = KnowledgeVersionResponse(unmarshaler.embed)
-	k.CreatedAt = unmarshaler.CreatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *k)
-	if err != nil {
-		return err
-	}
-	k.extraProperties = extraProperties
-	k.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (k *KnowledgeVersionResponse) MarshalJSON() ([]byte, error) {
-	type embed KnowledgeVersionResponse
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"created_at"`
-	}{
-		embed:     embed(*k),
-		CreatedAt: internal.NewDateTime(k.CreatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (k *KnowledgeVersionResponse) String() string {
-	if len(k.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(k); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", k)
-}
-
-type PaginatedKnowledgeResponse struct {
-	Items      []*KnowledgeItemListResponse `json:"items" url:"items"`
-	NextCursor *string                      `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (p *PaginatedKnowledgeResponse) GetItems() []*KnowledgeItemListResponse {
-	if p == nil {
-		return nil
-	}
-	return p.Items
-}
-
-func (p *PaginatedKnowledgeResponse) GetNextCursor() *string {
-	if p == nil {
-		return nil
-	}
-	return p.NextCursor
-}
-
-func (p *PaginatedKnowledgeResponse) GetExtraProperties() map[string]interface{} {
-	return p.extraProperties
-}
-
-func (p *PaginatedKnowledgeResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler PaginatedKnowledgeResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*p = PaginatedKnowledgeResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *p)
-	if err != nil {
-		return err
-	}
-	p.extraProperties = extraProperties
-	p.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (p *PaginatedKnowledgeResponse) String() string {
-	if len(p.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(p); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", p)
-}
-
-type PaginatedKnowledgeVersionResponse struct {
-	Items      []*KnowledgeVersionListResponse `json:"items" url:"items"`
-	NextCursor *string                         `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (p *PaginatedKnowledgeVersionResponse) GetItems() []*KnowledgeVersionListResponse {
-	if p == nil {
-		return nil
-	}
-	return p.Items
-}
-
-func (p *PaginatedKnowledgeVersionResponse) GetNextCursor() *string {
-	if p == nil {
-		return nil
-	}
-	return p.NextCursor
-}
-
-func (p *PaginatedKnowledgeVersionResponse) GetExtraProperties() map[string]interface{} {
-	return p.extraProperties
-}
-
-func (p *PaginatedKnowledgeVersionResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler PaginatedKnowledgeVersionResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*p = PaginatedKnowledgeVersionResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *p)
-	if err != nil {
-		return err
-	}
-	p.extraProperties = extraProperties
-	p.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (p *PaginatedKnowledgeVersionResponse) String() string {
-	if len(p.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(p); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", p)
-}
-
-type KnowledgeItemUpdate struct {
+type RestoreKnowledgeVersionRequest struct {
 	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
-	Identifier string                 `json:"-" url:"-"`
-	Level      *KnowledgeLevel        `json:"level,omitempty" url:"-"`
-	Type       *KnowledgeLevel        `json:"type,omitempty" url:"-"`
-	Format     *string                `json:"format,omitempty" url:"-"`
-	Body       *string                `json:"body,omitempty" url:"-"`
-	Metadata   map[string]interface{} `json:"metadata,omitempty" url:"-"`
-	Status     *KnowledgeStatus       `json:"status,omitempty" url:"-"`
-	Links      []*KnowledgeLinkInput  `json:"links,omitempty" url:"-"`
+	Identifier string                   `json:"-" url:"-"`
+	Body       *KnowledgeRestoreRequest `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (r *RestoreKnowledgeVersionRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if r.explicitFields != nil {
+		next.Set(r.explicitFields)
+	}
+	next.Or(next, field)
+	r.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RestoreKnowledgeVersionRequest) SetIdentifier(identifier string) {
+	r.Identifier = identifier
+	r.require(restoreKnowledgeVersionRequestFieldIdentifier)
+}
+
+func (r *RestoreKnowledgeVersionRequest) UnmarshalJSON(data []byte) error {
+	body := new(KnowledgeRestoreRequest)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	r.Body = body
+	return nil
+}
+
+func (r *RestoreKnowledgeVersionRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.Body)
+}
+
+var (
+	updateKnowledgeRequestFieldIdentifier = big.NewInt(1 << 0)
+)
+
+type UpdateKnowledgeRequest struct {
+	// Unique lowercase identifier (letters, digits, hyphens). Set at creation and cannot be changed.
+	Identifier string               `json:"-" url:"-"`
+	Body       *KnowledgeItemUpdate `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (u *UpdateKnowledgeRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if u.explicitFields != nil {
+		next.Set(u.explicitFields)
+	}
+	next.Or(next, field)
+	u.explicitFields = next
+}
+
+// SetIdentifier sets the Identifier field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UpdateKnowledgeRequest) SetIdentifier(identifier string) {
+	u.Identifier = identifier
+	u.require(updateKnowledgeRequestFieldIdentifier)
+}
+
+func (u *UpdateKnowledgeRequest) UnmarshalJSON(data []byte) error {
+	body := new(KnowledgeItemUpdate)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	u.Body = body
+	return nil
+}
+
+func (u *UpdateKnowledgeRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(u.Body)
 }
