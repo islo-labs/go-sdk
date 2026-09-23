@@ -168,5 +168,45 @@ func TestNewIslo_UsesEnvironmentVariablesForURLs(t *testing.T) {
 	}
 }
 
+func TestNewIslo_DefaultAPIVersion(t *testing.T) {
+	seenVersion := apiVersionOnBalanceRequest(t, option.WithAPIKey("ak_test"))
+	if seenVersion != "2026-09-15" {
+		t.Fatalf("X-Islo-Api-Version = %q, want 2026-09-15", seenVersion)
+	}
+}
+
+func TestNewIslo_ForwardsExplicitAPIVersion(t *testing.T) {
+	seenVersion := apiVersionOnBalanceRequest(
+		t,
+		option.WithAPIKey("ak_test"),
+		option.WithAPIVersion("2026-02-23"),
+	)
+	if seenVersion != "2026-02-23" {
+		t.Fatalf("X-Islo-Api-Version = %q, want 2026-02-23", seenVersion)
+	}
+}
+
+func apiVersionOnBalanceRequest(t *testing.T, opts ...option.RequestOption) string {
+	t.Helper()
+
+	var seenVersion string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/auth/token" {
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"session_token":  "jwt-version",
+				"cookie_max_age": 600,
+			})
+			return
+		}
+		seenVersion = r.Header.Get("X-Islo-Api-Version")
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer srv.Close()
+
+	c := NewIslo(append(opts, option.WithBaseURL(srv.URL))...)
+	_, _ = c.Credits.GetCreditBalance(context.Background())
+	return seenVersion
+}
+
 // Compile-time assurance that core types remain accessible.
 var _ = url.Values{}

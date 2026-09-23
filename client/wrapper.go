@@ -75,6 +75,9 @@ func NewIslo(opts ...option.RequestOption) *Client {
 	clientOpts := []option.RequestOption{
 		option.WithHTTPClient(authedClient),
 	}
+	if options.APIVersion != "" {
+		clientOpts = append(clientOpts, option.WithAPIVersion(options.APIVersion))
+	}
 	if len(options.HTTPHeader) > 0 {
 		clientOpts = append(clientOpts, option.WithHTTPHeader(options.HTTPHeader))
 	}
