@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"testing"
 
+	api "github.com/islo-labs/go-sdk"
 	"github.com/islo-labs/go-sdk/option"
 )
 
@@ -165,6 +166,113 @@ func TestNewIslo_UsesEnvironmentVariablesForURLs(t *testing.T) {
 	}
 	if computePath != "/sandboxes" {
 		t.Fatalf("compute request path = %q, want /sandboxes", computePath)
+	}
+}
+
+func TestNewIslo_UsesEnvironmentURLs(t *testing.T) {
+	var (
+		controlPath string
+		computePath string
+	)
+
+	control := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/auth/token" {
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"session_token":  "jwt-env-option",
+				"cookie_max_age": 600,
+			})
+			return
+		}
+		controlPath = r.URL.Path
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer control.Close()
+
+	compute := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		computePath = r.URL.Path
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer compute.Close()
+
+	t.Setenv("ISLO_BASE_URL", "")
+	t.Setenv("ISLO_COMPUTE_URL", "")
+
+	c := NewIslo(
+		option.WithAPIKey("ak_env_option"),
+		option.WithEnvironment(api.Environment{Control: control.URL, Compute: compute.URL}),
+	)
+
+	_, _ = c.Credits.GetCreditBalance(context.Background())
+	_, _ = c.Sandboxes.ListSandboxes(context.Background(), nil)
+
+	if controlPath != "/credits/balance" {
+		t.Fatalf("control request path = %q, want /credits/balance", controlPath)
+	}
+	if computePath != "/sandboxes" {
+		t.Fatalf("compute request path = %q, want /sandboxes", computePath)
+	}
+}
+
+func TestNewIslo_BaseURLOverridesEnvironmentControl(t *testing.T) {
+	var controlPath string
+
+	control := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/auth/token" {
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"session_token":  "jwt-base-url",
+				"cookie_max_age": 600,
+			})
+			return
+		}
+		controlPath = r.URL.Path
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer control.Close()
+
+	ignored := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("environment control host received %s", r.URL.Path)
+	}))
+	defer ignored.Close()
+
+	c := NewIslo(
+		option.WithAPIKey("ak_base"),
+		option.WithBaseURL(control.URL),
+		option.WithEnvironment(api.Environment{Control: ignored.URL, Compute: "https://compute.example.com"}),
+	)
+	_, _ = c.Credits.GetCreditBalance(context.Background())
+
+	if controlPath != "/credits/balance" {
+		t.Fatalf("control request path = %q, want /credits/balance", controlPath)
+	}
+}
+
+func TestNewIslo_ForwardsWithoutRetries(t *testing.T) {
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/auth/token" {
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"session_token":  "jwt-no-retry",
+				"cookie_max_age": 600,
+			})
+			return
+		}
+		atomic.AddInt32(&calls, 1)
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+
+	c := NewIslo(
+		option.WithAPIKey("ak_retry"),
+		option.WithBaseURL(srv.URL),
+		option.WithoutRetries(),
+	)
+	if !c.options.DisableRetries {
+		t.Fatal("DisableRetries was not forwarded to NewClient")
+	}
+
+	_, _ = c.Credits.GetCreditBalance(context.Background())
+	if got := atomic.LoadInt32(&calls); got != 1 {
+		t.Fatalf("balance requests = %d, want 1", got)
 	}
 }
 

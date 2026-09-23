@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	api "github.com/islo-labs/go-sdk"
 	"github.com/islo-labs/go-sdk/core"
 	"github.com/islo-labs/go-sdk/customauth"
 	"github.com/islo-labs/go-sdk/option"
@@ -30,9 +31,11 @@ const (
 // key for a short-lived session JWT against /auth/token and refreshes
 // the token before expiry. If WithAPIKey is not provided, the
 // ISLO_API_KEY environment variable is used. WithBaseURL configures the
-// control-plane URL and falls back to ISLO_BASE_URL, then
-// https://api.islo.dev. The compute-plane URL is read from
-// ISLO_COMPUTE_URL and falls back to https://ca.compute.islo.dev.
+// control-plane URL and wins over WithEnvironment. Otherwise the control
+// URL comes from WithEnvironment, then ISLO_BASE_URL, then
+// https://api.islo.dev. The compute-plane URL comes from WithEnvironment,
+// then ISLO_COMPUTE_URL, then https://ca.compute.islo.dev.
+// WithoutRetries is forwarded to the generated client.
 //
 // Most callers should use this rather than NewClient.
 func NewIslo(opts ...option.RequestOption) *Client {
@@ -43,7 +46,12 @@ func NewIslo(opts ...option.RequestOption) *Client {
 		apiKey = os.Getenv(envIsloAPIKey)
 	}
 
+	envControl, envCompute := environmentHosts(options.Environment)
+
 	baseURL := options.BaseURL
+	if baseURL == "" {
+		baseURL = envControl
+	}
 	if baseURL == "" {
 		baseURL = os.Getenv(envIsloBaseURL)
 	}
@@ -51,7 +59,10 @@ func NewIslo(opts ...option.RequestOption) *Client {
 		baseURL = defaultControlURL
 	}
 
-	computeURL := os.Getenv(envIsloComputeURL)
+	computeURL := envCompute
+	if computeURL == "" {
+		computeURL = os.Getenv(envIsloComputeURL)
+	}
 	if computeURL == "" {
 		computeURL = defaultComputeURL
 	}
@@ -84,6 +95,13 @@ func NewIslo(opts ...option.RequestOption) *Client {
 	if options.MaxAttempts > 0 {
 		clientOpts = append(clientOpts, option.WithMaxAttempts(options.MaxAttempts))
 	}
+	if options.DisableRetries {
+		clientOpts = append(clientOpts, option.WithoutRetries())
+	}
+	clientOpts = append(clientOpts, option.WithEnvironment(api.Environment{
+		Control: baseURL,
+		Compute: computeURL,
+	}))
 	if len(options.BodyProperties) > 0 {
 		clientOpts = append(clientOpts, option.WithBodyProperties(options.BodyProperties))
 	}
@@ -92,6 +110,14 @@ func NewIslo(opts ...option.RequestOption) *Client {
 	}
 
 	return NewClient(clientOpts...)
+}
+
+func environmentHosts(environment interface{}) (control string, compute string) {
+	env, ok := environment.(api.Environment)
+	if !ok {
+		return "", ""
+	}
+	return env.Control, env.Compute
 }
 
 type environmentRewriteTransport struct {
