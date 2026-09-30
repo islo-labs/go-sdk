@@ -75,16 +75,16 @@ func NewIslo(opts ...option.RequestOption) *Client {
 	clientOpts := []option.RequestOption{
 		option.WithHTTPClient(authedClient),
 	}
-	if options.HTTPHeader != nil && len(options.HTTPHeader) > 0 {
+	if len(options.HTTPHeader) > 0 {
 		clientOpts = append(clientOpts, option.WithHTTPHeader(options.HTTPHeader))
 	}
 	if options.MaxAttempts > 0 {
 		clientOpts = append(clientOpts, option.WithMaxAttempts(options.MaxAttempts))
 	}
-	if options.BodyProperties != nil && len(options.BodyProperties) > 0 {
+	if len(options.BodyProperties) > 0 {
 		clientOpts = append(clientOpts, option.WithBodyProperties(options.BodyProperties))
 	}
-	if options.QueryParameters != nil && len(options.QueryParameters) > 0 {
+	if len(options.QueryParameters) > 0 {
 		clientOpts = append(clientOpts, option.WithQueryParameters(options.QueryParameters))
 	}
 

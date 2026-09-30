@@ -22,8 +22,8 @@ import (
 const DefaultRefreshMargin = 60 * time.Second
 
 const (
-	maxExchangeAttempts   = 3
-	initialRetryDelay     = 250 * time.Millisecond
+	maxExchangeAttempts    = 3
+	initialRetryDelay      = 250 * time.Millisecond
 	retryBackoffMultiplier = 2
 )
 
@@ -147,7 +147,7 @@ func (p *Provider) doExchange(ctx context.Context) (token string, err error, tra
 	if err != nil {
 		return "", fmt.Errorf("islo: token exchange: %w", err), true
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		snippet, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))

@@ -208,7 +208,9 @@ func TestTransport_InjectsBearer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RoundTrip: %v", err)
 	}
-	resp.Body.Close()
+	if err := resp.Body.Close(); err != nil {
+		t.Fatalf("close response: %v", err)
+	}
 
 	if want := "Bearer transport-jwt"; captured != want {
 		t.Fatalf("Authorization header = %q, want %q", captured, want)
