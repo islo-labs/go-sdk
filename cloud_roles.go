@@ -6,27 +6,165 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
 	time "time"
+)
+
+var (
+	cloudRoleCreateFieldProvider               = big.NewInt(1 << 0)
+	cloudRoleCreateFieldRoleArn                = big.NewInt(1 << 1)
+	cloudRoleCreateFieldSessionDurationSeconds = big.NewInt(1 << 2)
+	cloudRoleCreateFieldType                   = big.NewInt(1 << 3)
 )
 
 type CloudRoleCreate struct {
 	Provider               CloudProvider  `json:"provider" url:"-"`
-	Type                   *CloudRoleType `json:"type,omitempty" url:"-"`
 	RoleArn                string         `json:"role_arn" url:"-"`
 	SessionDurationSeconds *int           `json:"session_duration_seconds,omitempty" url:"-"`
+	Type                   *CloudRoleType `json:"type,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (c *CloudRoleCreate) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleCreate) SetProvider(provider CloudProvider) {
+	c.Provider = provider
+	c.require(cloudRoleCreateFieldProvider)
+}
+
+// SetRoleArn sets the RoleArn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleCreate) SetRoleArn(roleArn string) {
+	c.RoleArn = roleArn
+	c.require(cloudRoleCreateFieldRoleArn)
+}
+
+// SetSessionDurationSeconds sets the SessionDurationSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleCreate) SetSessionDurationSeconds(sessionDurationSeconds *int) {
+	c.SessionDurationSeconds = sessionDurationSeconds
+	c.require(cloudRoleCreateFieldSessionDurationSeconds)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleCreate) SetType(type_ *CloudRoleType) {
+	c.Type = type_
+	c.require(cloudRoleCreateFieldType)
+}
+
+func (c *CloudRoleCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler CloudRoleCreate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*c = CloudRoleCreate(body)
+	return nil
+}
+
+func (c *CloudRoleCreate) MarshalJSON() ([]byte, error) {
+	type embed CloudRoleCreate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	deleteCloudRoleRequestFieldRoleID = big.NewInt(1 << 0)
+)
 
 type DeleteCloudRoleRequest struct {
 	RoleID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteCloudRoleRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetRoleID sets the RoleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteCloudRoleRequest) SetRoleID(roleID string) {
+	d.RoleID = roleID
+	d.require(deleteCloudRoleRequestFieldRoleID)
+}
+
+var (
+	getCloudRoleRequestFieldRoleID = big.NewInt(1 << 0)
+)
 
 type GetCloudRoleRequest struct {
 	RoleID string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetCloudRoleRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetRoleID sets the RoleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetCloudRoleRequest) SetRoleID(roleID string) {
+	g.RoleID = roleID
+	g.require(getCloudRoleRequestFieldRoleID)
+}
+
+var (
+	listCloudRolesRequestFieldType = big.NewInt(1 << 0)
+)
 
 type ListCloudRolesRequest struct {
 	// Filter by role type
 	Type *CloudRoleType `json:"-" url:"type,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (l *ListCloudRolesRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListCloudRolesRequest) SetType(type_ *CloudRoleType) {
+	l.Type = type_
+	l.require(listCloudRolesRequestFieldType)
 }
 
 type CloudProvider string
@@ -54,19 +192,41 @@ func (c CloudProvider) Ptr() *CloudProvider {
 	return &c
 }
 
+var (
+	cloudRoleResponseFieldCreatedAt              = big.NewInt(1 << 0)
+	cloudRoleResponseFieldID                     = big.NewInt(1 << 1)
+	cloudRoleResponseFieldIsEnabled              = big.NewInt(1 << 2)
+	cloudRoleResponseFieldIsloTrustRoleArn       = big.NewInt(1 << 3)
+	cloudRoleResponseFieldProvider               = big.NewInt(1 << 4)
+	cloudRoleResponseFieldRoleArn                = big.NewInt(1 << 5)
+	cloudRoleResponseFieldSessionDurationSeconds = big.NewInt(1 << 6)
+	cloudRoleResponseFieldType                   = big.NewInt(1 << 7)
+	cloudRoleResponseFieldUpdatedAt              = big.NewInt(1 << 8)
+)
+
 type CloudRoleResponse struct {
+	CreatedAt              *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
 	ID                     string     `json:"id" url:"id"`
-	Provider               string     `json:"provider" url:"provider"`
-	Type                   string     `json:"type" url:"type"`
-	RoleArn                string     `json:"role_arn" url:"role_arn"`
-	SessionDurationSeconds int        `json:"session_duration_seconds" url:"session_duration_seconds"`
 	IsEnabled              bool       `json:"is_enabled" url:"is_enabled"`
 	IsloTrustRoleArn       string     `json:"islo_trust_role_arn" url:"islo_trust_role_arn"`
-	CreatedAt              *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
+	Provider               string     `json:"provider" url:"provider"`
+	RoleArn                string     `json:"role_arn" url:"role_arn"`
+	SessionDurationSeconds int        `json:"session_duration_seconds" url:"session_duration_seconds"`
+	Type                   string     `json:"type" url:"type"`
 	UpdatedAt              *time.Time `json:"updated_at,omitempty" url:"updated_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (c *CloudRoleResponse) GetCreatedAt() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.CreatedAt
 }
 
 func (c *CloudRoleResponse) GetID() string {
@@ -74,34 +234,6 @@ func (c *CloudRoleResponse) GetID() string {
 		return ""
 	}
 	return c.ID
-}
-
-func (c *CloudRoleResponse) GetProvider() string {
-	if c == nil {
-		return ""
-	}
-	return c.Provider
-}
-
-func (c *CloudRoleResponse) GetType() string {
-	if c == nil {
-		return ""
-	}
-	return c.Type
-}
-
-func (c *CloudRoleResponse) GetRoleArn() string {
-	if c == nil {
-		return ""
-	}
-	return c.RoleArn
-}
-
-func (c *CloudRoleResponse) GetSessionDurationSeconds() int {
-	if c == nil {
-		return 0
-	}
-	return c.SessionDurationSeconds
 }
 
 func (c *CloudRoleResponse) GetIsEnabled() bool {
@@ -118,11 +250,32 @@ func (c *CloudRoleResponse) GetIsloTrustRoleArn() string {
 	return c.IsloTrustRoleArn
 }
 
-func (c *CloudRoleResponse) GetCreatedAt() *time.Time {
+func (c *CloudRoleResponse) GetProvider() string {
 	if c == nil {
-		return nil
+		return ""
 	}
-	return c.CreatedAt
+	return c.Provider
+}
+
+func (c *CloudRoleResponse) GetRoleArn() string {
+	if c == nil {
+		return ""
+	}
+	return c.RoleArn
+}
+
+func (c *CloudRoleResponse) GetSessionDurationSeconds() int {
+	if c == nil {
+		return 0
+	}
+	return c.SessionDurationSeconds
+}
+
+func (c *CloudRoleResponse) GetType() string {
+	if c == nil {
+		return ""
+	}
+	return c.Type
 }
 
 func (c *CloudRoleResponse) GetUpdatedAt() *time.Time {
@@ -133,7 +286,82 @@ func (c *CloudRoleResponse) GetUpdatedAt() *time.Time {
 }
 
 func (c *CloudRoleResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
 	return c.extraProperties
+}
+
+func (c *CloudRoleResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleResponse) SetCreatedAt(createdAt *time.Time) {
+	c.CreatedAt = createdAt
+	c.require(cloudRoleResponseFieldCreatedAt)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleResponse) SetID(id string) {
+	c.ID = id
+	c.require(cloudRoleResponseFieldID)
+}
+
+// SetIsEnabled sets the IsEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleResponse) SetIsEnabled(isEnabled bool) {
+	c.IsEnabled = isEnabled
+	c.require(cloudRoleResponseFieldIsEnabled)
+}
+
+// SetIsloTrustRoleArn sets the IsloTrustRoleArn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleResponse) SetIsloTrustRoleArn(isloTrustRoleArn string) {
+	c.IsloTrustRoleArn = isloTrustRoleArn
+	c.require(cloudRoleResponseFieldIsloTrustRoleArn)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleResponse) SetProvider(provider string) {
+	c.Provider = provider
+	c.require(cloudRoleResponseFieldProvider)
+}
+
+// SetRoleArn sets the RoleArn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleResponse) SetRoleArn(roleArn string) {
+	c.RoleArn = roleArn
+	c.require(cloudRoleResponseFieldRoleArn)
+}
+
+// SetSessionDurationSeconds sets the SessionDurationSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleResponse) SetSessionDurationSeconds(sessionDurationSeconds int) {
+	c.SessionDurationSeconds = sessionDurationSeconds
+	c.require(cloudRoleResponseFieldSessionDurationSeconds)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleResponse) SetType(type_ string) {
+	c.Type = type_
+	c.require(cloudRoleResponseFieldType)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleResponse) SetUpdatedAt(updatedAt *time.Time) {
+	c.UpdatedAt = updatedAt
+	c.require(cloudRoleResponseFieldUpdatedAt)
 }
 
 func (c *CloudRoleResponse) UnmarshalJSON(data []byte) error {
@@ -171,10 +399,14 @@ func (c *CloudRoleResponse) MarshalJSON() ([]byte, error) {
 		CreatedAt: internal.NewOptionalDateTime(c.CreatedAt),
 		UpdatedAt: internal.NewOptionalDateTime(c.UpdatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (c *CloudRoleResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -208,9 +440,207 @@ func (c CloudRoleType) Ptr() *CloudRoleType {
 	return &c
 }
 
+var (
+	listPageCloudRoleResponseFieldItems      = big.NewInt(1 << 0)
+	listPageCloudRoleResponseFieldNextCursor = big.NewInt(1 << 1)
+	listPageCloudRoleResponseFieldTotal      = big.NewInt(1 << 2)
+)
+
+// listPageCloudRoleResponseRequiredNullableFields maps the wire names of ListPageCloudRoleResponse's required, nullable fields to their field bits.
+var listPageCloudRoleResponseRequiredNullableFields = map[string]*big.Int{
+	"next_cursor": listPageCloudRoleResponseFieldNextCursor,
+}
+
+type ListPageCloudRoleResponse struct {
+	Items      []*CloudRoleResponse `json:"items" url:"items"`
+	NextCursor *string              `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
+	Total      *int                 `json:"total,omitempty" url:"total,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *ListPageCloudRoleResponse) GetItems() []*CloudRoleResponse {
+	if l == nil {
+		return nil
+	}
+	return l.Items
+}
+
+func (l *ListPageCloudRoleResponse) GetNextCursor() *string {
+	if l == nil {
+		return nil
+	}
+	return l.NextCursor
+}
+
+func (l *ListPageCloudRoleResponse) GetTotal() *int {
+	if l == nil {
+		return nil
+	}
+	return l.Total
+}
+
+func (l *ListPageCloudRoleResponse) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.extraProperties
+}
+
+func (l *ListPageCloudRoleResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListPageCloudRoleResponse) SetItems(items []*CloudRoleResponse) {
+	l.Items = items
+	l.require(listPageCloudRoleResponseFieldItems)
+}
+
+// SetNextCursor sets the NextCursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListPageCloudRoleResponse) SetNextCursor(nextCursor *string) {
+	l.NextCursor = nextCursor
+	l.require(listPageCloudRoleResponseFieldNextCursor)
+}
+
+// SetTotal sets the Total field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListPageCloudRoleResponse) SetTotal(total *int) {
+	l.Total = total
+	l.require(listPageCloudRoleResponseFieldTotal)
+}
+
+func (l *ListPageCloudRoleResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ListPageCloudRoleResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = ListPageCloudRoleResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	presentFields, err := internal.ExplicitFieldsFromJSON(data, listPageCloudRoleResponseRequiredNullableFields)
+	if err != nil {
+		return err
+	}
+	if presentFields != nil {
+		l.require(presentFields)
+	}
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *ListPageCloudRoleResponse) MarshalJSON() ([]byte, error) {
+	type embed ListPageCloudRoleResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (l *ListPageCloudRoleResponse) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+var (
+	cloudRoleUpdateFieldRoleID                 = big.NewInt(1 << 0)
+	cloudRoleUpdateFieldIsEnabled              = big.NewInt(1 << 1)
+	cloudRoleUpdateFieldRoleArn                = big.NewInt(1 << 2)
+	cloudRoleUpdateFieldSessionDurationSeconds = big.NewInt(1 << 3)
+)
+
 type CloudRoleUpdate struct {
 	RoleID                 string  `json:"-" url:"-"`
+	IsEnabled              *bool   `json:"is_enabled,omitempty" url:"-"`
 	RoleArn                *string `json:"role_arn,omitempty" url:"-"`
 	SessionDurationSeconds *int    `json:"session_duration_seconds,omitempty" url:"-"`
-	IsEnabled              *bool   `json:"is_enabled,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (c *CloudRoleUpdate) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetRoleID sets the RoleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleUpdate) SetRoleID(roleID string) {
+	c.RoleID = roleID
+	c.require(cloudRoleUpdateFieldRoleID)
+}
+
+// SetIsEnabled sets the IsEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleUpdate) SetIsEnabled(isEnabled *bool) {
+	c.IsEnabled = isEnabled
+	c.require(cloudRoleUpdateFieldIsEnabled)
+}
+
+// SetRoleArn sets the RoleArn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleUpdate) SetRoleArn(roleArn *string) {
+	c.RoleArn = roleArn
+	c.require(cloudRoleUpdateFieldRoleArn)
+}
+
+// SetSessionDurationSeconds sets the SessionDurationSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CloudRoleUpdate) SetSessionDurationSeconds(sessionDurationSeconds *int) {
+	c.SessionDurationSeconds = sessionDurationSeconds
+	c.require(cloudRoleUpdateFieldSessionDurationSeconds)
+}
+
+func (c *CloudRoleUpdate) UnmarshalJSON(data []byte) error {
+	type unmarshaler CloudRoleUpdate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*c = CloudRoleUpdate(body)
+	return nil
+}
+
+func (c *CloudRoleUpdate) MarshalJSON() ([]byte, error) {
+	type embed CloudRoleUpdate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }

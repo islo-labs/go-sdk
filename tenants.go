@@ -6,22 +6,48 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
+)
+
+var (
+	computeRegionResponseFieldApiUrl    = big.NewInt(1 << 0)
+	computeRegionResponseFieldIsDefault = big.NewInt(1 << 1)
+	computeRegionResponseFieldKey       = big.NewInt(1 << 2)
+	computeRegionResponseFieldLabel     = big.NewInt(1 << 3)
+	computeRegionResponseFieldWsURL     = big.NewInt(1 << 4)
 )
 
 type ComputeRegionResponse struct {
+	// Base HTTPS URL for the region's compute API.
+	ApiUrl string `json:"api_url" url:"api_url"`
+	// Whether this is the tenant's default compute region.
+	IsDefault *bool `json:"is_default,omitempty" url:"is_default,omitempty"`
 	// Stable region key used when creating sandboxes.
 	Key string `json:"key" url:"key"`
 	// Human-readable region name for UI display.
 	Label string `json:"label" url:"label"`
-	// Base HTTPS URL for the region's compute API.
-	ApiUrl string `json:"api_url" url:"api_url"`
 	// Base WebSocket URL for streaming compute operations.
 	WsURL string `json:"ws_url" url:"ws_url"`
-	// Whether this is the tenant's default compute region.
-	IsDefault *bool `json:"is_default,omitempty" url:"is_default,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (c *ComputeRegionResponse) GetApiUrl() string {
+	if c == nil {
+		return ""
+	}
+	return c.ApiUrl
+}
+
+func (c *ComputeRegionResponse) GetIsDefault() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.IsDefault
 }
 
 func (c *ComputeRegionResponse) GetKey() string {
@@ -38,13 +64,6 @@ func (c *ComputeRegionResponse) GetLabel() string {
 	return c.Label
 }
 
-func (c *ComputeRegionResponse) GetApiUrl() string {
-	if c == nil {
-		return ""
-	}
-	return c.ApiUrl
-}
-
 func (c *ComputeRegionResponse) GetWsURL() string {
 	if c == nil {
 		return ""
@@ -52,15 +71,55 @@ func (c *ComputeRegionResponse) GetWsURL() string {
 	return c.WsURL
 }
 
-func (c *ComputeRegionResponse) GetIsDefault() *bool {
+func (c *ComputeRegionResponse) GetExtraProperties() map[string]interface{} {
 	if c == nil {
 		return nil
 	}
-	return c.IsDefault
+	return c.extraProperties
 }
 
-func (c *ComputeRegionResponse) GetExtraProperties() map[string]interface{} {
-	return c.extraProperties
+func (c *ComputeRegionResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if c.explicitFields != nil {
+		next.Set(c.explicitFields)
+	}
+	next.Or(next, field)
+	c.explicitFields = next
+}
+
+// SetApiUrl sets the ApiUrl field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetApiUrl(apiUrl string) {
+	c.ApiUrl = apiUrl
+	c.require(computeRegionResponseFieldApiUrl)
+}
+
+// SetIsDefault sets the IsDefault field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetIsDefault(isDefault *bool) {
+	c.IsDefault = isDefault
+	c.require(computeRegionResponseFieldIsDefault)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetKey(key string) {
+	c.Key = key
+	c.require(computeRegionResponseFieldKey)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetLabel(label string) {
+	c.Label = label
+	c.require(computeRegionResponseFieldLabel)
+}
+
+// SetWsURL sets the WsURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ComputeRegionResponse) SetWsURL(wsURL string) {
+	c.WsURL = wsURL
+	c.require(computeRegionResponseFieldWsURL)
 }
 
 func (c *ComputeRegionResponse) UnmarshalJSON(data []byte) error {
@@ -79,7 +138,21 @@ func (c *ComputeRegionResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (c *ComputeRegionResponse) MarshalJSON() ([]byte, error) {
+	type embed ComputeRegionResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (c *ComputeRegionResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -91,49 +164,132 @@ func (c *ComputeRegionResponse) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
-type TenantRegionsResponse struct {
-	// Compute regions available to the authenticated tenant.
-	Regions []*ComputeRegionResponse `json:"regions" url:"regions"`
+var (
+	listPageComputeRegionResponseFieldItems      = big.NewInt(1 << 0)
+	listPageComputeRegionResponseFieldNextCursor = big.NewInt(1 << 1)
+	listPageComputeRegionResponseFieldTotal      = big.NewInt(1 << 2)
+)
+
+// listPageComputeRegionResponseRequiredNullableFields maps the wire names of ListPageComputeRegionResponse's required, nullable fields to their field bits.
+var listPageComputeRegionResponseRequiredNullableFields = map[string]*big.Int{
+	"next_cursor": listPageComputeRegionResponseFieldNextCursor,
+}
+
+type ListPageComputeRegionResponse struct {
+	Items      []*ComputeRegionResponse `json:"items" url:"items"`
+	NextCursor *string                  `json:"next_cursor,omitempty" url:"next_cursor,omitempty"`
+	Total      *int                     `json:"total,omitempty" url:"total,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (t *TenantRegionsResponse) GetRegions() []*ComputeRegionResponse {
-	if t == nil {
+func (l *ListPageComputeRegionResponse) GetItems() []*ComputeRegionResponse {
+	if l == nil {
 		return nil
 	}
-	return t.Regions
+	return l.Items
 }
 
-func (t *TenantRegionsResponse) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
+func (l *ListPageComputeRegionResponse) GetNextCursor() *string {
+	if l == nil {
+		return nil
+	}
+	return l.NextCursor
 }
 
-func (t *TenantRegionsResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler TenantRegionsResponse
+func (l *ListPageComputeRegionResponse) GetTotal() *int {
+	if l == nil {
+		return nil
+	}
+	return l.Total
+}
+
+func (l *ListPageComputeRegionResponse) GetExtraProperties() map[string]interface{} {
+	if l == nil {
+		return nil
+	}
+	return l.extraProperties
+}
+
+func (l *ListPageComputeRegionResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListPageComputeRegionResponse) SetItems(items []*ComputeRegionResponse) {
+	l.Items = items
+	l.require(listPageComputeRegionResponseFieldItems)
+}
+
+// SetNextCursor sets the NextCursor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListPageComputeRegionResponse) SetNextCursor(nextCursor *string) {
+	l.NextCursor = nextCursor
+	l.require(listPageComputeRegionResponseFieldNextCursor)
+}
+
+// SetTotal sets the Total field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListPageComputeRegionResponse) SetTotal(total *int) {
+	l.Total = total
+	l.require(listPageComputeRegionResponseFieldTotal)
+}
+
+func (l *ListPageComputeRegionResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ListPageComputeRegionResponse
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*t = TenantRegionsResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	*l = ListPageComputeRegionResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
 	if err != nil {
 		return err
 	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
+	l.extraProperties = extraProperties
+	presentFields, err := internal.ExplicitFieldsFromJSON(data, listPageComputeRegionResponseRequiredNullableFields)
+	if err != nil {
+		return err
+	}
+	if presentFields != nil {
+		l.require(presentFields)
+	}
+	l.rawJSON = json.RawMessage(data)
 	return nil
 }
 
-func (t *TenantRegionsResponse) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+func (l *ListPageComputeRegionResponse) MarshalJSON() ([]byte, error) {
+	type embed ListPageComputeRegionResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*l),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, l.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (l *ListPageComputeRegionResponse) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
 			return value
 		}
 	}
-	if value, err := internal.StringifyJSON(t); err == nil {
+	if value, err := internal.StringifyJSON(l); err == nil {
 		return value
 	}
-	return fmt.Sprintf("%#v", t)
+	return fmt.Sprintf("%#v", l)
 }

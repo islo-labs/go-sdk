@@ -4,254 +4,68 @@ package jobs
 
 import (
 	context "context"
+	http "net/http"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
-func (c *Client) ValidateJobManifest(
-	ctx context.Context,
-	request *gosdk.ValidateJobManifestRequest,
-	opts ...option.RequestOption,
-) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v/validate",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *Client) DeployJob(
-	ctx context.Context,
-	request *gosdk.DeployJobRequest,
-	opts ...option.RequestOption,
-) (*gosdk.JobVersionResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v/deploy",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &gosdk.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-		502: func(apiError *core.APIError) error {
-			return &gosdk.BadGatewayError{
-				APIError: apiError,
-			}
-		},
-		503: func(apiError *core.APIError) error {
-			return &gosdk.ServiceUnavailableError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.JobVersionResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) GetJob(
-	ctx context.Context,
-	request *gosdk.GetJobRequest,
-	opts ...option.RequestOption,
-) (*gosdk.JobResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.JobResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) DeleteJob(
-	ctx context.Context,
-	request *gosdk.DeleteJobRequest,
-	opts ...option.RequestOption,
-) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
+// Example:
+//
+//	request := &gosdk.ListJobsRequest{}
+//	client.Jobs.ListJobs(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListJobs(
 	ctx context.Context,
 	request *gosdk.ListJobsRequest,
 	opts ...option.RequestOption,
-) ([]*gosdk.JobListItem, error) {
+) (*core.Page[*string, *gosdk.JobListItem, *gosdk.ListPageJobListItem], error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
+		internal.ResolveEnvironmentBaseURL(
+			options.Environment,
+			"Control",
+		),
 		c.baseURL,
+		internal.ResolveEnvironmentBaseURL(
+			c.options.Environment,
+			"Control",
+		),
 		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/jobs"
@@ -259,50 +73,419 @@ func (c *Client) ListJobs(
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
 	headers := internal.MergeHeaders(
-		c.header.Clone(),
+		c.options.ToHeader(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.JobListItem
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
+	prepareCall := func(pageRequest *core.PageRequest[*string]) *internal.CallParams {
+		if pageRequest.Cursor != nil {
+			queryParams.Set("cursor", *pageRequest.Cursor)
+		}
+		nextURL := endpointURL
+		if len(queryParams) > 0 {
+			nextURL += "?" + queryParams.Encode()
+		}
+		return &internal.CallParams{
+			URL:             nextURL,
 			Method:          http.MethodGet,
 			Headers:         headers,
 			MaxAttempts:     options.MaxAttempts,
+			DisableRetries:  options.DisableRetries,
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
+			Response:        pageRequest.Response,
+			ErrorDecoder:    internal.NewErrorDecoder(gosdk.ErrorCodes),
+		}
 	}
-	return response, nil
+	readPageResponse := func(response *gosdk.ListPageJobListItem) *core.PageResponse[*string, *gosdk.JobListItem, *gosdk.ListPageJobListItem] {
+		var zeroValue *string
+		next := response.GetNextCursor()
+		results := response.GetItems()
+		return &core.PageResponse[*string, *gosdk.JobListItem, *gosdk.ListPageJobListItem]{
+			Results:  results,
+			Response: response,
+			Next:     next,
+			Done:     next == zeroValue || *next == "",
+		}
+	}
+	pager := internal.NewCursorPager(
+		c.caller,
+		prepareCall,
+		readPageResponse,
+	)
+	return pager.GetPage(ctx, request.Cursor)
 }
 
+// Example:
+//
+//	request := &gosdk.GetJobRequest{
+//	    Name: "name",
+//	}
+//	client.Jobs.GetJob(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) GetJob(
+	ctx context.Context,
+	request *gosdk.GetJobRequest,
+	opts ...option.RequestOption,
+) (*gosdk.JobResponse, error) {
+	response, err := c.WithRawResponse.GetJob(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Example:
+//
+//	request := &gosdk.DeleteJobRequest{
+//	    Name: "name",
+//	}
+//	client.Jobs.DeleteJob(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) DeleteJob(
+	ctx context.Context,
+	request *gosdk.DeleteJobRequest,
+	opts ...option.RequestOption,
+) error {
+	_, err := c.WithRawResponse.DeleteJob(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Example:
+//
+//	request := &gosdk.DeployJobRequest{
+//	    Name: "name",
+//	    Body: &gosdk.JobDeployRequest{
+//	        Manifest: &gosdk.JobManifestInput{
+//	            Job: &gosdk.JobSection{
+//	                Name: "name",
+//	            },
+//	            Run: &gosdk.RunSectionInput{
+//	                Tasks: []*gosdk.TaskInput{
+//	                    &gosdk.TaskInput{
+//	                        Name: "name",
+//	                        Steps: []*gosdk.TaskStepInput{
+//	                            &gosdk.TaskStepInput{},
+//	                        },
+//	                    },
+//	                },
+//	            },
+//	        },
+//	    },
+//	}
+//	client.Jobs.DeployJob(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) DeployJob(
+	ctx context.Context,
+	request *gosdk.DeployJobRequest,
+	opts ...option.RequestOption,
+) (*gosdk.JobVersionResponse, error) {
+	response, err := c.WithRawResponse.DeployJob(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Example:
+//
+//	request := &gosdk.ListJobRunsRequest{
+//	    Name: "name",
+//	}
+//	client.Jobs.ListJobRuns(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) ListJobRuns(
+	ctx context.Context,
+	request *gosdk.ListJobRunsRequest,
+	opts ...option.RequestOption,
+) (*core.Page[*string, *gosdk.JobRunListItem, *gosdk.ListPageJobRunListItem], error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		internal.ResolveEnvironmentBaseURL(
+			options.Environment,
+			"Control",
+		),
+		c.baseURL,
+		internal.ResolveEnvironmentBaseURL(
+			c.options.Environment,
+			"Control",
+		),
+		"https://api.islo.dev",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/jobs/%v/runs",
+		request.Name,
+	)
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	headers := internal.MergeHeaders(
+		c.options.ToHeader(),
+		options.ToHeader(),
+	)
+	prepareCall := func(pageRequest *core.PageRequest[*string]) *internal.CallParams {
+		if pageRequest.Cursor != nil {
+			queryParams.Set("cursor", *pageRequest.Cursor)
+		}
+		nextURL := endpointURL
+		if len(queryParams) > 0 {
+			nextURL += "?" + queryParams.Encode()
+		}
+		return &internal.CallParams{
+			URL:             nextURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			DisableRetries:  options.DisableRetries,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        pageRequest.Response,
+			ErrorDecoder:    internal.NewErrorDecoder(gosdk.ErrorCodes),
+		}
+	}
+	readPageResponse := func(response *gosdk.ListPageJobRunListItem) *core.PageResponse[*string, *gosdk.JobRunListItem, *gosdk.ListPageJobRunListItem] {
+		var zeroValue *string
+		next := response.GetNextCursor()
+		results := response.GetItems()
+		return &core.PageResponse[*string, *gosdk.JobRunListItem, *gosdk.ListPageJobRunListItem]{
+			Results:  results,
+			Response: response,
+			Next:     next,
+			Done:     next == zeroValue || *next == "",
+		}
+	}
+	pager := internal.NewCursorPager(
+		c.caller,
+		prepareCall,
+		readPageResponse,
+	)
+	return pager.GetPage(ctx, request.Cursor)
+}
+
+// Example:
+//
+//	request := &gosdk.TriggerJobRunRequest{
+//	    Name: "name",
+//	    Body: &gosdk.JobRunCreate{},
+//	}
+//	client.Jobs.TriggerJobRun(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) TriggerJobRun(
+	ctx context.Context,
+	request *gosdk.TriggerJobRunRequest,
+	opts ...option.RequestOption,
+) (*gosdk.JobRunResponse, error) {
+	response, err := c.WithRawResponse.TriggerJobRun(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Example:
+//
+//	request := &gosdk.GetJobRunRequest{
+//	    Name: "name",
+//	    RunID: "run_id",
+//	}
+//	client.Jobs.GetJobRun(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) GetJobRun(
+	ctx context.Context,
+	request *gosdk.GetJobRunRequest,
+	opts ...option.RequestOption,
+) (*gosdk.JobRunResponse, error) {
+	response, err := c.WithRawResponse.GetJobRun(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Example:
+//
+//	request := &gosdk.StopJobRunRequest{
+//	    Name: "name",
+//	    RunID: "run_id",
+//	    Body: &gosdk.JobRunStopRequest{},
+//	}
+//	client.Jobs.StopJobRun(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) StopJobRun(
+	ctx context.Context,
+	request *gosdk.StopJobRunRequest,
+	opts ...option.RequestOption,
+) (*gosdk.JobRunResponse, error) {
+	response, err := c.WithRawResponse.StopJobRun(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Example:
+//
+//	request := &gosdk.GetJobScheduleRequest{
+//	    Name: "name",
+//	}
+//	client.Jobs.GetJobSchedule(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) GetJobSchedule(
+	ctx context.Context,
+	request *gosdk.GetJobScheduleRequest,
+	opts ...option.RequestOption,
+) (*gosdk.JobScheduleResponse, error) {
+	response, err := c.WithRawResponse.GetJobSchedule(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Example:
+//
+//	request := &gosdk.DeleteJobScheduleRequest{
+//	    Name: "name",
+//	}
+//	client.Jobs.DeleteJobSchedule(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) DeleteJobSchedule(
+	ctx context.Context,
+	request *gosdk.DeleteJobScheduleRequest,
+	opts ...option.RequestOption,
+) error {
+	_, err := c.WithRawResponse.DeleteJobSchedule(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Example:
+//
+//	request := &gosdk.ValidateJobManifestRequest{
+//	    Name: "name",
+//	    Body: &gosdk.JobDeployRequest{
+//	        Manifest: &gosdk.JobManifestInput{
+//	            Job: &gosdk.JobSection{
+//	                Name: "name",
+//	            },
+//	            Run: &gosdk.RunSectionInput{
+//	                Tasks: []*gosdk.TaskInput{
+//	                    &gosdk.TaskInput{
+//	                        Name: "name",
+//	                        Steps: []*gosdk.TaskStepInput{
+//	                            &gosdk.TaskStepInput{},
+//	                        },
+//	                    },
+//	                },
+//	            },
+//	        },
+//	    },
+//	}
+//	client.Jobs.ValidateJobManifest(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) ValidateJobManifest(
+	ctx context.Context,
+	request *gosdk.ValidateJobManifestRequest,
+	opts ...option.RequestOption,
+) error {
+	_, err := c.WithRawResponse.ValidateJobManifest(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Example:
+//
+//	request := &gosdk.ListJobVersionsRequest{
+//	    Name: "name",
+//	}
+//	client.Jobs.ListJobVersions(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListJobVersions(
 	ctx context.Context,
 	request *gosdk.ListJobVersionsRequest,
 	opts ...option.RequestOption,
-) ([]*gosdk.JobVersionResponse, error) {
+) (*core.Page[*string, *gosdk.JobVersionResponse, *gosdk.ListPageJobVersionResponse], error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
+		internal.ResolveEnvironmentBaseURL(
+			options.Environment,
+			"Control",
+		),
 		c.baseURL,
+		internal.ResolveEnvironmentBaseURL(
+			c.options.Environment,
+			"Control",
+		),
 		"https://api.islo.dev",
 	)
 	endpointURL := internal.EncodeURL(
@@ -313,378 +496,72 @@ func (c *Client) ListJobVersions(
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
 	headers := internal.MergeHeaders(
-		c.header.Clone(),
+		c.options.ToHeader(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.JobVersionResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
+	prepareCall := func(pageRequest *core.PageRequest[*string]) *internal.CallParams {
+		if pageRequest.Cursor != nil {
+			queryParams.Set("cursor", *pageRequest.Cursor)
+		}
+		nextURL := endpointURL
+		if len(queryParams) > 0 {
+			nextURL += "?" + queryParams.Encode()
+		}
+		return &internal.CallParams{
+			URL:             nextURL,
 			Method:          http.MethodGet,
 			Headers:         headers,
 			MaxAttempts:     options.MaxAttempts,
+			DisableRetries:  options.DisableRetries,
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
+			Response:        pageRequest.Response,
+			ErrorDecoder:    internal.NewErrorDecoder(gosdk.ErrorCodes),
+		}
 	}
-	return response, nil
+	readPageResponse := func(response *gosdk.ListPageJobVersionResponse) *core.PageResponse[*string, *gosdk.JobVersionResponse, *gosdk.ListPageJobVersionResponse] {
+		var zeroValue *string
+		next := response.GetNextCursor()
+		results := response.GetItems()
+		return &core.PageResponse[*string, *gosdk.JobVersionResponse, *gosdk.ListPageJobVersionResponse]{
+			Results:  results,
+			Response: response,
+			Next:     next,
+			Done:     next == zeroValue || *next == "",
+		}
+	}
+	pager := internal.NewCursorPager(
+		c.caller,
+		prepareCall,
+		readPageResponse,
+	)
+	return pager.GetPage(ctx, request.Cursor)
 }
 
+// Example:
+//
+//	request := &gosdk.GetJobVersionRequest{
+//	    Name: "name",
+//	    VersionID: "version_id",
+//	}
+//	client.Jobs.GetJobVersion(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetJobVersion(
 	ctx context.Context,
 	request *gosdk.GetJobVersionRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.JobVersionResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v/versions/%v",
-		request.Name,
-		request.VersionID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.JobVersionResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetJobVersion(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) ListJobRuns(
-	ctx context.Context,
-	request *gosdk.ListJobRunsRequest,
-	opts ...option.RequestOption,
-) ([]*gosdk.JobRunListItem, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
+		request,
+		opts...,
 	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v/runs",
-		request.Name,
-	)
-	queryParams, err := internal.QueryValues(request)
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.JobRunListItem
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) TriggerJobRun(
-	ctx context.Context,
-	request *gosdk.JobRunCreate,
-	opts ...option.RequestOption,
-) (*gosdk.JobRunResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v/runs",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.JobRunResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) GetJobRun(
-	ctx context.Context,
-	request *gosdk.GetJobRunRequest,
-	opts ...option.RequestOption,
-) (*gosdk.JobRunResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v/runs/%v",
-		request.Name,
-		request.RunID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.JobRunResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) StopJobRun(
-	ctx context.Context,
-	request *gosdk.JobRunStopRequest,
-	opts ...option.RequestOption,
-) (*gosdk.JobRunResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v/runs/%v/stop",
-		request.Name,
-		request.RunID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.JobRunResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) GetJobSchedule(
-	ctx context.Context,
-	request *gosdk.GetJobScheduleRequest,
-	opts ...option.RequestOption,
-) (*gosdk.JobScheduleResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v/schedule",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.JobScheduleResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) DeleteJobSchedule(
-	ctx context.Context,
-	request *gosdk.DeleteJobScheduleRequest,
-	opts ...option.RequestOption,
-) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/jobs/%v/schedule",
-		request.Name,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodDelete,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return err
-	}
-	return nil
+	return response.Body, nil
 }

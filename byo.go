@@ -6,10 +6,55 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
+)
+
+var (
+	byoSetupRequestFieldSourceKind = big.NewInt(1 << 0)
 )
 
 type ByoSetupRequest struct {
 	SourceKind ByoSourceKind `json:"source_kind" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (b *ByoSetupRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+// SetSourceKind sets the SourceKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoSetupRequest) SetSourceKind(sourceKind ByoSourceKind) {
+	b.SourceKind = sourceKind
+	b.require(byoSetupRequestFieldSourceKind)
+}
+
+func (b *ByoSetupRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler ByoSetupRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*b = ByoSetupRequest(body)
+	return nil
+}
+
+func (b *ByoSetupRequest) MarshalJSON() ([]byte, error) {
+	type embed ByoSetupRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 type ByoConnectionState string
@@ -43,14 +88,38 @@ func (b ByoConnectionState) Ptr() *ByoConnectionState {
 	return &b
 }
 
+var (
+	byoProviderStatusFieldMessage      = big.NewInt(1 << 0)
+	byoProviderStatusFieldProviderName = big.NewInt(1 << 1)
+	byoProviderStatusFieldSourceKind   = big.NewInt(1 << 2)
+	byoProviderStatusFieldState        = big.NewInt(1 << 3)
+)
+
 type ByoProviderStatus struct {
+	Message      *string            `json:"message,omitempty" url:"message,omitempty"`
+	ProviderName *string            `json:"provider_name,omitempty" url:"provider_name,omitempty"`
 	SourceKind   ByoSourceKind      `json:"source_kind" url:"source_kind"`
 	State        ByoConnectionState `json:"state" url:"state"`
-	ProviderName *string            `json:"provider_name,omitempty" url:"provider_name,omitempty"`
-	Message      *string            `json:"message,omitempty" url:"message,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (b *ByoProviderStatus) GetMessage() *string {
+	if b == nil {
+		return nil
+	}
+	return b.Message
+}
+
+func (b *ByoProviderStatus) GetProviderName() *string {
+	if b == nil {
+		return nil
+	}
+	return b.ProviderName
 }
 
 func (b *ByoProviderStatus) GetSourceKind() ByoSourceKind {
@@ -67,22 +136,48 @@ func (b *ByoProviderStatus) GetState() ByoConnectionState {
 	return b.State
 }
 
-func (b *ByoProviderStatus) GetProviderName() *string {
-	if b == nil {
-		return nil
-	}
-	return b.ProviderName
-}
-
-func (b *ByoProviderStatus) GetMessage() *string {
-	if b == nil {
-		return nil
-	}
-	return b.Message
-}
-
 func (b *ByoProviderStatus) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
 	return b.extraProperties
+}
+
+func (b *ByoProviderStatus) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+// SetMessage sets the Message field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoProviderStatus) SetMessage(message *string) {
+	b.Message = message
+	b.require(byoProviderStatusFieldMessage)
+}
+
+// SetProviderName sets the ProviderName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoProviderStatus) SetProviderName(providerName *string) {
+	b.ProviderName = providerName
+	b.require(byoProviderStatusFieldProviderName)
+}
+
+// SetSourceKind sets the SourceKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoProviderStatus) SetSourceKind(sourceKind ByoSourceKind) {
+	b.SourceKind = sourceKind
+	b.require(byoProviderStatusFieldSourceKind)
+}
+
+// SetState sets the State field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoProviderStatus) SetState(state ByoConnectionState) {
+	b.State = state
+	b.require(byoProviderStatusFieldState)
 }
 
 func (b *ByoProviderStatus) UnmarshalJSON(data []byte) error {
@@ -101,7 +196,21 @@ func (b *ByoProviderStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (b *ByoProviderStatus) MarshalJSON() ([]byte, error) {
+	type embed ByoProviderStatus
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (b *ByoProviderStatus) String() string {
+	if b == nil {
+		return "<nil>"
+	}
 	if len(b.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
 			return value
@@ -132,22 +241,26 @@ func (b ByoSetupMode) Ptr() *ByoSetupMode {
 	return &b
 }
 
+var (
+	byoSetupResponseFieldConnectionID   = big.NewInt(1 << 0)
+	byoSetupResponseFieldRedirectURL    = big.NewInt(1 << 1)
+	byoSetupResponseFieldSetupMode      = big.NewInt(1 << 2)
+	byoSetupResponseFieldSetupSessionID = big.NewInt(1 << 3)
+	byoSetupResponseFieldSourceKind     = big.NewInt(1 << 4)
+)
+
 type ByoSetupResponse struct {
-	SetupSessionID string        `json:"setup_session_id" url:"setup_session_id"`
 	ConnectionID   string        `json:"connection_id" url:"connection_id"`
-	SourceKind     ByoSourceKind `json:"source_kind" url:"source_kind"`
-	SetupMode      ByoSetupMode  `json:"setup_mode" url:"setup_mode"`
 	RedirectURL    string        `json:"redirect_url" url:"redirect_url"`
+	SetupMode      ByoSetupMode  `json:"setup_mode" url:"setup_mode"`
+	SetupSessionID string        `json:"setup_session_id" url:"setup_session_id"`
+	SourceKind     ByoSourceKind `json:"source_kind" url:"source_kind"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
-}
-
-func (b *ByoSetupResponse) GetSetupSessionID() string {
-	if b == nil {
-		return ""
-	}
-	return b.SetupSessionID
 }
 
 func (b *ByoSetupResponse) GetConnectionID() string {
@@ -157,11 +270,11 @@ func (b *ByoSetupResponse) GetConnectionID() string {
 	return b.ConnectionID
 }
 
-func (b *ByoSetupResponse) GetSourceKind() ByoSourceKind {
+func (b *ByoSetupResponse) GetRedirectURL() string {
 	if b == nil {
 		return ""
 	}
-	return b.SourceKind
+	return b.RedirectURL
 }
 
 func (b *ByoSetupResponse) GetSetupMode() ByoSetupMode {
@@ -171,15 +284,69 @@ func (b *ByoSetupResponse) GetSetupMode() ByoSetupMode {
 	return b.SetupMode
 }
 
-func (b *ByoSetupResponse) GetRedirectURL() string {
+func (b *ByoSetupResponse) GetSetupSessionID() string {
 	if b == nil {
 		return ""
 	}
-	return b.RedirectURL
+	return b.SetupSessionID
+}
+
+func (b *ByoSetupResponse) GetSourceKind() ByoSourceKind {
+	if b == nil {
+		return ""
+	}
+	return b.SourceKind
 }
 
 func (b *ByoSetupResponse) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
 	return b.extraProperties
+}
+
+func (b *ByoSetupResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+// SetConnectionID sets the ConnectionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoSetupResponse) SetConnectionID(connectionID string) {
+	b.ConnectionID = connectionID
+	b.require(byoSetupResponseFieldConnectionID)
+}
+
+// SetRedirectURL sets the RedirectURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoSetupResponse) SetRedirectURL(redirectURL string) {
+	b.RedirectURL = redirectURL
+	b.require(byoSetupResponseFieldRedirectURL)
+}
+
+// SetSetupMode sets the SetupMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoSetupResponse) SetSetupMode(setupMode ByoSetupMode) {
+	b.SetupMode = setupMode
+	b.require(byoSetupResponseFieldSetupMode)
+}
+
+// SetSetupSessionID sets the SetupSessionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoSetupResponse) SetSetupSessionID(setupSessionID string) {
+	b.SetupSessionID = setupSessionID
+	b.require(byoSetupResponseFieldSetupSessionID)
+}
+
+// SetSourceKind sets the SourceKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoSetupResponse) SetSourceKind(sourceKind ByoSourceKind) {
+	b.SourceKind = sourceKind
+	b.require(byoSetupResponseFieldSourceKind)
 }
 
 func (b *ByoSetupResponse) UnmarshalJSON(data []byte) error {
@@ -198,7 +365,21 @@ func (b *ByoSetupResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (b *ByoSetupResponse) MarshalJSON() ([]byte, error) {
+	type embed ByoSetupResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (b *ByoSetupResponse) String() string {
+	if b == nil {
+		return "<nil>"
+	}
 	if len(b.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
 			return value
@@ -232,8 +413,15 @@ func (b ByoSourceKind) Ptr() *ByoSourceKind {
 	return &b
 }
 
+var (
+	byoStatusResponseFieldStatuses = big.NewInt(1 << 0)
+)
+
 type ByoStatusResponse struct {
 	Statuses []*ByoProviderStatus `json:"statuses" url:"statuses"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -247,7 +435,26 @@ func (b *ByoStatusResponse) GetStatuses() []*ByoProviderStatus {
 }
 
 func (b *ByoStatusResponse) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
 	return b.extraProperties
+}
+
+func (b *ByoStatusResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if b.explicitFields != nil {
+		next.Set(b.explicitFields)
+	}
+	next.Or(next, field)
+	b.explicitFields = next
+}
+
+// SetStatuses sets the Statuses field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *ByoStatusResponse) SetStatuses(statuses []*ByoProviderStatus) {
+	b.Statuses = statuses
+	b.require(byoStatusResponseFieldStatuses)
 }
 
 func (b *ByoStatusResponse) UnmarshalJSON(data []byte) error {
@@ -266,7 +473,21 @@ func (b *ByoStatusResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (b *ByoStatusResponse) MarshalJSON() ([]byte, error) {
+	type embed ByoStatusResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (b *ByoStatusResponse) String() string {
+	if b == nil {
+		return "<nil>"
+	}
 	if len(b.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
 			return value

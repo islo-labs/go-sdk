@@ -4,46 +4,68 @@ package jobruns
 
 import (
 	context "context"
+	http "net/http"
+	os "os"
+
 	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	internal "github.com/islo-labs/go-sdk/internal"
 	option "github.com/islo-labs/go-sdk/option"
-	http "net/http"
-	os "os"
 )
 
 type Client struct {
+	WithRawResponse *RawClient
+
+	options *core.RequestOptions
 	baseURL string
 	caller  *internal.Caller
-	header  http.Header
 }
 
-func NewClient(opts ...option.RequestOption) *Client {
-	options := core.NewRequestOptions(opts...)
+func NewClient(options *core.RequestOptions) *Client {
 	if options.APIKey == "" {
 		options.APIKey = os.Getenv("ISLO_API_KEY")
 	}
+	if options.APIVersion == "" {
+		options.APIVersion = "2026-09-15"
+	}
 	return &Client{
-		baseURL: options.BaseURL,
+		WithRawResponse: NewRawClient(options),
+		options:         options,
+		baseURL:         options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
-				Client:      options.HTTPClient,
-				MaxAttempts: options.MaxAttempts,
+				Client:         options.HTTPClient,
+				MaxAttempts:    options.MaxAttempts,
+				DisableRetries: options.DisableRetries,
 			},
 		),
-		header: options.ToHeader(),
 	}
 }
 
+// Example:
+//
+//	request := &gosdk.ListAllJobRunsRequest{}
+//	client.JobRuns.ListAllJobRuns(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) ListAllJobRuns(
 	ctx context.Context,
 	request *gosdk.ListAllJobRunsRequest,
 	opts ...option.RequestOption,
-) ([]*gosdk.JobRunListItem, error) {
+) (*core.Page[*string, *gosdk.JobRunListItem, *gosdk.ListPageJobRunListItem], error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
+		internal.ResolveEnvironmentBaseURL(
+			options.Environment,
+			"Control",
+		),
 		c.baseURL,
+		internal.ResolveEnvironmentBaseURL(
+			c.options.Environment,
+			"Control",
+		),
 		"https://api.islo.dev",
 	)
 	endpointURL := baseURL + "/job-runs"
@@ -51,84 +73,100 @@ func (c *Client) ListAllJobRuns(
 	if err != nil {
 		return nil, err
 	}
-	if len(queryParams) > 0 {
-		endpointURL += "?" + queryParams.Encode()
-	}
 	headers := internal.MergeHeaders(
-		c.header.Clone(),
+		c.options.ToHeader(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response []*gosdk.JobRunListItem
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
+	prepareCall := func(pageRequest *core.PageRequest[*string]) *internal.CallParams {
+		if pageRequest.Cursor != nil {
+			queryParams.Set("cursor", *pageRequest.Cursor)
+		}
+		nextURL := endpointURL
+		if len(queryParams) > 0 {
+			nextURL += "?" + queryParams.Encode()
+		}
+		return &internal.CallParams{
+			URL:             nextURL,
 			Method:          http.MethodGet,
 			Headers:         headers,
 			MaxAttempts:     options.MaxAttempts,
+			DisableRetries:  options.DisableRetries,
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
-		return nil, err
+			Response:        pageRequest.Response,
+			ErrorDecoder:    internal.NewErrorDecoder(gosdk.ErrorCodes),
+		}
 	}
-	return response, nil
+	readPageResponse := func(response *gosdk.ListPageJobRunListItem) *core.PageResponse[*string, *gosdk.JobRunListItem, *gosdk.ListPageJobRunListItem] {
+		var zeroValue *string
+		next := response.GetNextCursor()
+		results := response.GetItems()
+		return &core.PageResponse[*string, *gosdk.JobRunListItem, *gosdk.ListPageJobRunListItem]{
+			Results:  results,
+			Response: response,
+			Next:     next,
+			Done:     next == zeroValue || *next == "",
+		}
+	}
+	pager := internal.NewCursorPager(
+		c.caller,
+		prepareCall,
+		readPageResponse,
+	)
+	return pager.GetPage(ctx, request.Cursor)
 }
 
+// Example:
+//
+//	request := &gosdk.ListJobRunFacetsRequest{
+//	    Fields: []*string{
+//	        gosdk.String(
+//	            "fields",
+//	        ),
+//	    },
+//	}
+//	client.JobRuns.ListJobRunFacets(
+//	    context.TODO(),
+//	    request,
+//	)
+func (c *Client) ListJobRunFacets(
+	ctx context.Context,
+	request *gosdk.ListJobRunFacetsRequest,
+	opts ...option.RequestOption,
+) (*gosdk.FacetsResponse, error) {
+	response, err := c.WithRawResponse.ListJobRunFacets(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Example:
+//
+//	request := &gosdk.GetJobRunByIDRequest{
+//	    RunID: "run_id",
+//	}
+//	client.JobRuns.GetJobRunByID(
+//	    context.TODO(),
+//	    request,
+//	)
 func (c *Client) GetJobRunByID(
 	ctx context.Context,
 	request *gosdk.GetJobRunByIDRequest,
 	opts ...option.RequestOption,
 ) (*gosdk.JobRunResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.islo.dev",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/job-runs/%v",
-		request.RunID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	errorCodes := internal.ErrorCodes{
-		422: func(apiError *core.APIError) error {
-			return &gosdk.UnprocessableEntityError{
-				APIError: apiError,
-			}
-		},
-	}
-
-	var response *gosdk.JobRunResponse
-	if err := c.caller.Call(
+	response, err := c.WithRawResponse.GetJobRunByID(
 		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
-		},
-	); err != nil {
+		request,
+		opts...,
+	)
+	if err != nil {
 		return nil, err
 	}
-	return response, nil
+	return response.Body, nil
 }

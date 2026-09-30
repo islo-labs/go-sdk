@@ -6,34 +6,174 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/islo-labs/go-sdk/internal"
+	big "math/big"
 	time "time"
+)
+
+var (
+	snapshotCreateFieldName        = big.NewInt(1 << 0)
+	snapshotCreateFieldSandboxName = big.NewInt(1 << 1)
 )
 
 type SnapshotCreate struct {
 	Name        *string `json:"name,omitempty" url:"-"`
 	SandboxName string  `json:"sandbox_name" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (s *SnapshotCreate) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotCreate) SetName(name *string) {
+	s.Name = name
+	s.require(snapshotCreateFieldName)
+}
+
+// SetSandboxName sets the SandboxName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotCreate) SetSandboxName(sandboxName string) {
+	s.SandboxName = sandboxName
+	s.require(snapshotCreateFieldSandboxName)
+}
+
+func (s *SnapshotCreate) UnmarshalJSON(data []byte) error {
+	type unmarshaler SnapshotCreate
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*s = SnapshotCreate(body)
+	return nil
+}
+
+func (s *SnapshotCreate) MarshalJSON() ([]byte, error) {
+	type embed SnapshotCreate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	deleteSnapshotRequestFieldName = big.NewInt(1 << 0)
+)
 
 type DeleteSnapshotRequest struct {
 	// Snapshot name
 	Name string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (d *DeleteSnapshotRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if d.explicitFields != nil {
+		next.Set(d.explicitFields)
+	}
+	next.Or(next, field)
+	d.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DeleteSnapshotRequest) SetName(name string) {
+	d.Name = name
+	d.require(deleteSnapshotRequestFieldName)
+}
+
+var (
+	getSnapshotRequestFieldName = big.NewInt(1 << 0)
+)
 
 type GetSnapshotRequest struct {
 	// Snapshot name
 	Name string `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (g *GetSnapshotRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if g.explicitFields != nil {
+		next.Set(g.explicitFields)
+	}
+	next.Or(next, field)
+	g.explicitFields = next
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetSnapshotRequest) SetName(name string) {
+	g.Name = name
+	g.require(getSnapshotRequestFieldName)
+}
+
+var (
+	listSnapshotsRequestFieldLimit  = big.NewInt(1 << 0)
+	listSnapshotsRequestFieldOffset = big.NewInt(1 << 1)
+)
 
 type ListSnapshotsRequest struct {
 	Limit  *int `json:"-" url:"limit,omitempty"`
 	Offset *int `json:"-" url:"offset,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 }
+
+func (l *ListSnapshotsRequest) require(field *big.Int) {
+	next := new(big.Int)
+	if l.explicitFields != nil {
+		next.Set(l.explicitFields)
+	}
+	next.Or(next, field)
+	l.explicitFields = next
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListSnapshotsRequest) SetLimit(limit *int) {
+	l.Limit = limit
+	l.require(listSnapshotsRequestFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListSnapshotsRequest) SetOffset(offset *int) {
+	l.Offset = offset
+	l.require(listSnapshotsRequestFieldOffset)
+}
+
+var (
+	paginatedSnapshotResponseFieldItems  = big.NewInt(1 << 0)
+	paginatedSnapshotResponseFieldLimit  = big.NewInt(1 << 1)
+	paginatedSnapshotResponseFieldOffset = big.NewInt(1 << 2)
+	paginatedSnapshotResponseFieldTotal  = big.NewInt(1 << 3)
+)
 
 type PaginatedSnapshotResponse struct {
 	Items  []*SnapshotResponse `json:"items" url:"items"`
 	Limit  int                 `json:"limit" url:"limit"`
 	Offset int                 `json:"offset" url:"offset"`
 	Total  int64               `json:"total" url:"total"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -68,7 +208,47 @@ func (p *PaginatedSnapshotResponse) GetTotal() int64 {
 }
 
 func (p *PaginatedSnapshotResponse) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
 	return p.extraProperties
+}
+
+func (p *PaginatedSnapshotResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if p.explicitFields != nil {
+		next.Set(p.explicitFields)
+	}
+	next.Or(next, field)
+	p.explicitFields = next
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PaginatedSnapshotResponse) SetItems(items []*SnapshotResponse) {
+	p.Items = items
+	p.require(paginatedSnapshotResponseFieldItems)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PaginatedSnapshotResponse) SetLimit(limit int) {
+	p.Limit = limit
+	p.require(paginatedSnapshotResponseFieldLimit)
+}
+
+// SetOffset sets the Offset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PaginatedSnapshotResponse) SetOffset(offset int) {
+	p.Offset = offset
+	p.require(paginatedSnapshotResponseFieldOffset)
+}
+
+// SetTotal sets the Total field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PaginatedSnapshotResponse) SetTotal(total int64) {
+	p.Total = total
+	p.require(paginatedSnapshotResponseFieldTotal)
 }
 
 func (p *PaginatedSnapshotResponse) UnmarshalJSON(data []byte) error {
@@ -87,7 +267,21 @@ func (p *PaginatedSnapshotResponse) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (p *PaginatedSnapshotResponse) MarshalJSON() ([]byte, error) {
+	type embed PaginatedSnapshotResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
 func (p *PaginatedSnapshotResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
 	if len(p.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
 			return value
@@ -99,6 +293,18 @@ func (p *PaginatedSnapshotResponse) String() string {
 	return fmt.Sprintf("%#v", p)
 }
 
+var (
+	snapshotResponseFieldChecksumSha256  = big.NewInt(1 << 0)
+	snapshotResponseFieldCreatedAt       = big.NewInt(1 << 1)
+	snapshotResponseFieldCreatedBy       = big.NewInt(1 << 2)
+	snapshotResponseFieldCreatedByEntity = big.NewInt(1 << 3)
+	snapshotResponseFieldID              = big.NewInt(1 << 4)
+	snapshotResponseFieldName            = big.NewInt(1 << 5)
+	snapshotResponseFieldSandboxID       = big.NewInt(1 << 6)
+	snapshotResponseFieldSizeBytes       = big.NewInt(1 << 7)
+	snapshotResponseFieldStatus          = big.NewInt(1 << 8)
+)
+
 type SnapshotResponse struct {
 	ChecksumSha256  *string    `json:"checksum_sha256,omitempty" url:"checksum_sha256,omitempty"`
 	CreatedAt       *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
@@ -109,6 +315,9 @@ type SnapshotResponse struct {
 	SandboxID       *string    `json:"sandbox_id,omitempty" url:"sandbox_id,omitempty"`
 	SizeBytes       *int64     `json:"size_bytes,omitempty" url:"size_bytes,omitempty"`
 	Status          string     `json:"status" url:"status"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -178,7 +387,82 @@ func (s *SnapshotResponse) GetStatus() string {
 }
 
 func (s *SnapshotResponse) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
 	return s.extraProperties
+}
+
+func (s *SnapshotResponse) require(field *big.Int) {
+	next := new(big.Int)
+	if s.explicitFields != nil {
+		next.Set(s.explicitFields)
+	}
+	next.Or(next, field)
+	s.explicitFields = next
+}
+
+// SetChecksumSha256 sets the ChecksumSha256 field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResponse) SetChecksumSha256(checksumSha256 *string) {
+	s.ChecksumSha256 = checksumSha256
+	s.require(snapshotResponseFieldChecksumSha256)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResponse) SetCreatedAt(createdAt *time.Time) {
+	s.CreatedAt = createdAt
+	s.require(snapshotResponseFieldCreatedAt)
+}
+
+// SetCreatedBy sets the CreatedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResponse) SetCreatedBy(createdBy *string) {
+	s.CreatedBy = createdBy
+	s.require(snapshotResponseFieldCreatedBy)
+}
+
+// SetCreatedByEntity sets the CreatedByEntity field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResponse) SetCreatedByEntity(createdByEntity *string) {
+	s.CreatedByEntity = createdByEntity
+	s.require(snapshotResponseFieldCreatedByEntity)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResponse) SetID(id string) {
+	s.ID = id
+	s.require(snapshotResponseFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResponse) SetName(name string) {
+	s.Name = name
+	s.require(snapshotResponseFieldName)
+}
+
+// SetSandboxID sets the SandboxID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResponse) SetSandboxID(sandboxID *string) {
+	s.SandboxID = sandboxID
+	s.require(snapshotResponseFieldSandboxID)
+}
+
+// SetSizeBytes sets the SizeBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResponse) SetSizeBytes(sizeBytes *int64) {
+	s.SizeBytes = sizeBytes
+	s.require(snapshotResponseFieldSizeBytes)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotResponse) SetStatus(status string) {
+	s.Status = status
+	s.require(snapshotResponseFieldStatus)
 }
 
 func (s *SnapshotResponse) UnmarshalJSON(data []byte) error {
@@ -212,10 +496,14 @@ func (s *SnapshotResponse) MarshalJSON() ([]byte, error) {
 		embed:     embed(*s),
 		CreatedAt: internal.NewOptionalDateTime(s.CreatedAt),
 	}
-	return json.Marshal(marshaler)
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 func (s *SnapshotResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
