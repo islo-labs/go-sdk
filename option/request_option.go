@@ -3,7 +3,6 @@
 package option
 
 import (
-	gosdk "github.com/islo-labs/go-sdk"
 	core "github.com/islo-labs/go-sdk/core"
 	http "net/http"
 	url "net/url"
@@ -98,7 +97,10 @@ func WithoutRetries() *core.WithoutRetriesOption {
 
 // WithEnvironment sets the environment for the client, which determines
 // the base URL for each endpoint.
-func WithEnvironment(environment gosdk.Environment) *core.EnvironmentOption {
+func WithEnvironment(environment struct {
+	Control string
+	Compute string
+}) *core.EnvironmentOption {
 	return &core.EnvironmentOption{
 		Environment: environment,
 	}
