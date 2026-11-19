@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"testing"
 
+	api "github.com/islo-labs/go-sdk"
 	"github.com/islo-labs/go-sdk/option"
 )
 
@@ -123,6 +124,51 @@ func TestNewIslo_RoutesControlURLAndComputeURLFromEnv(t *testing.T) {
 	}
 	if computePath != "/sandboxes" {
 		t.Fatalf("compute request path = %q, want /sandboxes", computePath)
+	}
+}
+
+func TestNewIslo_DefaultTransportUsesConfiguredHosts(t *testing.T) {
+	var controlHost, computeHost string
+	control := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Host != controlHost {
+			t.Errorf("control request Host = %q, want %q", r.Host, controlHost)
+		}
+		if r.URL.Path == "/auth/token" {
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"session_token":  "jwt-configured-hosts",
+				"cookie_max_age": 600,
+			})
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer control.Close()
+	controlURL, _ := url.Parse(control.URL)
+	controlHost = controlURL.Host
+
+	compute := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Host != computeHost {
+			t.Errorf("compute request Host = %q, want %q", r.Host, computeHost)
+		}
+		if r.Method != http.MethodPost || r.URL.Path != "/sandboxes" {
+			t.Errorf("compute request = %s %s, want POST /sandboxes", r.Method, r.URL.Path)
+		}
+		if r.Header.Get("Authorization") != "Bearer jwt-configured-hosts" {
+			t.Error("sandbox creation is missing the exchanged bearer token")
+		}
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"id": "sandbox-host-test", "name": "host-test", "status": "running",
+		})
+	}))
+	defer compute.Close()
+	computeURL, _ := url.Parse(compute.URL)
+	computeHost = computeURL.Host
+	t.Setenv("ISLO_COMPUTE_URL", compute.URL)
+
+	c := NewIslo(option.WithBaseURL(control.URL), option.WithAPIKey("ak_configured_hosts"))
+	_, _ = c.Credits.GetCreditBalance(context.Background())
+	if _, err := c.Sandboxes.CreateSandbox(context.Background(), &api.CreateSandboxRequest{}); err != nil {
+		t.Fatalf("CreateSandbox: %v", err)
 	}
 }
 
