@@ -124,6 +124,7 @@ func (t *environmentRewriteTransport) RoundTrip(req *http.Request) (*http.Respon
 
 	cloned := req.Clone(req.Context())
 	cloned.URL = rewriteURL(req.URL, target)
+	cloned.Host = cloned.URL.Host
 	return t.base.RoundTrip(cloned)
 }
 
