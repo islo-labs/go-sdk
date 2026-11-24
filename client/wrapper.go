@@ -124,6 +124,10 @@ func (t *environmentRewriteTransport) RoundTrip(req *http.Request) (*http.Respon
 
 	cloned := req.Clone(req.Context())
 	cloned.URL = rewriteURL(req.URL, target)
+	// NewRequest initializes Host from the original URL. Keep the HTTP
+	// authority in sync with the destination (and TLS server name) so regional
+	// endpoints do not receive the generated client's default host.
+	cloned.Host = cloned.URL.Host
 	return t.base.RoundTrip(cloned)
 }
 
